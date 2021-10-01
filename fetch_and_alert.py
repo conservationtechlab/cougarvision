@@ -40,7 +40,7 @@ import visualization.visualization_utils as viz_utils
 warnings.filterwarnings('ignore', category=FutureWarning)
 
 # Load sensitive/configuration information from local file
-with open('email_config.txt') as file:
+with open('config/email_config.txt') as file:
   keys = json.load(file)
 
 # Set Email Variables for fetching
@@ -62,7 +62,7 @@ confidence_threshold=.5
 
 
 # Load Labels for classifier
-labels_map = json.load(open('labels_map.txt'))
+labels_map = json.load(open('labels/labels_map.txt'))
 labels_map = [labels_map[str(i)] for i in range(1000)]
 
 
