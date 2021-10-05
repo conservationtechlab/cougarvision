@@ -105,7 +105,11 @@ def receive_frame():
     while(ret):
         ret,frame = cap.read()
         frame = cv2.resize(frame,(1280,720),fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
+
         stack.append(frame)
+        if len(stack) > 100 :
+            stack.popleft()
+            
 
 def process_frame():
     while True:
