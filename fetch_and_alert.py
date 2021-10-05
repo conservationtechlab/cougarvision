@@ -28,6 +28,7 @@ if force_cpu:
     os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 threads = 1
 
+import tensorflow as tf
 
 # Adds CameraTraps to Sys path, import specific utilities
 sys.path.append('/home/jaredm/Conservation_Fellowship/CameraTraps')
