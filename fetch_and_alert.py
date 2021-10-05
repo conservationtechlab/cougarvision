@@ -31,7 +31,7 @@ threads = 1
 import tensorflow as tf
 
 # Adds CameraTraps to Sys path, import specific utilities
-sys.path.append('/home/jaredm/Conservation_Fellowship/CameraTraps')
+sys.path.append('../CameraTraps')
 from detection.run_tf_detector import ImagePathUtils, TFDetector
 from detection.run_tf_detector_batch import load_and_run_detector_batch
 import visualization.visualization_utils as viz_utils

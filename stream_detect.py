@@ -21,7 +21,7 @@ stack = deque()
 
 
 # Adds CameraTraps to Sys path, import specific utilities
-sys.path.append('/home/jaredm/Conservation_Fellowship/CameraTraps')
+sys.path.append('../CameraTraps')
 from detection.run_tf_detector import ImagePathUtils, TFDetector
 import visualization.visualization_utils as viz_utils
 
