@@ -20,12 +20,7 @@ import torch
 from torchvision import transforms
 
 
-# Useful hack to force CPU inference 
-# Comment this out if attached and working GPU
-# Need to do this before any TF imports
-force_cpu = False
-if force_cpu:
-    os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+
 threads = 1
 
 import tensorflow as tf
@@ -134,7 +129,6 @@ def classify(image_crops, MODEL_PATH):
     classifications = []
     print(image_crops)
     for image in image_crops:
-        print(image)
         # for crop in image[0][0]:
         crop = image[0][0][0]
         # Preprocess Image

@@ -98,11 +98,13 @@ def receive_frame():
     print("Starting Video Stream")
     cap = cv2.VideoCapture(stream_path)
     ret,frame = cap.read()
+    frame = cv2.resize(frame,(1280,720),fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
+
     stack.append(frame)
 
     while(ret):
         ret,frame = cap.read()
-
+        frame = cv2.resize(frame,(1280,720),fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
         stack.append(frame)
 
 def process_frame():
