@@ -59,7 +59,7 @@ conf = 0.5
 
 
 # Set Stream Path
-stream_path = str(sys.arv[1])
+stream_path = str(sys.argv[1])
 
 def post_process(img, result, conf):
     H, W = img.shape[:2]
