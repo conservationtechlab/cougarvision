@@ -59,7 +59,7 @@ conf = 0.5
 
 
 # Set Stream Path
-stream_path = 'rtsp://admin:NyalaChow22@192.168.1.64:8080'
+stream_path = str(sys.arv[1])
 
 def post_process(img, result, conf):
     H, W = img.shape[:2]
@@ -109,7 +109,7 @@ def receive_frame():
         stack.append(frame)
         if len(stack) > 100 :
             stack.popleft()
-            
+
 
 def process_frame():
     while True:
@@ -164,8 +164,16 @@ def process_frame():
                     label = image_net_labels[preds[0]].split(",")[0]
                     prob = torch.softmax(logits, dim=1)[0, preds[0]].item()
                     image = Image.fromarray(frame)
+
+                    flag = 0 
                     if str(preds[0]) in labels['lizard']:
                         label = 'lizard'
+                        flag = 1
+
+                    elif str(preds[0]) in labels['cougar']:
+                        label = 'cougar'
+                        flag = 1
+
                     viz_utils.draw_bounding_box_on_image(image,
                                         bbox[1], bbox[0], bbox[1] + bbox[3], bbox[0] + bbox[2],
                                         clss=preds[0],
@@ -177,8 +185,8 @@ def process_frame():
                     frame = np.asarray(image)
 
 
-                    if str(preds[0]) in labels['lizard']:
-                        cv2.imwrite("patio_lizards/"+str(uuid.uuid1())+".jpg", frame)
+                    if flag:
+                        cv2.imwrite("stream_detections/"+str(uuid.uuid1())+".jpg", frame)
 
                 ## Show annotated frame
                 # print("Showing frame now")
