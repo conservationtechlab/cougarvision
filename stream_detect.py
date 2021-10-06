@@ -84,19 +84,24 @@ def receive_frame():
                 stack.popleft()
 
 def write_video():
+    print("Writing Video Now")
     ret = True
     writer = cv2.VideoWriter(uuid.uuid1()+'.avi', 
                     cv2.VideoWriter_fourcc(*'MJPG'),
                     10, frame_size)
     while(ret and frame_countdown > 0):
-        ret,frame = cap.read()
-        frame = cv2.resize(frame,frame_size,fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
 
-        stack.append(frame)
-        writer.write(frame)
-        frame_countdown = frame_countdown - 1
-        while len(stack) > 100 :
-            stack.popleft()
+        ret,frame = cap.read()
+        if(frame is None):
+            print("Found empty frame")
+        else:
+            frame = cv2.resize(frame,frame_size,fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
+
+            stack.append(frame)
+            writer.write(frame)
+            frame_countdown = frame_countdown - 1
+            while len(stack) > 100 :
+                stack.popleft()
 
 
 
