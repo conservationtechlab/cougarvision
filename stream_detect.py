@@ -61,57 +61,44 @@ conf = 0.5
 # Set Stream Path
 stream_path = str(sys.argv[1])
 
-def post_process(img, result, conf):
-    H, W = img.shape[:2]
+frame_countdown = 0
 
-    boxes = []
-    confidences = []
-    classIDs = []
-
-    for detection in result['detections']:
-        classID = str(int(detection['category']) - 1)
-        confidence = detection['conf']
-        
-        if confidence > conf:
-            print(str(classes[int(classID)]) + ": " + str(confidence))
-            x, y, w, h = detection['bbox'] * np.array([W, H, W, H])
-            p0 = int(x - w//2), int(y - h//2)
-            p1 = int(x + w//2), int(y + h//2)
-            boxes.append([int(x), int(y), int(w), int(h)])
-            confidences.append(float(confidence))
-            classIDs.append(classID)
-            # cv.rectangle(img, p0, p1, WHITE, 1)
-
-
-    indices = cv2.dnn.NMSBoxes(boxes, confidences, conf, conf-0.1)
-    if len(indices) > 0:
-        for i in indices.flatten():
-            (x, y) = (boxes[i][0], boxes[i][1])
-            (w, h) = (boxes[i][2], boxes[i][3])
-            color = [int(c) for c in colors[int(classIDs[i])]]
-            cv2.rectangle(img, (x, y), (x + w, y + h), color, 2)
-            text = "{}: {:.4f}".format(classes[int(classIDs[i])], confidences[i])
-            cv2.putText(img, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
-
+frame_size = (1280,720)
 
 def receive_frame():
-    print("Starting Video Stream")
-    cap = cv2.VideoCapture(stream_path)
+    
     ret,frame = cap.read()
-    frame = cv2.resize(frame,(1280,720),fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
+    frame = cv2.resize(frame,frame_size,fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
 
     stack.append(frame)
 
-    while(ret):
+    while(ret and frame_countdown == 0):
         ret,frame = cap.read()
-        frame = cv2.resize(frame,(1280,720),fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
+        frame = cv2.resize(frame,frame_size,fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
 
         stack.append(frame)
-        if len(stack) > 100 :
+        while len(stack) > 100 :
+            stack.popleft()
+
+def write_video():
+    ret = True
+    writer = cv2.VideoWriter(uuid.uuid1()+'.avi', 
+                    cv2.VideoWriter_fourcc(*'MJPG'),
+                    10, frame_size)
+    while(ret and frame_countdown > 0):
+        ret,frame = cap.read()
+        frame = cv2.resize(frame,frame_size,fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
+
+        stack.append(frame)
+        writer.write(frame)
+        frame_countdown = frame_countdown - 1
+        while len(stack) > 100 :
             stack.popleft()
 
 
+
 def process_frame():
+    
     while True:
         if len(stack) > 0:
             frame = stack.pop()
@@ -119,7 +106,7 @@ def process_frame():
                 pass
             else:
                 print("Processing Frame Now")
-                stack.clear()
+            
                 t0 = time.time()
                 result = tf_detector.generate_detections_one_image(
                     Image.fromarray(frame),
@@ -185,8 +172,13 @@ def process_frame():
                     frame = np.asarray(image)
 
 
-                    if flag:
-                        cv2.imwrite("stream_detections/"+str(uuid.uuid1())+".jpg", frame)
+                    if flag and write_thread.is_alive():
+                        frame_countdown = 100
+                    elif flag and not write_thread.is_alive():
+                        frame_countdown = 100
+                        write_thread.start()
+
+
 
                 ## Show annotated frame
                 # print("Showing frame now")
@@ -198,11 +190,13 @@ def process_frame():
 
 
 
-if __name__ == '__main__':
-    
 
-    p1 = threading.Thread(target=receive_frame)
-    p2 = threading.Thread(target=process_frame)
-    p1.start()
-    p2.start()
+print("Starting Video Stream")
+cap = cv2.VideoCapture(stream_path)
+
+receive_thread = threading.Thread(target=receive_frame)
+process_thread = threading.Thread(target=process_frame)
+write_thread = threading.Thread(target=write_video)
+receive_thread.start()
+process_thread.start()
 
