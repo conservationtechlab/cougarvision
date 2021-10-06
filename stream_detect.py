@@ -74,11 +74,14 @@ def receive_frame():
 
     while(ret and frame_countdown == 0):
         ret,frame = cap.read()
-        frame = cv2.resize(frame,frame_size,fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
+        if(frame is None):
+            print("Found empty frame")
+        else:
+            frame = cv2.resize(frame,frame_size,fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
 
-        stack.append(frame)
-        while len(stack) > 100 :
-            stack.popleft()
+            stack.append(frame)
+            while len(stack) > 100 :
+                stack.popleft()
 
 def write_video():
     ret = True
@@ -187,8 +190,6 @@ def process_frame():
                 # cv2.waitKey(20)
                 # cv2.destroyAllWindows
             
-
-
 
 
 print("Starting Video Stream")
