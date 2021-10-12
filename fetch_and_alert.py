@@ -64,8 +64,8 @@ labels_map = [labels_map[str(i)] for i in range(1000)]
 
 def runDetectionClassification(images, model_file):
 
-    # Load the detector
-
+    
+    # Runs detection model
     results = load_and_run_detector_batch(model_file, images, checkpoint_path=None,
                                 confidence_threshold=.5, checkpoint_frequency=-1,
                                 results=None, n_cores=threads)
@@ -127,9 +127,8 @@ def cropDetections(detections):
 def classify(image_crops, MODEL_PATH):
 
     classifications = []
-    print(image_crops)
     for image in image_crops:
-        # for crop in image[0][0]:
+
         crop = image[0][0][0]
         # Preprocess Image
         tfms = transforms.Compose([transforms.Resize(224), transforms.CenterCrop(224), 
@@ -157,7 +156,6 @@ def classify(image_crops, MODEL_PATH):
 
     
     return classifications
-
 
 def check_humans_vehicles(detections,smtp_server):
     # Check Detections for Vehicles and Humans
@@ -195,7 +193,6 @@ def check_humans_vehicles(detections,smtp_server):
             image.save(imageBytes,format=image.format)
             sendAlert('Vehicle', detection['conf'],imageBytes,smtp_server, from_email, to_emails)
 
-
 def check_cougars(classifications,smtp_server):
     # Check Classifications for Vehicles and Humans
     for classification in classifications:
@@ -215,7 +212,6 @@ def check_cougars(classifications,smtp_server):
             imageBytes = BytesIO()
             image.save(imageBytes,format=image.format)
             sendAlert('Cougar', conf,imageBytes,smtp_server, from_email, to_emails)
-
 
 def main():
 
