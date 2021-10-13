@@ -4,12 +4,12 @@ from cougarvision_utils.cropping import load_to_crop
 from cougarvision_utils.fetch_emails import imap_setup, fetch_emails, extractAttachments
 
 import json
-import os
 import schedule
 import time
 import json
 import sys
 import warnings
+import yaml
 from tqdm import tqdm
 from PIL import Image
 from datetime import datetime
@@ -19,15 +19,12 @@ from io import BytesIO
 import torch
 from torchvision import transforms
 
-
-
-threads = 1
-
-import tensorflow as tf
-
 # Adds CameraTraps to Sys path, import specific utilities
-sys.path.append('../CameraTraps')
-from detection.run_tf_detector import ImagePathUtils, TFDetector
+with open("config/cameratraps.yml", 'r') as stream:
+    camera_traps_config = yaml.safe_load(stream)
+    sys.path.append(camera_traps_config['camera_traps_path'])
+
+from detection.run_tf_detector import TFDetector
 from detection.run_tf_detector_batch import load_and_run_detector_batch
 import visualization.visualization_utils as viz_utils
 
@@ -35,31 +32,33 @@ import visualization.visualization_utils as viz_utils
 # Numpy FutureWarnings from tensorflow import
 warnings.filterwarnings('ignore', category=FutureWarning)
 
-# Load sensitive/configuration information from local file
-with open('config/email_config.txt') as file:
-  keys = json.load(file)
+# Load Configuration Settings from YML file
+with open("config/fetch_and_alert.yml", 'r') as stream:
+    config = yaml.safe_load(stream)
 
 # Set Email Variables for fetching
-username = keys['username']
-password = keys['password']
+username = config['username']
+password = config['password']
 from_email = username
-to_emails = keys['to_emails']
-print(to_emails)
+to_emails = config['to_emails']
 host = 'imap.gmail.com'
 
 
-
 # Model Variables
-detector_model = 'detector_models/md_v4.1.0.pb'
-classifier_model = 'classifier_models/ig_resnext101_32x8d.pt'
-detector_version = '4.1.0'
-confidence_threshold=.5
+detector_model = config['detector_model']
+classifier_model = config['classifier_model']
 
+# Set Confidence 
+confidence_threshold = config['confidence']
 
+# Set threads for load_and_crop
+threads = config['threads']
 
 # Load Labels for classifier
 labels_map = json.load(open('labels/labels_map.txt'))
 labels_map = [labels_map[str(i)] for i in range(1000)]
+
+
 
 
 def runDetectionClassification(images, model_file):
@@ -81,10 +80,6 @@ def runDetectionClassification(images, model_file):
     return detections
 
 def cropDetections(detections):
-    crop_path_template = {
-        True: '{img_path}___crop{n:>02d}.jpg',
-        False: '{img_path}___crop{n:>02d}_' + f'mdv{detector_version}.jpg'
-    }
     pool = futures.ThreadPoolExecutor(max_workers=threads)
     future_to_img_path = {}
 
@@ -95,15 +90,13 @@ def cropDetections(detections):
         info_dict = detections[img_path]
         bbox_dicts = info_dict['detections']
 
-        # get the image, either from disk or from Blob Storage
         future = pool.submit(
             load_to_crop, img_path, bbox_dicts = bbox_dicts,
             confidence_threshold = confidence_threshold)
         future_to_img_path[future] = img_path
 
     total = len(future_to_img_path)
-    total_downloads = 0
-    total_new_crops = 0
+
     print(f'Reading/downloading {total} images and cropping...')
     image_crops = []
 
@@ -112,15 +105,11 @@ def cropDetections(detections):
         try:
             did_download, num_new_crops, crop_result = future.result()
             image_crops.append([crop_result, img_path])
-            total_downloads += did_download
-            total_new_crops += num_new_crops
+
         except Exception as e:  # pylint: disable=broad-except
             exception_type = type(e).__name__
             tqdm.write(f'{img_path} - generated {exception_type}: {e}')
             images_failed_download.append(img_path)
-
-    print(f'Downloaded {total_downloads} images.')
-    print(f'Made {total_new_crops} new crops.')
 
     return image_crops
 
@@ -163,6 +152,7 @@ def check_humans_vehicles(detections,smtp_server):
         # we already did all error checking above, so we don't do any here
         info_dict = detections[img_path]
     for detection in info_dict['detections']:
+        # Check if detection is human
         if detection['category'] == '2':
             image = Image.open(info_dict['file'])
             box = detection['bbox']
@@ -177,9 +167,9 @@ def check_humans_vehicles(detections,smtp_server):
             imageBytes = BytesIO()
             image.save(imageBytes,format=image.format)
             sendAlert('Human', detection['conf'],imageBytes,smtp_server, from_email, to_emails)
+        # Check if detection is vehicle
         elif detection['category'] == '3':
             image = Image.open(info_dict['file'])
-
             box = detection['bbox']
             viz_utils.draw_bounding_box_on_image(image,
                                box[1], box[0], box[1] + box[3], box[0] + box[2],
@@ -194,7 +184,7 @@ def check_humans_vehicles(detections,smtp_server):
             sendAlert('Vehicle', detection['conf'],imageBytes,smtp_server, from_email, to_emails)
 
 def check_cougars(classifications,smtp_server):
-    # Check Classifications for Vehicles and Humans
+    # Check Classifications for Cougars
     for classification in classifications:
         conf = classification[2]
         if classification[0] == 287 or classification[0] == 291 and conf >= 0.01:

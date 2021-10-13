@@ -1,0 +1,4 @@
+detector_model: detector_models/md_v4.1.0.pb
+classifier_model: classifier_models/ig_resnext101_32x8d.pt
+confidence: 0.5
+input_video: 9fb05d38-2b8d-11ec-9581-735853a5c744.avi

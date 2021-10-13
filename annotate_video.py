@@ -1,29 +1,29 @@
 import sys
 
-import tensorflow as tf
 import torch 
 from torchvision import transforms
 import cv2 
-
+import yaml
 import numpy as np
 from PIL import Image
-import json 
+import json
 import uuid
 
 import time 
 import humanfriendly
-import threading
 
-
-from collections import deque
-stack = deque()
-
+import cougarvision_utils.cropping as crop_util
 
 # Adds CameraTraps to Sys path, import specific utilities
-sys.path.append('../CameraTraps')
-from detection.run_tf_detector import ImagePathUtils, TFDetector
+with open("config/cameratraps.yml", 'r') as stream:
+    camera_traps_config = yaml.safe_load(stream)
+    sys.path.append(camera_traps_config['camera_traps_path'])
+from detection.run_tf_detector import TFDetector
 import visualization.visualization_utils as viz_utils
 
+# Load Configuration Settings from YML file
+with open("config/annotate_video.yml", 'r') as stream:
+    config = yaml.safe_load(stream)
 
 # Load in classes, labels and color mapping
 classes = open('labels/megadetector.names').read().strip().split('\n')
@@ -35,38 +35,32 @@ image_net_labels = [image_net_labels[str(i)] for i in range(1000)]
 with open("labels/label_categories.txt") as label_category:
     labels = json.load(label_category)
 
-
-
-
-
 # Model Setup
 # Detector Model
-detector_model = ('detector_models/md_v4.1.0.pb')
 start_time = time.time()
-tf_detector = TFDetector(detector_model)
-elapsed = time.time() - start_time
-print('Loaded detector model in {}'.format(humanfriendly.format_timespan(elapsed)))
+tf_detector = TFDetector(config['detector_model'])
+print(f'Loaded detector model in {humanfriendly.format_timespan(time.time() - start_time)}')
 
 # Classifier Model
 start_time = time.time()
-classifier_model = 'classifier_models/ig_resnext101_32x8d.pt'
-model = torch.jit.load(classifier_model)
-model.eval()        
-print('Loaded classifier model in {}'.format(humanfriendly.format_timespan(elapsed)))
+model = torch.jit.load(config['classifier_model'])
+model.eval()
+print(f'Loaded classifier model in {humanfriendly.format_timespan(time.time() - start_time)}')
 
         
-
-conf = 0.5
+# Set confidence threshold
+conf = config['confidence']
 
 # Input Video
-input_video = 'Granite Spiny Lizards in their Outdoor Terrarium.mp4'
-cap = cv2.VideoCapture("input_videos/" + input_video)
+input_video = config['input_video']
+cap = cv2.VideoCapture(input_video)
+
 # Rendered Video Setup
 frameSize = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 fps = 25.0 # or 30.0 for a better quality stream
 video = cv2.VideoWriter(
-        'rendered_videos/{0}.avi'.format(input_video), 
+        'annotated_{0}.avi'.format(input_video), 
         fourcc, 
         20.0, 
         frameSize )
@@ -82,33 +76,17 @@ while(cap.isOpened()):
             conf
         )
         print(f'forward propagation time={(time.time())-t0}')
-
-
         # Take crop
         for detection in result['detections']:
-            # img = Image.fromarray(frame)
-            # bbox = detection['bbox']
-            # img_w, img_h = img.size
-            # xmin = int(bbox[0] * img_w)
-            # ymin = int(bbox[1] * img_h)
-            # box_w = int(bbox[2] * img_w)
-            # box_h = int(bbox[3] * img_h)
-            # crop = img.crop(
-            #     box=[xmin,
-            #     ymin, 
-            #     xmin + box_w,
-            #     ymin + box_h])
-
-            
+            img = Image.fromarray(frame)
+            bbox = detection['bbox']
+            crop = crop_util.crop(img,bbox)
 
             # Run Classifier
             tfms = transforms.Compose([transforms.Resize(224), transforms.CenterCrop(224), 
                                 transforms.ToTensor(),
                                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),])
             crop = tfms(crop).unsqueeze(0)
-        
-            # Run Classifier
-
 
             # Perform Inference
             t0 = time.time()
@@ -119,11 +97,7 @@ while(cap.isOpened()):
             print('-----')
             
             print(preds)
-            # Print result
-            # for idx in preds:
-            #     label = image_net_labels[idx]
-            #     prob = torch.softmax(logits, dim=1)[0, idx].item()
-            #     print('{:<75} ({:.2f}%)'.format(label, prob*100))
+
             label = image_net_labels[preds[0]].split(",")[0]
             prob = torch.softmax(logits, dim=1)[0, preds[0]].item()
             image = Image.fromarray(frame)
@@ -140,9 +114,6 @@ while(cap.isOpened()):
             frame = np.asarray(image)
         video.write(frame) 
             
-                
-                
-
     else:
         break
 
