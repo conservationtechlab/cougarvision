@@ -4,7 +4,7 @@ Tools to automatically analyze images and videos from telemetering field cameras
 
 ## Setting up Conda Environment
 
-[Instructions to install conda] (https://conda.io/projects/conda/en/latest/user-guide/install/index.html)
+[Instructions to install conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html)
 
 The file **cougarvision_env.yml** describes the python version and various dependencies with specific version numbers. To activate the enviroment
 
