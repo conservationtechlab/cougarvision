@@ -12,7 +12,7 @@ import torch
 from torchvision import transforms
 import cv2 
 from PIL import Image
-
+import cougarvision_utils.alert as alert_util
 import cougarvision_utils.cropping as crop_util
 
 # Adds CameraTraps to Sys path, import specific utilities
@@ -35,6 +35,10 @@ with open("config/stream_detect.yml", 'r') as stream:
 
 # Loads in Label Category Mappings
 with open("labels/label_categories.txt") as label_category:
+    labels_category = json.load(label_category)
+
+# Loads in Label Category Mappings
+with open("labels/labels_map.txt") as label_category:
     labels = json.load(label_category)
 
 # Model Setup
@@ -64,6 +68,14 @@ frame_size = tuple(config['frame_size'])
 # Set Video Output Path
 video_output_path = config['video_output_path']
 
+
+# Set Email Variables for fetching
+username = config['username']
+password = config['password']
+from_email = username
+to_emails = config['to_emails']
+host = 'imap.gmail.com'
+
 def receive_frame():
     # Capture first frame
     ret,frame = cap.read()
@@ -86,7 +98,7 @@ def receive_frame():
       
 def write_video():
     # Acquires Lock - blocks receive frame
-    writer_has_control.acquire()
+    
     print("Writing Video Now, Lock acquired")
     
     
@@ -169,12 +181,18 @@ def process_frame():
 
                     prob = torch.softmax(logits, dim=1)[0, preds[0]].item()
 
+                    if(preds[0] <= 397) and prob > conf:
+                        label = labels[preds[0]]
+                        cv2.imwrite(f"{label}-{uuid.uuid1()}.jpg",img)
+                        alert_util.sendAlert("Found something!", conf,img,
+                                    alert_util.smtp_setup(username,password,host),from_email, to_emails)
+
                     
-                    if str(preds[0]) in labels['lizard'] and prob > conf:
+                    if str(preds[0]) in labels_category['lizard'] and prob > conf:
                         label = 'lizard'
                         flag = 1
 
-                    elif str(preds[0]) in labels['cougar'] and prob > conf:
+                    elif str(preds[0]) in labels_category['cougar'] and prob > conf:
                         label = 'cougar'
                         flag = 1
 
@@ -188,6 +206,7 @@ def process_frame():
                     
                 # Start new write thread
                 elif flag and not writer_has_control.locked():
+                    writer_has_control.acquire()
                     frame_countdown = MAX_FRAME
                     write_thread = threading.Thread(target=write_video)
                     write_thread.start()

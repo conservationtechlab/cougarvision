@@ -6,3 +6,6 @@ DEQUE_SIZE: 200
 MAX_FRAME: 200
 frame_size: [1280,720]
 video_output_path: detected_videos
+username: bioreserve.cam@gmail.com
+password: ndtgidxlakzfnboj
+to_emails: [testing.cougar@gmail.com, +17142095998@tmomail.net]
