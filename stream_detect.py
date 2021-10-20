@@ -14,6 +14,7 @@ import cv2
 from PIL import Image
 import cougarvision_utils.alert as alert_util
 import cougarvision_utils.cropping as crop_util
+from io import BytesIO
 
 # Adds CameraTraps to Sys path, import specific utilities
 with open("config/cameratraps.yml", 'r') as stream:
@@ -181,7 +182,7 @@ def process_frame():
                     print(preds)
 
                     prob = torch.softmax(logits, dim=1)[0, preds[0]].item()
-
+                    # All labels less than 397 are animals
                     if(preds[0] <= 397) and prob > conf:
                         label = labels_map[preds[0]]
                         viz_utils.draw_bounding_box_on_image(img,
@@ -194,7 +195,9 @@ def process_frame():
                                label_font_size=16)
                         image = np.asarray(img)
                         cv2.imwrite(f"recorded_images/{label}-{uuid.uuid1()}.jpg",image)
-                        alert_util.sendAlert("Found something!", conf,image,
+                        imageBytes = BytesIO()
+                        image.save(imageBytes,format=image.format)
+                        alert_util.sendAlert("Found something!", conf,imageBytes,
                                     alert_util.smtp_setup(username,password,host),from_email, to_emails)
 
                     
