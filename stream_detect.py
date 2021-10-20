@@ -7,7 +7,7 @@ import uuid
 import warnings
 
 import yaml
-
+import numpy as np
 import torch 
 from torchvision import transforms
 import cv2 
@@ -21,6 +21,7 @@ with open("config/cameratraps.yml", 'r') as stream:
     sys.path.append(camera_traps_config['camera_traps_path'])
 
 from detection.run_tf_detector import TFDetector
+import visualization.visualization_utils as viz_utils
 
 from collections import deque
 
@@ -183,8 +184,17 @@ def process_frame():
 
                     if(preds[0] <= 397) and prob > conf:
                         label = labels_map[preds[0]]
-                        cv2.imwrite(f"{label}-{uuid.uuid1()}.jpg",img)
-                        alert_util.sendAlert("Found something!", conf,img,
+                        viz_utils.draw_bounding_box_on_image(img,
+                               bbox[1], bbox[0], bbox[1] + bbox[3], bbox[0] + bbox[2],
+                               clss=preds[0],
+                               thickness=4,
+                               expansion=0,
+                               display_str_list=['{:<75} ({:.2f}%)'.format(label, prob*100)],
+                               use_normalized_coordinates=True,
+                               label_font_size=16)
+                        image = np.asarray(img)
+                        cv2.imwrite(f"recorded_images/{label}-{uuid.uuid1()}.jpg",image)
+                        alert_util.sendAlert("Found something!", conf,image,
                                     alert_util.smtp_setup(username,password,host),from_email, to_emails)
 
                     
