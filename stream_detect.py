@@ -182,7 +182,7 @@ def process_frame():
                     prob = torch.softmax(logits, dim=1)[0, preds[0]].item()
 
                     if(preds[0] <= 397) and prob > conf:
-                        label = labels[preds[0]]
+                        label = labels_map[preds[0]]
                         cv2.imwrite(f"{label}-{uuid.uuid1()}.jpg",img)
                         alert_util.sendAlert("Found something!", conf,img,
                                     alert_util.smtp_setup(username,password,host),from_email, to_emails)
