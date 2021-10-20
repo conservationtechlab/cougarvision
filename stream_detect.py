@@ -184,7 +184,7 @@ def process_frame():
                     prob = torch.softmax(logits, dim=1)[0, preds[0]].item()
                     # All labels less than 397 are animals
                     if(preds[0] <= 397) and prob > conf:
-                        label = labels_map[preds[0]]
+                        label = labels_map[preds[0]].split()[0]
                         viz_utils.draw_bounding_box_on_image(img,
                                bbox[1], bbox[0], bbox[1] + bbox[3], bbox[0] + bbox[2],
                                clss=preds[0],
