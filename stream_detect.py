@@ -38,8 +38,8 @@ with open("labels/label_categories.txt") as label_category:
     labels_category = json.load(label_category)
 
 # Loads in Label Category Mappings
-with open("labels/labels_map.txt") as label_category:
-    labels = json.load(label_category)
+labels_map = json.load(open('labels/labels_map.txt'))
+labels_map = [labels_map[str(i)] for i in range(1000)]
 
 # Model Setup
 # Detector Model
