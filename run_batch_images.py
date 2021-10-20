@@ -115,4 +115,3 @@ visualize_detector_output(
     out_dir="rendered_images/",
     confidence=conf,
     images_dir="./")
-
