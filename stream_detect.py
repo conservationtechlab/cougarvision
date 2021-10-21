@@ -81,6 +81,7 @@ host = 'imap.gmail.com'
 def receive_frame():
     # Capture first frame
     ret,frame = cap.read()
+    frame = cv2.flip(frame,0)
     frame = cv2.resize(frame,frame_size,fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
     frames_deque.append(frame)
 
@@ -92,6 +93,7 @@ def receive_frame():
                 print("False read on frame")
                 continue
             else:
+                frame = cv2.flip(frame,0)
                 frame = cv2.resize(frame,frame_size,fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
                 frames_deque.append(frame)
                 # Maintains deque size
@@ -100,7 +102,7 @@ def receive_frame():
       
 def write_video():
     # Acquires Lock - blocks receive frame
-    
+    writer_has_control.acquire()
     print("Writing Video Now, Lock acquired")
     
     
@@ -125,6 +127,7 @@ def write_video():
         if(frame is None):
             print("Found empty frame")
         else:
+            frame = cv2.flip(frame,0)
             frame = cv2.resize(frame,frame_size,fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
             frames_deque.append(frame)
             writer.write(frame)
@@ -140,6 +143,7 @@ def process_frame():
     while True:
         if len(frames_deque) > 0:
             frame = frames_deque.pop()
+            print(sys.getsizeof(f"Size of deque: {frames_deque}"))
             if frame is None:
                 pass
             else:
@@ -183,7 +187,7 @@ def process_frame():
 
                     prob = torch.softmax(logits, dim=1)[0, preds[0]].item()
                     # All labels less than 397 are animals
-                    if(preds[0] <= 397) and prob > conf:
+                    if(preds[0] <= 397) and prob > conf and preds[0] != 111:
                         label = labels_map[preds[0]].split()[0]
                         viz_utils.draw_bounding_box_on_image(img,
                                bbox[1], bbox[0], bbox[1] + bbox[3], bbox[0] + bbox[2],
@@ -193,10 +197,11 @@ def process_frame():
                                display_str_list=['{:<75} ({:.2f}%)'.format(label, prob*100)],
                                use_normalized_coordinates=True,
                                label_font_size=16)
-                        image = np.asarray(img)
-                        cv2.imwrite(f"recorded_images/{label}-{uuid.uuid1()}.jpg",image)
+                       
+                        cv2.imwrite(f"recorded_images/{label}-{uuid.uuid1()}.jpg",np.asarray(img))
+                        
                         imageBytes = BytesIO()
-                        image.save(imageBytes,format=image.format)
+                        img.save(imageBytes,format="JPEG")
                         alert_util.sendAlert("Found something!", conf,imageBytes,
                                     alert_util.smtp_setup(username,password,host),from_email, to_emails)
 
@@ -205,6 +210,7 @@ def process_frame():
                         label = 'lizard'
                         flag = 1
 
+                    
                     elif str(preds[0]) in labels_category['cougar'] and prob > conf:
                         label = 'cougar'
                         flag = 1
@@ -219,7 +225,7 @@ def process_frame():
                     
                 # Start new write thread
                 elif flag and not writer_has_control.locked():
-                    writer_has_control.acquire()
+                    
                     frame_countdown = MAX_FRAME
                     write_thread = threading.Thread(target=write_video)
                     write_thread.start()
