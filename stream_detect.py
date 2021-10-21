@@ -5,6 +5,7 @@ import humanfriendly
 import json 
 import uuid
 import warnings
+import logging
 
 import yaml
 import numpy as np
@@ -88,17 +89,20 @@ def receive_frame():
     # Reads frames while capture is online and write thread doesn't have control
     while(cap.isOpened()):
         if not writer_has_control.locked():
-            ret,frame = cap.read()
-            if not ret:
-                print("False read on frame")
-                continue
-            else:
-                frame = cv2.flip(frame,0)
-                frame = cv2.resize(frame,frame_size,fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
-                frames_deque.append(frame)
-                # Maintains deque size
-                while len(frames_deque) > DEQUE_SIZE :
-                    frames_deque.popleft()
+            try:
+                ret,frame = cap.read()
+                if not ret:
+                    print("False read on frame")
+                    continue
+                else:
+                    frame = cv2.flip(frame,0)
+                    frame = cv2.resize(frame,frame_size,fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
+                    frames_deque.append(frame)
+                    # Maintains deque size
+                    while len(frames_deque) > DEQUE_SIZE :
+                        frames_deque.popleft()
+            except Exception as e:
+                logging.error(f'Exception: {e} : {time.ctime(time.time())}')
       
 def write_video():
     # Acquires Lock - blocks receive frame
@@ -122,18 +126,20 @@ def write_video():
     global frame_countdown
     # Write each next valid frame 
     while(ret and frame_countdown > 0):
-
-        ret,frame = cap.read()
-        if(frame is None):
-            print("Found empty frame")
-        else:
-            frame = cv2.flip(frame,0)
-            frame = cv2.resize(frame,frame_size,fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
-            frames_deque.append(frame)
-            writer.write(frame)
-            frame_countdown += -1
-            while len(frames_deque) > DEQUE_SIZE :
-                frames_deque.popleft()
+        try:
+            ret,frame = cap.read()
+            if(frame is None):
+                print("Found empty frame")
+            else:
+                frame = cv2.flip(frame,0)
+                frame = cv2.resize(frame,frame_size,fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
+                frames_deque.append(frame)
+                writer.write(frame)
+                frame_countdown += -1
+                while len(frames_deque) > DEQUE_SIZE :
+                    frames_deque.popleft()
+        except Exception as e:
+            logging.error(f'Exception: {e} : {time.ctime(time.time())}')
 
     # Release video writer and writer lock
     writer.release()
@@ -204,6 +210,7 @@ def process_frame():
                         img.save(imageBytes,format="JPEG")
                         alert_util.sendAlert("Found something!", conf,imageBytes,
                                     alert_util.smtp_setup(username,password,host),from_email, to_emails)
+                        logging.info(f'Found {label}:{time.ctime(time.time())}')
 
                     
                     if str(preds[0]) in labels_category['lizard'] and prob > conf:
@@ -232,6 +239,9 @@ def process_frame():
             
 if __name__ == '__main__':
 
+    # Init log
+    logging.basicConfig(filename="stream.log",encoding='utf-8',level=logging.DEBUG)
+    
     frame_countdown = 0
     # init writer lock
     writer_has_control = threading.Lock()
