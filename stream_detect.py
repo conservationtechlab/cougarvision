@@ -240,7 +240,7 @@ def process_frame():
 if __name__ == '__main__':
 
     # Init log
-    logging.basicConfig(filename="stream.log",encoding='utf-8',level=logging.DEBUG)
+    logging.basicConfig(filename="stream.log",level=logging.DEBUG)
     
     frame_countdown = 0
     # init writer lock
