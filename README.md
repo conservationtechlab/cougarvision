@@ -9,6 +9,8 @@ If a lizard or a cougar is detected then a video is recorded for as long as that
 Fetch_and_alert.py takes in an email address which periodically receives email with images attached. Minimum fetch period is 10 minutes while working with gmail. These images
 are ran through the pipeline and alerts (sends emails/texts) if a human, vehicle, or cougar is detected.
 
+## Processing Batch Images
+Run_batch_images.py can take in an input folder and apply the detector/classifier pipeline to render annotated images along with an output.json file in directory classifications. The output.json contains the final classifications on the cropped images and can be used to compare against a ground truth set. There is also an intermediate output.json which holds the crop detections and is used by the script to crop images, this one can be moved by configuration in the yml file.
 
 ## Setting up Conda Environment
 
