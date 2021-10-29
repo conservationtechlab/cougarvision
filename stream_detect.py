@@ -79,6 +79,8 @@ from_email = username
 to_emails = config['to_emails']
 host = 'imap.gmail.com'
 
+flag = 0
+
 def receive_frame():
     # Capture first frame
     ret,frame = cap.read()
@@ -137,6 +139,7 @@ def write_video():
                         frames_deque.append(frame)
                         writer.write(frame)
                         frame_countdown += -1
+                        print(frame_countdown)
                         while len(frames_deque) > DEQUE_SIZE :
                             frames_deque.popleft()
                 except Exception as e:
@@ -145,6 +148,7 @@ def write_video():
             # Release video writer and writer lock
             flag = 0
             writer.release()
+            del writer
             writer_has_control.release()
 
 def process_frame():
@@ -193,7 +197,9 @@ def process_frame():
                     
                     print(preds)
 
+                   
                     prob = torch.softmax(logits, dim=1)[0, preds[0]].item()
+                    global flag
                     # All labels less than 397 are animals
                     if(preds[0] <= 397) and prob > conf and preds[0] != 111 and not flag:
                         label = labels_map[preds[0]].split()[0]
@@ -214,23 +220,23 @@ def process_frame():
                                     alert_util.smtp_setup(username,password,host),from_email, to_emails)
                         logging.info(f'Found {label}:{time.ctime(time.time())}')
 
-                    global flag
+                    global frame_countdown
+                    print(f'Prob of top predict = {prob}')
                     if str(preds[0]) in labels_category['lizard'] and prob > conf:
                         label = 'lizard'
                         flag = 1
-
+                        frame_countdown = MAX_FRAME
                     
                     elif str(preds[0]) in labels_category['cougar'] and prob > conf:
                         label = 'cougar'
                         flag = 1
+                        frame_countdown = MAX_FRAME
+                    
 
 
                 # Write Thread Management
 
-                # Continue current write thread / Reset frame_countdown
-                global frame_countdown
-                if flag:
-                    frame_countdown = MAX_FRAME
+                
                     
                 # # Start new write thread
                 # elif flag and not writer_has_control.locked():
@@ -245,7 +251,7 @@ if __name__ == '__main__':
     logging.basicConfig(filename="stream.log",level=logging.DEBUG)
     
     frame_countdown = 0
-    flag = 0 
+     
     # init writer lock
     writer_has_control = threading.Lock()
 
