@@ -1,7 +1,7 @@
 detector_model: detector_models/md_v4.1.0.pb
 classifier_model: classifier_models/ig_resnext101_32x8d.pt
-username: bioreserve.cam@gmail.com
-password: ndtgidxlakzfnboj
-to_emails: [testing.cougar@gmail.com, +17142095998@tmomail.net]
+username: email@gmail.com
+password: 
+to_emails: [email1@gmail.com, phonenumber@tmomail.net]
 threads: 1
 confidence: 0.5
