@@ -1,5 +1,5 @@
 # cougarvision
-Tools to automatically analyze images and videos from telemetering field cameras and to take responsive action. Core mechanism is combining Megadetector [see](https://github.com/microsoft/CameraTraps), with interchangeable imagenet, torchscript compiled classifier models.
+Tools to automatically analyze images and videos from telemetering field cameras and to take responsive action. Core mechanism is combining [Megadetector](https://github.com/microsoft/CameraTraps), with interchangeable imagenet, torchscript compiled classifier models.
 
 ## Streaming
 Stream_detect.py takes in a stream, runs a pipeline to detect various animals. An image is sent to specified emails/phone numbers based on config/stream_detect.yml.
@@ -33,7 +33,7 @@ The second line activates the environment which may need to be done each time yo
 
 The third line is to test the environment installation where it will list all dependencies for that environment
 
-## CameraTraps Repo
+## Dependencies
 
 These scripts rely on the [CameraTraps Repo](https://github.com/microsoft/CameraTraps). Download this repo and place it anywhere. Add that path to config/cameratraps.yml. The CameraTraps repo will then be added to the python sys environment variables upon loading an individual script.
 
