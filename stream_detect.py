@@ -202,7 +202,7 @@ def process_frame():
                     global flag
                     # All labels less than 397 are animals
                     if(preds[0] <= 397) and prob > conf and preds[0] != 111 and not flag:
-                        label = labels_map[preds[0]].split()[0]
+                        label = labels_map[preds[0]].split(',')[0]
                         viz_utils.draw_bounding_box_on_image(img,
                                bbox[1], bbox[0], bbox[1] + bbox[3], bbox[0] + bbox[2],
                                clss=preds[0],
@@ -216,7 +216,7 @@ def process_frame():
                         
                         imageBytes = BytesIO()
                         img.save(imageBytes,format="JPEG")
-                        alert_util.sendAlert("Found something!", conf,imageBytes,
+                        alert_util.sendAlert(f"Found {label}", prob,imageBytes,
                                     alert_util.smtp_setup(username,password,host),from_email, to_emails)
                         logging.info(f'Found {label}:{time.ctime(time.time())}')
 

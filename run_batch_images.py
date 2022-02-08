@@ -45,7 +45,7 @@ with open(output_json) as file:
   detections = json.load(file)
 
 # Load Labels
-labels_map = json.load(open("labels_map.txt"))
+labels_map = json.load(open("labels/labels_map.txt"))
 detections["detection_categories"] = labels_map
 labels_map = [labels_map[str(i)] for i in range(1000)]
 

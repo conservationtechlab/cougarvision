@@ -39,7 +39,7 @@ with open("config/fetch_and_alert.yml", 'r') as stream:
 # Set Email Variables for fetching
 username = config['username']
 password = config['password']
-from_email = username
+from_emails = config['from_emails']
 to_emails = config['to_emails']
 host = 'imap.gmail.com'
 
@@ -166,7 +166,7 @@ def check_humans_vehicles(detections,smtp_server):
                                label_font_size=16)
             imageBytes = BytesIO()
             image.save(imageBytes,format=image.format)
-            sendAlert('Human', detection['conf'],imageBytes,smtp_server, from_email, to_emails)
+            sendAlert('Human', detection['conf'],imageBytes,smtp_server, username, to_emails)
         # Check if detection is vehicle
         elif detection['category'] == '3':
             image = Image.open(info_dict['file'])
@@ -181,7 +181,7 @@ def check_humans_vehicles(detections,smtp_server):
                                label_font_size=16)
             imageBytes = BytesIO()
             image.save(imageBytes,format=image.format)
-            sendAlert('Vehicle', detection['conf'],imageBytes,smtp_server, from_email, to_emails)
+            sendAlert('Vehicle', detection['conf'],imageBytes,smtp_server, username, to_emails)
 
 def check_cougars(classifications,smtp_server):
     # Check Classifications for Cougars
@@ -201,7 +201,7 @@ def check_cougars(classifications,smtp_server):
                                label_font_size=16)
             imageBytes = BytesIO()
             image.save(imageBytes,format=image.format)
-            sendAlert('Cougar', conf,imageBytes,smtp_server, from_email, to_emails)
+            sendAlert('Cougar', conf,imageBytes,smtp_server, username, to_emails)
 
 def main():
 
@@ -210,7 +210,7 @@ def main():
 
     # Gets a list of attachments from unread emails from bigfoot camera
     mail = imap_setup(host, username, password)
-    images = extractAttachments(fetch_emails(mail),mail)
+    images = extractAttachments(fetch_emails(mail,from_emails),mail)
     if len(images) > 0:
 
         # Run Detector
