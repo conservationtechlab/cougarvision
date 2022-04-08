@@ -22,3 +22,4 @@ email_config.txt
 .empty/
 __pycache__/*
 *.yml
+*.h5

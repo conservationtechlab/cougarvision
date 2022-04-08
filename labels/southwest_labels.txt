@@ -1,0 +1,21 @@
+mule deer
+coyote
+fox
+cougar
+bobcat
+dog
+rabbit
+empty
+skunk
+possum
+raccoon
+human
+vehicle
+bird
+rodent
+owl
+corvid
+raptor
+reptile
+roadrunner
+vulture

@@ -3,7 +3,8 @@ classifier_model: classifier_models/ig_resnext101_32x8d.pt
 username: bioreserve.cam@gmail.com
 password: odtreqluyhuurmuu
 from_emails: ["support@bigfootsmtp.com", "noreply@wirelesstrophycam.com"]
-to_emails: [jaredmacshane@gmail.com]
+to_emails: ["jaredmacshane@gmail.com","tswanson@sdzwa.org", "iingram@sdzwa.org","Jesanchez@sdzwa.org","CdelaRosa@sdzwa.org"]
+# to_emails: ["jaredmacshane@gmail.com"]
 #  +17142095998@tmomail.net,+4123520680@vzwpix.com
 threads: 1
 confidence: 0.5

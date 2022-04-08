@@ -43,14 +43,14 @@ def load_to_crop(img_path: str,
 
 
 def crop(img: Image.Image, bbox_norm: Sequence[float]) -> bool:
-    """Crops an image and saves the crop to file.
+    """Crops and returns an image
 
     Args:
         img: PIL.Image.Image object, already loaded
         bbox_norm: list or tuple of float, [xmin, ymin, width, height] all in
             normalized coordinates
 
-    Returns: bool, True if a crop was saved, False otherwise
+    Returns: cropped image
     """
     img_w, img_h = img.size
     xmin = int(bbox_norm[0] * img_w)
@@ -64,5 +64,5 @@ def crop(img: Image.Image, bbox_norm: Sequence[float]) -> bool:
 
     # Image.crop() takes box=[left, upper, right, lower]
     crop = img.crop(box=[xmin, ymin, xmin + box_w, ymin + box_h])
-
+    
     return crop
