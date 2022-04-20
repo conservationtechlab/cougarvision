@@ -2,8 +2,8 @@
 from cougarvision_utils.alert import smtp_setup, sendAlert
 from cougarvision_utils.cropping import load_to_crop, crop
 from cougarvision_utils.fetch_emails import imap_setup, fetch_emails, extractAttachments
-from cougarvision_utils.logging import log_classification,save_image
-import json
+from cougarvision_utils.log_utils import log_classification,save_image
+from cougarvision_utils.model_conversion import convert_and_load, convert_to_keras
 import schedule
 import time
 import json
@@ -16,6 +16,7 @@ from datetime import datetime
 from concurrent import futures
 from io import BytesIO
 import uuid
+
 import torch
 from torchvision import transforms
 import numpy as np
@@ -27,8 +28,9 @@ with open("config/cameratraps.yml", 'r') as stream:
     camera_traps_config = yaml.safe_load(stream)
     sys.path.append(camera_traps_config['camera_traps_path'])
 
+# noinspection PyUnresolvedReferences
 from detection.run_tf_detector import TFDetector
-# from detection.run_tf_detector_batch import load_and_run_detector_batch
+from detection.run_tf_detector_batch import load_and_run_detector_batch
 import visualization.visualization_utils as viz_utils
 
 
@@ -38,6 +40,12 @@ warnings.filterwarnings('ignore', category=FutureWarning)
 # Load Configuration Settings from YML file
 with open("config/fetch_and_alert.yml", 'r') as stream:
     config = yaml.safe_load(stream)
+# Comment out if On GPU
+force_cpu = True
+if force_cpu:
+    import os
+    os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+threads = 1
 
 import tensorflow as tf
 from tensorflow import keras
@@ -61,11 +69,10 @@ tf_detector = TFDetector(config['detector_model'])
 print(f'Loaded detector model in {humanfriendly.format_timespan(time.time() - start_time)}')
 
 # Classifier Model
-# start_time = time.time()
-# model = torch.jit.load(config['classifier_model'])
-# model.eval()
-# print(f'Loaded classifier model in {humanfriendly.format_timespan(time.time() - start_time)}')
-model = keras.models.load_model('classifier_models/EfficientNetB5_456_Unfrozen_01_0.58_0.82.h5')
+start_time = time.time()
+
+model = convert_to_keras(config['classifier_model'])
+print(f'Loaded classifier model in {humanfriendly.format_timespan(time.time() - start_time)}')
 
 # Set Confidence 
 confidence_threshold = config['confidence']
@@ -74,10 +81,10 @@ confidence_threshold = config['confidence']
 threads = config['threads']
 
 # Load Labels for classifier
-# labels_map = json.load(open('labels/labels_map.txt'))
-# labels_map = [labels_map[str(i)] for i in range(1000)]
+labels_map = json.load(open('labels/labels_map.txt'))
+labels_map = [labels_map[str(i)] for i in range(1000)]
 
-with open('/home/jared/cougarvision/labels/southwest_labels.txt', 'r') as f:
+with open('/home/edgar/mnt/machinelearning/Models/Southwest/classes.txt', 'r') as f:
     data = f.read().splitlines()
 southwest_labels = np.asarray(data)
 
@@ -85,7 +92,6 @@ timestamp = datetime.now()
 
 def runDetectionClassification(images, model_file):
 
-    
     # Runs detection model
     results = load_and_run_detector_batch(model_file, images, checkpoint_path=None,
                                 confidence_threshold=.5, checkpoint_frequency=-1,
@@ -145,11 +151,12 @@ def classify(image_crops, MODEL_PATH):
         tfms = transforms.Compose([transforms.Resize(456), transforms.CenterCrop(456), 
                             transforms.ToTensor(),
                             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),])
-        # crop = tfms(crop).unsqueeze(0)
+        crop = tfms(crop).unsqueeze(0)
 
         # Load Model
-        model = torch.jit.load(MODEL_PATH)
-        model.eval()
+        # model = torch.jit.load(model_path)
+        # model.eval()
+        #model = convert_to_keras(MODEL_PATH)
 
         # Perform Inference
         with torch.no_grad():
@@ -251,13 +258,10 @@ def process_image(image_data,smtp_server):
         
 
         # Preprocessing image for classifier
-        # tfms = transforms.Compose([transforms.Resize(456), transforms.CenterCrop(456), 
-        #                     transforms.ToTensor(),
-        #                     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),])
-        # tfms = transforms.Compose([transforms.Resize(456), transforms.CenterCrop(456),
-        #                     transforms.ToTensor(), 
-        #                     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),])        
-        # crop_result = tfms(crop_result).unsqueeze(3)
+        tfms = transforms.Compose([transforms.Resize(456), transforms.CenterCrop(456),
+                            transforms.ToTensor(),
+                            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),])
+        crop_result = tfms(crop_result).unsqueeze(3)
         crop_result = tf.image.resize(crop_result,[456,456])
         
         crop_array = tf.keras.preprocessing.image.img_to_array(crop_result)
@@ -270,6 +274,7 @@ def process_image(image_data,smtp_server):
             # logits = model(crop_result)
         # preds = torch.topk(logits, k=5).indices.squeeze(0).tolist()
         preds = model(np.asarray(crop_array))
+
         print(f'time to perform classification={(time.time())-t0}')
         print('-----')
         
@@ -305,7 +310,6 @@ def process_image(image_data,smtp_server):
             # sendAlert(label, prob,imageBytes,smtp_server, username, to_emails)
     if foundDetection:
         save_image(image,img_file)
-    
 
 def main():
 
@@ -317,25 +321,29 @@ def main():
     global timestamp
     images = extractAttachments(fetch_emails(mail,from_emails,timestamp),mail)
     print(images)
+
+    # Reset Timestamp
     timestamp = datetime.now()
     print(timestamp)
-    # Reset Timestamp
+    
     if len(images) > 0:
 
         # Run Detector
-        # detections = runDetectionClassification(images, detector_model)
+        detections = runDetectionClassification(images, detector_model)
+
+        print(detections)
         # Check if detector found vehicles or humans
-        # check_humans_vehicles(detections,smtp_server)
+        check_humans_vehicles(detections,smtp_server)
 
         for image in images:
             process_image(image,smtp_server)
         
         # Crop Detections
-        # crops = cropDetections(detections)
-        # classify(crops,classifier_model)
+        crops = cropDetections(detections)
+        classify(crops,classifier_model)
 
         # Run Classifier on cropped images and pass results into check cougars
-        # check_cougars(classify(crops, classifier_model),smtp_server)
+        check_cougars(classify(crops, classifier_model),smtp_server)
 
         
 main()
