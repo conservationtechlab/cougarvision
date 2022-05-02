@@ -42,7 +42,7 @@ def extractAttachments(messages_group,mail):
 
             for idx, attachment in enumerate(message.attachments):
                 images.append((attachment.get('content'),camera_name,timestamp,picture_id))
-                # mail.mark_seen(uid)
+                mail.mark_seen(uid)
     return images
 
 
