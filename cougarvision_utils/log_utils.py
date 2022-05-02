@@ -2,7 +2,7 @@ import csv
 import os.path
 from PIL import Image
 
-LOG_DIR_PATH = "/home/jared/cell_cams/"
+LOG_DIR_PATH = "/home/edgar/cell_cams/"
 CSV_PATH = "logs.csv"
 
 # csv header format

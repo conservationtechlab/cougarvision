@@ -23,3 +23,7 @@ email_config.txt
 __pycache__/*
 *.yml
 *.h5
+*.pyc
+*.Rhistory
+*.pickle
+*.Rproj

@@ -32,6 +32,7 @@ def extractAttachments(messages_group,mail):
                 camera_name = message.subject.split(' ')[1][1:-1]
                 message_body = message.body['plain'][0]
                 split1 = message_body.split(":")
+                print(split1)
                 picture_id = split1[1][:-11]
                 if (len(split1) > 2):
                     time_string = split1[2][1:] + ":" + split1[3] + ":" + split1[4][:2] 
@@ -41,7 +42,8 @@ def extractAttachments(messages_group,mail):
 
 
             for idx, attachment in enumerate(message.attachments):
-                images.append((attachment.get('content'),camera_name,timestamp,picture_id))
+                images.append((attachment.get('content')))
+                # images.append((attachment.get('content'),camera_name,timestamp,picture_id))
                 # mail.mark_seen(uid)
     return images
 

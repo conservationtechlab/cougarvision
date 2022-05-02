@@ -1,4 +1,4 @@
-name: cougarvision_env
+name: cougarvision_env2
 channels:
   - conda-forge
   - defaults
