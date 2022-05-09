@@ -12,14 +12,15 @@ import numpy as np
 import humanfriendly
 from cougarvision_utils.ImageCropGenerator import GenerateCropsFromFile
 
+
 # Adds CameraTraps to Sys path, import specific utilities
 with open("config/cameratraps.yml", 'r') as stream:
     camera_traps_config = yaml.safe_load(stream)
     sys.path.append(camera_traps_config['camera_traps_path'])
 
 # noinspection PyUnresolvedReferences
-from detection.run_tf_detector import TFDetector
-from detection.run_tf_detector_batch import process_images
+from detection.tf_detector import TFDetector
+from detection.run_detector_batch import process_images
 
 # Numpy FutureWarnings from tensorflow import
 warnings.filterwarnings('ignore', category=FutureWarning)
@@ -38,7 +39,6 @@ with open("config/fetch_and_alert.yml", 'r') as stream:
 
 import tensorflow as tf
 from tensorflow import keras
-
 # Set Email Variables for fetching
 username = config['username']
 password = config['password']
@@ -69,7 +69,7 @@ threads = config['threads']
 labels_map = json.load(open('labels/labels_map.txt'))
 labels_map = [labels_map[str(i)] for i in range(1000)]
 
-with open('/home/edgar/mnt/machinelearning/Models/Southwest/classes.txt', 'r') as f:
+with open('/home/kyra/mnt/machinelearning/Models/Southwest/classes.txt', 'r') as f:
     data = f.read().splitlines()
 southwest_labels = np.asarray(data)
 

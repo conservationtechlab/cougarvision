@@ -1,5 +1,5 @@
-detector_model: /home/edgar/mnt/machinelearning/megaDetector/megadetector_v4.1.pb
-classifier_model: /home/edgar/mnt/machinelearning/Models/Southwest/EfficientNetB5_456_Unfrozen_01_0.58_0.82.h5
+detector_model: /mnt/machinelearning/megaDetector/megadetector_v4.1.pb
+classifier_model: /mnt/machinelearning/Models/Southwest/EfficientNetB5_456_Unfrozen_01_0.58_0.82.h5
 username: shiverctl@gmail.com
 password: edgar&12345
 #username: bioreserve.cam@gmail.com
