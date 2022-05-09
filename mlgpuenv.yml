@@ -153,4 +153,4 @@ dependencies:
     - redo==2.0.4
     - requests==2.25.1
     - schedule==1.1.0
-prefix: /home/edgar/anaconda3/envs/mlgpu
+prefix: /home/kyra/anaconda3/envs/mlgpu
