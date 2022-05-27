@@ -46,9 +46,9 @@ def fetch_images():
     driver.get("https://www.strikeforcewireless.com/login?redirect=%2Fphotos")
     name= driver.find_element_by_id("username")
     name.clear()
-    name.send_keys("bioreserve.cam@gmail.com")
+    name.send_keys("email@email.com")
     pw = driver.find_element_by_id("password")
-    pw.send_keys("Cougar2022!")
+    pw.send_keys("password")
     pw.send_keys(Keys.RETURN)
 
     #wait to login
