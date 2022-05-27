@@ -1,4 +1,4 @@
-name: cougarvision_env
+name: cougarvision
 channels:
   - conda-forge
   - defaults
@@ -120,4 +120,4 @@ dependencies:
     - torchvision==0.11.3
     - tqdm==4.63.0
     - webdriver-manager==3.5.4
-prefix: /home/jared/miniconda3/envs/mmdnn
+prefix: /home/jared/miniconda3/envs/cougarvision
