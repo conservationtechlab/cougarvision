@@ -104,6 +104,8 @@ def process_image(image_data,smtp_server):
     print(result)
     foundDetection = False
     for detection in result['detections']:
+        if int(detection["category"]) == 3:
+            continue
         foundDetection = True
         # Crops each bbox from detector
         img = Image.open(frame)
@@ -172,18 +174,20 @@ def main():
     smtp_server = smtp_setup(username,password,host)
 
     # Gets a list of attachments from unread emails from bigfoot camera
-    mail = imap_setup(host, username, password)
+    # mail = imap_setup(host, username, password)
     global timestamp
-    images = extractAttachments(fetch_emails(mail,from_emails,timestamp),mail)
+    # images = extractAttachments(fetch_emails(mail,from_emails,timestamp),mail)
     # Calls web scraping fetch below
-    # images = fetch_images() 
-    print(images)
+    web_images = fetch_images() 
+    # if len(web_images) > 0:
+    #     images += web_images
+    # print(images)
     timestamp = datetime.now()
     print(timestamp)
     # Reset Timestamp
-    if len(images) > 0:
+    if len(web_images) > 0:
 
-        for image in images:    
+        for image in web_images:    
             process_image(image,smtp_server)
         
 
