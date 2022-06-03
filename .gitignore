@@ -24,3 +24,10 @@ __pycache__/*
 *.yml
 *.h5
 *.pyc
+*.deb
+*.csv
+*.swp
+*.yml
+*.pyc
+*.cpy
+*.cpython
