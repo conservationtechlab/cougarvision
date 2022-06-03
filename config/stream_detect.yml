@@ -1,0 +1,11 @@
+detector_model: detector_models/md_v4.1.0.pb
+classifier_model: classifier_models/ig_resnext101_32x8d.pt
+confidence: 0.5
+stream_path: 
+DEQUE_SIZE: 200
+MAX_FRAME: 200
+frame_size: [1024,576]
+video_output_path: detected_videos
+username: 
+password: 
+to_emails: 

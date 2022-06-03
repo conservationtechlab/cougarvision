@@ -21,13 +21,11 @@
 email_config.txt
 .empty/
 __pycache__/*
-*.yml
 *.h5
 *.pyc
 *.deb
 *.csv
 *.swp
-*.yml
 *.pyc
 *.cpy
 *.cpython

@@ -1,0 +1,9 @@
+detector_model: md_v4.1.0.pb
+classifier_model: ig_resnext101_32x8d.pt
+username: 
+password: 
+from_emails: 
+to_emails: 
+# to_emails: ["jaredmacshane@gmail.com"]
+#  +17142095998@tmomail.net,+4123520680@vzwpix.com
+confidence: 0.5

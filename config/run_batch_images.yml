@@ -1,0 +1,8 @@
+detector_model: detector_models/md_v4.1.0.pb
+classifier_model: classifier_models/ig_resnext101_32x8d.pt
+
+input_file: recorded_images/
+output_json: output.json
+
+crop_dir: crops/
+confidence: 0.5
