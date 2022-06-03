@@ -60,7 +60,7 @@ CLASSIFIER_MODEL = config['classifier_model']
 tf_detector = TFDetector(DETECTOR_MODEL)
 
 # Classifier Model
-model = tf.keras.models.load_model('classifier_models/' + CLASSIFIER_MODEL)
+model = tf.keras.models.load_model(CLASSIFIER_MODEL)
 
 # Set Confidence 
 confidence_threshold = config['confidence']
