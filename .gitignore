@@ -24,6 +24,3 @@ __pycache__/*
 *.yml
 *.h5
 *.pyc
-*.Rhistory
-*.pickle
-*.Rproj

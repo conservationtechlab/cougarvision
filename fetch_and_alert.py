@@ -1,5 +1,8 @@
 # Import local utilities
 from cougarvision_utils.fetch_emails import imap_setup, fetch_emails, extractAttachments
+from cougarvision_utils.log_utils import log_classification,save_image
+from cougarvision_utils.web_scraping import fetch_images
+import json
 import schedule
 import time
 import json
@@ -76,11 +79,99 @@ southwest_labels = np.asarray(data)
 timestamp = datetime.now()
 
 
+
+def process_image(image_data,smtp_server):
+    # image_data = (image,camera_name,time_stamp,picture_id)
+    frame = image_data[0]
+    camera_name = image_data[1]
+    picture_timestamp = image_data[2]
+    picture_id = image_data[3]
+    image = Image.open(frame)
+    print(image_data)
+    t0 = time.time()
+    result = tf_detector.generate_detections_one_image(
+        image,
+        '0',
+        confidence_threshold
+    )
+    print(f'forward propagation time={(time.time())-t0}')
+
+    print(result)
+    foundDetection = False
+    for detection in result['detections']:
+        foundDetection = True
+        # Crops each bbox from detector
+        img = Image.open(frame)
+        bbox = detection['bbox']
+        crop_result = crop(img, bbox)
+        
+
+        # Preprocessing image for classifier
+        # tfms = transforms.Compose([transforms.Resize(456), transforms.CenterCrop(456), 
+        #                     transforms.ToTensor(),
+        #                     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),])
+        # tfms = transforms.Compose([transforms.Resize(456), transforms.CenterCrop(456),
+        #                     transforms.ToTensor(), 
+        #                     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),])        
+        # crop_result = tfms(crop_result).unsqueeze(3)
+        crop_result = tf.image.resize(crop_result,[456,456])
+        
+        crop_array = tf.keras.preprocessing.image.img_to_array(crop_result)
+        test_img = Image.fromarray((crop_result.numpy()).astype(np.uint8)).convert('RGB')
+        test_img.save("test.jpg")
+        crop_array = tf.expand_dims(crop_array, 0)
+        # Perform Inference
+        t0 = time.time()
+        # with torch.no_grad():
+            # logits = model(crop_result)
+        # preds = torch.topk(logits, k=5).indices.squeeze(0).tolist()
+        preds = model(np.asarray(crop_array))
+        print(f'time to perform classification={(time.time())-t0}')
+        print('-----')
+        
+        print(f'preds{preds}')
+        print(type(preds))
+        idx = preds.numpy().argmax(axis=-1)[0]
+        print(f'argmax id {idx}')
+        # prob = torch.softmax(logits, dim=1)[0, preds[0]].item()
+        # label = labels_map[preds[0]].split(',')[0]
+        prob = preds.numpy()[0][idx]
+        label = southwest_labels[idx]
+        print(f'prob {prob}')
+        print(f'label {label}')
+        viz_utils.draw_bounding_box_on_image(img,
+                bbox[1], bbox[0], bbox[1] + bbox[3], bbox[0] + bbox[2],
+                clss=idx,
+                thickness=4,
+                expansion=0,
+                display_str_list=f'{label} {prob*100}',
+                use_normalized_coordinates=True,
+                label_font_size=25)
+
+        img_file = f"{camera_name}_{timestamp.strftime('%m-%d-%Y_%H%M%S')}.jpg"
+        print(img_file)
+        log_classification(picture_timestamp,camera_name,picture_id,label,prob)
+        
+
+        # send alert based on labels
+        imageBytes = BytesIO()
+        img.save(imageBytes,format=img.format)
+        if label == "cougar":
+            sendAlert(label, prob,imageBytes,smtp_server, username, to_emails)
+    if foundDetection:
+        save_image(image,img_file)
+    
+
 def main():
+
+    smtp_server = smtp_setup(username,password,host)
+
     # Gets a list of attachments from unread emails from bigfoot camera
     mail = imap_setup(host, username, password)
     global timestamp
-    images = extractAttachments(fetch_emails(mail, from_emails, timestamp), mail)
+    images = extractAttachments(fetch_emails(mail,from_emails,timestamp),mail)
+    # Calls web scraping fetch below
+    # images = fetch_images() 
     print(images)
 
     # Reset Timestamp
@@ -117,7 +208,9 @@ def main():
             predictions = model.predict(generator)
             print(predictions)
 
-
+        for image in images:
+            process_image(image,smtp_server)
+        
 main()
 
 schedule.every(10).minutes.do(main)
