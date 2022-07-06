@@ -1,8 +1,9 @@
-from imbox import Imbox
-from PIL import Image
-import yaml
 import datetime
+
 import pandas as pd
+import yaml
+from PIL import Image
+from imbox import Imbox
 
 
 def imap_setup(host, username, password):
@@ -46,7 +47,6 @@ def extractAttachments(messages_group, mail):
                     timestamp = datetime.datetime.strptime(time_string, "%m/%d/%Y  %H:%M:%S")
                 else:
                     timestamp = datetime.datetime.strptime("01/01/2000 01:01:01", "%m/%d/%Y  %H:%M:%S")
-
 
             for idx, attachment in enumerate(message.attachments):
                 # Create path to save image
