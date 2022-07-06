@@ -1,7 +1,10 @@
-detector_model: /mnt/machinelearning/megaDetector/megadetector_v4.1.pb
-classifier_model: /mnt/machinelearning/Models/Southwest/EfficientNetB5_456_Unfrozen_01_0.58_0.82.h5
+detector_model: /home/edgar/mnt/machinelearning/megaDetector/megadetector_v4.1.pb
+classifier_model: /home/edgar/mnt/machinelearning/Models/Southwest/EfficientNetB5_456_Unfrozen_01_0.58_0.82.h5
+checkpoint_frequency: -1
+checkpoint_path: /home/edgar/Tester/
+classes: /home/edgar/mnt/machinelearning/Models/Southwest/classes.txt
 username: shiverctl@gmail.com
-password: edgar&12345
+password: woygohhmytkpoxqe
 #username: bioreserve.cam@gmail.com
 #password: odtreqluyhuurmuu
 from_emails: ["anayacreedence@gmail.com"]

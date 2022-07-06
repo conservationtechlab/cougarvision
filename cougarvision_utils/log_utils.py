@@ -1,9 +1,11 @@
 import csv 
 import os.path
-from PIL import Image
+import yaml
+with open("config/fetch_and_alert.yml", 'r') as stream:
+    config = yaml.safe_load(stream)
+    LOG_DIR_PATH = config['log_path']
+    CSV_PATH = config['csv_path']
 
-LOG_DIR_PATH = "/home/edgar/cell_cams/"
-CSV_PATH = "logs.csv"
 
 # csv header format
 # datetime,camera_id, image_file_name, top 1 classification, confidence
