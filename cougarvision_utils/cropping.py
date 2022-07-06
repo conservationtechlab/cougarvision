@@ -1,13 +1,13 @@
-from tqdm import tqdm
-from PIL import Image, ImageOps
 from typing import Any, Iterable, Mapping, Sequence
 
+from PIL import Image
+from tqdm import tqdm
+
+
 def load_to_crop(img_path: str,
-                  bbox_dicts: Iterable[Mapping[str, Any]],
-                  confidence_threshold: float
-):
-
-
+                 bbox_dicts: Iterable[Mapping[str, Any]],
+                 confidence_threshold: float
+                 ):
     did_download = False
     num_new_crops = 0
     crops = []
@@ -16,7 +16,6 @@ def load_to_crop(img_path: str,
     for i, bbox_dict in enumerate(bbox_dicts):
         # only ground-truth bboxes do not have a "confidence" value
         if 'conf' in bbox_dict and bbox_dict['conf'] < confidence_threshold:
-
             bbox_dicts.pop(i)
             continue
         # if bbox_dict['category'] != 'animal':
@@ -31,7 +30,6 @@ def load_to_crop(img_path: str,
     if img.mode != 'RGB':
         img = img.convert(mode='RGB')  # always save as RGB for consistency
 
-    
     # crop the image
     for crop_path, bbox in bboxes_tocrop.items():
         num_new_crops += 1
@@ -39,7 +37,6 @@ def load_to_crop(img_path: str,
             img, bbox_norm=bbox), bbox])
 
     return did_download, num_new_crops, crops
-
 
 
 def crop(img: Image.Image, bbox_norm: Sequence[float]) -> bool:
@@ -64,5 +61,5 @@ def crop(img: Image.Image, bbox_norm: Sequence[float]) -> bool:
 
     # Image.crop() takes box=[left, upper, right, lower]
     crop = img.crop(box=[xmin, ymin, xmin + box_w, ymin + box_h])
-    
+
     return crop

@@ -1,3 +1,18 @@
+<<<<<<< HEAD
+detector_model: /home/edgar/mnt/machinelearning/megaDetector/megadetector_v4.1.pb
+classifier_model: /home/edgar/mnt/machinelearning/Models/Southwest/EfficientNetB5_456_Unfrozen_01_0.58_0.82.h5
+checkpoint_frequency: -1
+checkpoint_path: /home/edgar/Tester/
+classes: /home/edgar/mnt/machinelearning/Models/Southwest/classes.txt
+username: shiverctl@gmail.com
+password: woygohhmytkpoxqe
+#username: bioreserve.cam@gmail.com
+#password: odtreqluyhuurmuu
+from_emails: ["anayacreedence@gmail.com"]
+#from_emails: ["support@bigfootsmtp.com", "noreply@wirelesstrophycam.com"]
+# to_emails: ["jaredmacshane@gmail.com","tswanson@sdzwa.org", "iingram@sdzwa.org","Jesanchez@sdzwa.org","CdelaRosa@sdzwa.org"]
+to_emails: ["shiverctl@gmail.com"]
+=======
 detector_model: md_v4.1.0.pb
 classifier_model: ig_resnext101_32x8d.pt
 username: 
@@ -5,5 +20,6 @@ password:
 from_emails: 
 to_emails: 
 # to_emails: ["jaredmacshane@gmail.com"]
+>>>>>>> master
 #  +17142095998@tmomail.net,+4123520680@vzwpix.com
 confidence: 0.5

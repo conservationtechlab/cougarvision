@@ -1,5 +1,5 @@
-detector_model: detector_models/md_v4.1.0.pb
-classifier_model: classifier_models/ig_resnext101_32x8d.pt
+detector_model: /home/edgar/mnt/machinelearning/megaDetector/megadetector_v4.1.pb
+classifier_model: /home/edgar/mnt/machinelearning/Models/Classification/ig_resnext101_32x8d.pt
 confidence: 0.5
 stream_path: 
 DEQUE_SIZE: 200
