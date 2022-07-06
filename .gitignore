@@ -20,7 +20,11 @@
 *.avi
 email_config.txt
 .empty/
-__pycache__/*
-*.yml
 *.h5
 *.pyc
+*.deb
+*.csv
+*.swp
+*.pyc
+*.cpy
+*.cpython
