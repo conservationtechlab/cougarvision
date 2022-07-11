@@ -5,6 +5,7 @@ import urllib.request
 import pandas as pd
 import yaml
 from selenium import webdriver
+from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from webdriver_manager.chrome import ChromeDriverManager
@@ -34,10 +35,10 @@ def fetch_images():
     driver.maximize_window()
     driver.get(site)
     time.sleep(2)
-    name = driver.find_element_by_id("username")
+    name = driver.find_element("id","username")
     name.clear()
     name.send_keys(username)
-    pw = driver.find_element_by_id("password")
+    pw = driver.find_element("id","password")
     pw.send_keys(password)
     pw.send_keys(Keys.RETURN)
 
@@ -49,7 +50,7 @@ def fetch_images():
     # wait for javascript to load
     time.sleep(4)
 
-    image_urls = driver.find_elements_by_class_name('css-1vh28r')
+    image_urls = driver.find_elements(By.CLASS_NAME,'css-1vh28r')
     image_num = len(image_urls)
     df = pd.DataFrame(
         columns=['file', 'camera_name', 'time', 'date', 'temperature', 'moon', 'camera_id', 'alt', 'image_id', 'src'])
@@ -66,13 +67,14 @@ def fetch_images():
 
         if first:
             first = False
+            print("Looking for new images since last id: " + last_id)
             # Get scroll height
             last_height = driver.execute_script("return document.body.scrollHeight")
             # Scrolls down to the bottom to dynamically load images
             SCROLL_PAUSE_TIME = 3.0
             while True:
                 # Scroll down to bottom
-                driver.find_element_by_tag_name('body').send_keys(Keys.PAGE_DOWN)
+                driver.find_element(By.TAG_NAME,'body').send_keys(Keys.PAGE_DOWN)
                 # Wait to load page
                 time.sleep(SCROLL_PAUSE_TIME)
 
@@ -81,7 +83,7 @@ def fetch_images():
                 if new_height == last_height:
                     break
                 if last_id is not None:
-                    image_urls = driver.find_elements_by_class_name('css-1vh28r')
+                    image_urls = driver.find_elements(By.CLASS_NAME,'css-1vh28r')
                     image_obj = image_urls[-1]
                     picture_id = image_obj.get_attribute('data-photo-id')
                     if picture_id < last_id:
@@ -92,8 +94,9 @@ def fetch_images():
             actions.perform()
             time.sleep(2)
             # load new number of images
-            image_urls = driver.find_elements_by_class_name('css-1vh28r')
+            image_urls = driver.find_elements(By.CLASS_NAME,'css-1vh28r')
             image_num = len(image_urls)
+            print("Number of images found: " + str(image_num))
             # Clicks on first image to bring up lightbox
             driver.find_element_by_xpath(
                 '/html/body/div/section/main/div/div[2]/div/div/div/div/div[2]/div[1]/div/img').click()
@@ -111,12 +114,12 @@ def fetch_images():
             driver.find_element_by_xpath('/html/body/div[4]/div/div/div/button[2]').click()
             time.sleep(2)
         # Get all information from image
-        date_stamp = driver.find_element_by_class_name('css-11c9ho7').text
-        time_stamp = driver.find_element_by_class_name('css-zz79lp').text
+        date_stamp = driver.find_element(By.CLASS_NAME,'css-11c9ho7').text
+        time_stamp = driver.find_element(By.CLASS_NAME,'css-zz79lp').text
         # Converts time to 24 and correct timezone
         datetime_object = datetime.datetime.strptime(time_stamp, '%I:%M%p') + datetime.timedelta(hours=2)
         time_stamp = datetime_object.strftime("%H:%M:%S")
-        temp_moon_stamps = driver.find_elements_by_class_name('css-9kmbgq')
+        temp_moon_stamps = driver.find_elements(By.CLASS_NAME,'css-9kmbgq')
         temp_stamp, moon_stamp = temp_moon_stamps[0].text, temp_moon_stamps[1].text
         camera_id = image_obj.get_attribute('data-camera-id')
         alt = image_obj.get_attribute('alt')

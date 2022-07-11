@@ -22,19 +22,20 @@ warnings.filterwarnings('ignore', category=FutureWarning)
 with open("web_scraping.yml", 'r') as stream:
     config = yaml.safe_load(stream)
     # Set Email Variables for fetching
-    username = config['username']
-    password = config['password']
-    from_emails = config['from_emails']
-    to_emails = config['to_emails']
-    csv_path = config['csv_path']
+username = config['username']
+password = config['password']
+from_emails = config['from_emails']
+to_emails = config['to_emails']
+home_dir = config['home_dir']
+csv_path = home_dir + config['csv_path']
 host = 'imap.gmail.com'
 
 # Model Variables
-detector_model = config['detector_model']
-classifier_model = config['classifier_model']
+detector_model = home_dir +  config['detector_model']
+classifier_model = home_dir + config['classifier_model']
 
 # Model Setup
-checkpoint_path = config['checkpoint_path']
+checkpoint_path = home_dir + config['checkpoint_path']
 checkpoint_frequency = config['checkpoint_frequency']
 
 # Classifier Model
@@ -45,7 +46,7 @@ confidence_threshold = config['confidence']
 
 # Set threads for load_and_crop
 threads = config['threads']
-classes = config['classes']
+classes = home_dir + config['classes']
 timestamp = datetime.now()
 
 
@@ -99,17 +100,25 @@ def run_emails():
     # Gets a list of attachments from unread emails from bigfoot camera
     mail = imap_setup(host, username, password)
     global timestamp
+    print('Starting Email Fetcher')
     images = extractAttachments(fetch_emails(mail, from_emails, timestamp), mail)
+    print('Finished Email Fetcher')
+    print('Starting Detection')
     detect(images)
+    print('Finished Detection')
 
 
 def run_scraper():
+    print('Starting Web Scraper')
     images = fetch_images()
-
+    print('Finished Web Scraper')
+    print('Starting Detection')
     detect(images)
+    print('Finished Detection')
 
 
 def main():
+    # Run the scheduler
     run_emails()
     run_scraper()
 
