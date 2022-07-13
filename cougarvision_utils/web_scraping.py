@@ -22,13 +22,12 @@ options.add_argument("--window-size=1920,1080")
 def fetch_images():
     with open("web_scraping.yml", 'r') as stream:
         config = yaml.safe_load(stream)
-        site = config['site']
-        site2 = config['site2']
-        username = config['username_scraper']
-        password = config['password_scraper']
-        image_path = config['image_path']
-        csv_path = config['csv_path']
-        last_id = config['last_id']
+    site = config['site']
+    site2 = config['site2']
+    username = config['username_scraper']
+    password = config['password_scraper']
+    image_path = config['image_path']
+    last_id = config['last_id']
 
     driver = webdriver.Chrome(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install(), options=options)
     actions = ActionChains(driver)
@@ -64,10 +63,15 @@ def fetch_images():
         if last_id == picture_id:
             driver.close()
             return df
-
+            # Write the first image ID to file
+        if skip:
+            with open('web_scraping.yml', 'w') as f:
+                config[last_id] = picture_id
+                yaml.dump(config, f)
+            skip = False
         if first:
             first = False
-            print("Looking for new images since last id: " + last_id)
+            print("Looking for new images since last id: " + str(last_id))
             # Get scroll height
             last_height = driver.execute_script("return document.body.scrollHeight")
             # Scrolls down to the bottom to dynamically load images
@@ -86,7 +90,7 @@ def fetch_images():
                     image_urls = driver.find_elements(By.CLASS_NAME,'css-1vh28r')
                     image_obj = image_urls[-1]
                     picture_id = image_obj.get_attribute('data-photo-id')
-                    if picture_id < last_id:
+                    if int(picture_id) < int(last_id):
                         break
                 last_height = new_height
             # Go to the top of the page
@@ -101,14 +105,7 @@ def fetch_images():
             driver.find_element_by_xpath(
                 '/html/body/div/section/main/div/div[2]/div/div/div/div/div[2]/div[1]/div/img').click()
             time.sleep(2)
-            # Write the first image ID to file
-            if skip:
-                with open('web_scraping.yml', 'w') as f:
-                    config[last_id] = picture_id
-                    yaml.dump(config, f)
-                skip = False
 
-            time.sleep(2)
         # Clicks arrow key to advance to next image
         else:
             driver.find_element_by_xpath('/html/body/div[4]/div/div/div/button[2]').click()
@@ -136,6 +133,8 @@ def fetch_images():
         df.loc[len(df.index)] = [path, camera_name, time_stamp, date_stamp, temp_stamp, moon_stamp, camera_id, alt,
                                  picture_id, src]
         i += 1
+    driver.close()
+    return df
 
 
 if __name__ == "__main__":
