@@ -19,8 +19,8 @@ def fetch_emails(imap_server, emails, timestamp):
     return messages_group
 
 
-def extractAttachments(messages_group, mail):
-    with open("web_scraping.yml", 'r') as stream:
+def extractAttachments(messages_group, mail, config):
+    with open(config, 'r') as stream:
         config = yaml.safe_load(stream)
         image_path = config['image_path']
     df = pd.DataFrame(columns=['file', 'camera', 'time', 'image_id'])

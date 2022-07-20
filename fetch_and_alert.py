@@ -1,6 +1,7 @@
 # Import local utilities
 import time
 import warnings
+import argparse
 from datetime import datetime
 from io import BytesIO
 
@@ -17,9 +18,12 @@ from cougarvision_utils.web_scraping import fetch_images
 
 # Numpy FutureWarnings from tensorflow import
 warnings.filterwarnings('ignore', category=FutureWarning)
-
+# Parse arguments
+parser = argparse.ArgumentParser(description='Retrieves images from email and web scraper and runs detection')
+parser.add_argument('-config', type=str, default="config/fetch_and_alert.yml", help='Path to config file')
+args = parser.parse_args()
 # Load Configuration Settings from YML file
-with open("web_scraping.yml", 'r') as stream:
+with open(args.config, 'r') as stream:
     config = yaml.safe_load(stream)
     # Set Email Variables for fetching
 username = config['username']
@@ -31,7 +35,7 @@ csv_path = home_dir + config['csv_path']
 host = 'imap.gmail.com'
 
 # Model Variables
-detector_model = home_dir +  config['detector_model']
+detector_model = home_dir + config['detector_model']
 classifier_model = home_dir + config['classifier_model']
 
 # Model Setup
@@ -60,40 +64,41 @@ def detect(images):
                                                        confidence_threshold, checkpoint_frequency, [])
         # Parse results
         df = FileManagement.parseMD(results)
-
         # filter out all non animal detections
-        animalDataframe, otherDataframe = FileManagement.filterImages(df)
+        if not df.empty:
+            animalDataframe, otherDataframe = FileManagement.filterImages(df)
+            # run classifier on animal detections if there are any
+            if not animalDataframe.empty:
+                # create generator for images
+                generator = ImageCropGenerator.GenerateCropsFromFile(animalDataframe)
+                # Run Classifier
+                predictions = model.predict(generator)
+                # Parse results
+                maxDataframe = FileManagement.parseCM(animalDataframe, otherDataframe, predictions, classes)
 
-        # run classifier on animal detections if there are any
-        if not animalDataframe.empty:
-            # create generator for images
-            generator = ImageCropGenerator.GenerateCropsFromFile(animalDataframe)
-            # Run Classifier
-            predictions = model.predict(generator)
-            # Parse results
-            maxDataframe = FileManagement.parseCM(animalDataframe, otherDataframe, predictions, classes)
-
-            # Creates a large data frame with all relevant data
-            cougars = animalDataframe
-            cougars['prediction'] = maxDataframe['class']
-            cougars['prediction_conf'] = pd.DataFrame(predictions).max(axis=1)
-            # Add relevant data to cougars dataframe from original images dataframe
-            cougars = cougars.merge(images)
-            # drops all non cougar detections
-            cougars = cougars[cougars['prediction'].astype(str) == 'cougar']
-            # reset dataframe index
-            cougars = cougars.reset_index(drop=True)
-            # Sends alert for each cougar detection
-            for idx in range(len(cougars.index)):
-                label = cougars.at[idx, 'prediction']
-                prob = cougars.at[idx, 'prediction_conf']
-                img = Image.open(cougars.at[idx, 'file'])
-                imageBytes = BytesIO()
-                img.save(imageBytes, format=img.format)
-                smtp_server = smtp_setup(username, password, host)
-                sendAlert(label, prob, imageBytes, smtp_server, username, to_emails)
-            # Write Dataframe to csv
-            cougars.to_csv(f'{csv_path}dataframe_{datetime.now().strftime("%m-%d-%Y_%H:%M:%S")}')
+                # Creates a large data frame with all relevant data
+                cougars = animalDataframe
+                cougars['prediction'] = maxDataframe['class']
+                cougars['prediction_conf'] = pd.DataFrame(predictions).max(axis=1)
+                # Add relevant data to cougars dataframe from original images dataframe
+                cougars = cougars.merge(images)
+                # drops all non cougar detections
+                cougars = cougars[cougars['prediction'].astype(str) == 'cougar']
+                # drops all detections with confidence less than threshold
+                cougars = cougars[cougars['prediction_conf'] >= confidence_threshold]
+                # reset dataframe index
+                cougars = cougars.reset_index(drop=True)
+                # Sends alert for each cougar detection
+                for idx in range(len(cougars.index)):
+                    label = cougars.at[idx, 'prediction']
+                    prob = cougars.at[idx, 'prediction_conf']
+                    img = Image.open(cougars.at[idx, 'file'])
+                    imageBytes = BytesIO()
+                    img.save(imageBytes, format=img.format)
+                    smtp_server = smtp_setup(username, password, host)
+                    sendAlert(label, prob, imageBytes, smtp_server, username, to_emails)
+                # Write Dataframe to csv
+                cougars.to_csv(f'{csv_path}dataframe_{datetime.now().strftime("%m-%d-%Y_%H:%M:%S")}')
 
 
 def run_emails():
@@ -101,7 +106,7 @@ def run_emails():
     mail = imap_setup(host, username, password)
     global timestamp
     print('Starting Email Fetcher')
-    images = extractAttachments(fetch_emails(mail, from_emails, timestamp), mail)
+    images = extractAttachments(fetch_emails(mail, from_emails, timestamp), mail, config)
     print('Finished Email Fetcher')
     print('Starting Detection')
     detect(images)
@@ -110,7 +115,7 @@ def run_emails():
 
 def run_scraper():
     print('Starting Web Scraper')
-    images = fetch_images()
+    images = fetch_images(config)
     print('Finished Web Scraper')
     print('Starting Detection')
     detect(images)
@@ -119,8 +124,10 @@ def run_scraper():
 
 def main():
     # Run the scheduler
+    print("Running fetch_and_alert")
     run_emails()
     run_scraper()
+    print("Sleeping since: " + str(datetime.now()))
 
 
 main()

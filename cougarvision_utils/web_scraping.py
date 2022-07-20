@@ -19,9 +19,9 @@ options.add_argument("--headless")
 options.add_argument("--window-size=1920,1080")
 
 
-def fetch_images():
-    with open("web_scraping.yml", 'r') as stream:
-        config = yaml.safe_load(stream)
+def fetch_images(config_path):
+    with open(config_path, 'r') as f:
+        config = yaml.safe_load(f)
     site = config['site']
     site2 = config['site2']
     username = config['username_scraper']
@@ -34,10 +34,10 @@ def fetch_images():
     driver.maximize_window()
     driver.get(site)
     time.sleep(2)
-    name = driver.find_element("id","username")
+    name = driver.find_element("id", "username")
     name.clear()
     name.send_keys(username)
-    pw = driver.find_element("id","password")
+    pw = driver.find_element("id", "password")
     pw.send_keys(password)
     pw.send_keys(Keys.RETURN)
 
@@ -49,36 +49,38 @@ def fetch_images():
     # wait for javascript to load
     time.sleep(4)
 
-    image_urls = driver.find_elements(By.CLASS_NAME,'css-1vh28r')
+    image_urls = driver.find_elements(By.CLASS_NAME, 'css-1vh28r')
     image_num = len(image_urls)
     df = pd.DataFrame(
         columns=['file', 'camera_name', 'time', 'date', 'temperature', 'moon', 'camera_id', 'alt', 'image_id', 'src'])
     skip = True
     first = True
     i = 0
+    images_found = 0
     while i < image_num:
         image_obj = image_urls[i]
         picture_id = image_obj.get_attribute('data-photo-id')
-        # If no new images since last run exit
-        if last_id == picture_id:
-            driver.close()
-            return df
-            # Write the first image ID to file
-        if skip:
-            with open('web_scraping.yml', 'w') as f:
-                config[last_id] = picture_id
-                yaml.dump(config, f)
-            skip = False
         if first:
             first = False
             print("Looking for new images since last id: " + str(last_id))
+            # If no new images since last run exit
+            if last_id == picture_id:
+                print("No new images since last run")
+                driver.close()
+                return df
+            # Write the first image ID to file
+            if skip:
+                with open(config, 'w') as f:
+                    config['last_id'] = int(picture_id)
+                    yaml.dump(config, f)
+                skip = False
             # Get scroll height
             last_height = driver.execute_script("return document.body.scrollHeight")
             # Scrolls down to the bottom to dynamically load images
             SCROLL_PAUSE_TIME = 3.0
             while True:
                 # Scroll down to bottom
-                driver.find_element(By.TAG_NAME,'body').send_keys(Keys.PAGE_DOWN)
+                driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.PAGE_DOWN)
                 # Wait to load page
                 time.sleep(SCROLL_PAUSE_TIME)
 
@@ -87,36 +89,36 @@ def fetch_images():
                 if new_height == last_height:
                     break
                 if last_id is not None:
-                    image_urls = driver.find_elements(By.CLASS_NAME,'css-1vh28r')
+                    image_urls = driver.find_elements(By.CLASS_NAME, 'css-1vh28r')
                     image_obj = image_urls[-1]
                     picture_id = image_obj.get_attribute('data-photo-id')
                     if int(picture_id) < int(last_id):
                         break
+                images_found += 1
                 last_height = new_height
             # Go to the top of the page
             actions.send_keys(Keys.HOME)
             actions.perform()
             time.sleep(2)
             # load new number of images
-            image_urls = driver.find_elements(By.CLASS_NAME,'css-1vh28r')
-            image_num = len(image_urls)
+            image_urls = driver.find_elements(By.CLASS_NAME, 'css-1vh28r')
+            image_num = images_found
             print("Number of images found: " + str(image_num))
             # Clicks on first image to bring up lightbox
             driver.find_element_by_xpath(
                 '/html/body/div/section/main/div/div[2]/div/div/div/div/div[2]/div[1]/div/img').click()
             time.sleep(2)
-
         # Clicks arrow key to advance to next image
         else:
             driver.find_element_by_xpath('/html/body/div[4]/div/div/div/button[2]').click()
             time.sleep(2)
         # Get all information from image
-        date_stamp = driver.find_element(By.CLASS_NAME,'css-11c9ho7').text
-        time_stamp = driver.find_element(By.CLASS_NAME,'css-zz79lp').text
+        date_stamp = driver.find_element(By.CLASS_NAME, 'css-11c9ho7').text
+        time_stamp = driver.find_element(By.CLASS_NAME, 'css-zz79lp').text
         # Converts time to 24 and correct timezone
         datetime_object = datetime.datetime.strptime(time_stamp, '%I:%M%p') + datetime.timedelta(hours=2)
         time_stamp = datetime_object.strftime("%H:%M:%S")
-        temp_moon_stamps = driver.find_elements(By.CLASS_NAME,'css-9kmbgq')
+        temp_moon_stamps = driver.find_elements(By.CLASS_NAME, 'css-9kmbgq')
         temp_stamp, moon_stamp = temp_moon_stamps[0].text, temp_moon_stamps[1].text
         camera_id = image_obj.get_attribute('data-camera-id')
         alt = image_obj.get_attribute('alt')
@@ -135,7 +137,3 @@ def fetch_images():
         i += 1
     driver.close()
     return df
-
-
-if __name__ == "__main__":
-    fetch_images()
