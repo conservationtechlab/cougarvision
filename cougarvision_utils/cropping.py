@@ -1,7 +1,153 @@
 from typing import Any, Iterable, Mapping, Sequence
 
-from PIL import Image
+import numpy as np
+from PIL import Image, ImageFont, ImageDraw
 from tqdm import tqdm
+
+# The following function are modified versions of those at:
+# https://github.com/tensorflow/models/blob/master/research/object_detection/utils/visualization_utils.py
+COLORS = [
+    'AliceBlue', 'Red', 'RoyalBlue', 'Gold', 'Chartreuse', 'Aqua', 'Azure',
+    'Beige', 'Bisque', 'BlanchedAlmond', 'BlueViolet', 'BurlyWood', 'CadetBlue',
+    'AntiqueWhite', 'Chocolate', 'Coral', 'CornflowerBlue', 'Cornsilk', 'Crimson',
+    'Cyan', 'DarkCyan', 'DarkGoldenRod', 'DarkGrey', 'DarkKhaki', 'DarkOrange',
+    'DarkOrchid', 'DarkSalmon', 'DarkSeaGreen', 'DarkTurquoise', 'DarkViolet',
+    'DeepPink', 'DeepSkyBlue', 'DodgerBlue', 'FireBrick', 'FloralWhite',
+    'ForestGreen', 'Fuchsia', 'Gainsboro', 'GhostWhite', 'GoldenRod',
+    'Salmon', 'Tan', 'HoneyDew', 'HotPink', 'IndianRed', 'Ivory', 'Khaki',
+    'Lavender', 'LavenderBlush', 'LawnGreen', 'LemonChiffon', 'LightBlue',
+    'LightCoral', 'LightCyan', 'LightGoldenRodYellow', 'LightGray', 'LightGrey',
+    'LightGreen', 'LightPink', 'LightSalmon', 'LightSeaGreen', 'LightSkyBlue',
+    'LightSlateGray', 'LightSlateGrey', 'LightSteelBlue', 'LightYellow', 'Lime',
+    'LimeGreen', 'Linen', 'Magenta', 'MediumAquaMarine', 'MediumOrchid',
+    'MediumPurple', 'MediumSeaGreen', 'MediumSlateBlue', 'MediumSpringGreen',
+    'MediumTurquoise', 'MediumVioletRed', 'MintCream', 'MistyRose', 'Moccasin',
+    'NavajoWhite', 'OldLace', 'Olive', 'OliveDrab', 'Orange', 'OrangeRed',
+    'Orchid', 'PaleGoldenRod', 'PaleGreen', 'PaleTurquoise', 'PaleVioletRed',
+    'PapayaWhip', 'PeachPuff', 'Peru', 'Pink', 'Plum', 'PowderBlue', 'Purple',
+    'RosyBrown', 'Aquamarine', 'SaddleBrown', 'Green', 'SandyBrown',
+    'SeaGreen', 'SeaShell', 'Sienna', 'Silver', 'SkyBlue', 'SlateBlue',
+    'SlateGray', 'SlateGrey', 'Snow', 'SpringGreen', 'SteelBlue', 'GreenYellow',
+    'Teal', 'Thistle', 'Tomato', 'Turquoise', 'Violet', 'Wheat', 'White',
+    'WhiteSmoke', 'Yellow', 'YellowGreen'
+]
+
+
+def draw_bounding_box_on_image(image,
+                               ymin,
+                               xmin,
+                               ymax,
+                               xmax,
+                               clss=None,
+                               thickness=4,
+                               expansion=0,
+                               display_str_list=(),
+                               use_normalized_coordinates=True,
+                               label_font_size=16):
+    """
+    Adds a bounding box to an image.
+
+    Bounding box coordinates can be specified in either absolute (pixel) or
+    normalized coordinates by setting the use_normalized_coordinates argument.
+
+    Each string in display_str_list is displayed on a separate line above the
+    bounding box in black text on a rectangle filled with the input 'color'.
+    If the top of the bounding box extends to the edge of the image, the strings
+    are displayed below the bounding box.
+
+    Args:
+    image: a PIL.Image object.
+    ymin: ymin of bounding box - upper left.
+    xmin: xmin of bounding box.
+    ymax: ymax of bounding box.
+    xmax: xmax of bounding box.
+    clss: str, the class of the object in this bounding box - will be cast to an int.
+    thickness: line thickness. Default value is 4.
+    expansion: number of pixels to expand bounding boxes on each side.  Default is 0.
+    display_str_list: list of strings to display in box
+        (each to be shown on its own line).
+        use_normalized_coordinates: If True (default), treat coordinates
+        ymin, xmin, ymax, xmax as relative to the image.  Otherwise treat
+        coordinates as absolute.
+    label_font_size: font size to attempt to load arial.ttf with
+    """
+    if clss is None:
+        color = COLORS[1]
+    else:
+        color = COLORS[int(clss) % len(COLORS)]
+
+    draw = ImageDraw.Draw(image)
+    im_width, im_height = image.size
+    if use_normalized_coordinates:
+        (left, right, top, bottom) = (xmin * im_width, xmax * im_width,
+                                      ymin * im_height, ymax * im_height)
+    else:
+        (left, right, top, bottom) = (xmin, xmax, ymin, ymax)
+
+    if expansion > 0:
+        left -= expansion
+        right += expansion
+        top -= expansion
+        bottom += expansion
+
+        # Deliberately trimming to the width of the image only in the case where
+        # box expansion is turned on.  There's not an obvious correct behavior here,
+        # but the thinking is that if the caller provided an out-of-range bounding
+        # box, they meant to do that, but at least in the eyes of the person writing
+        # this comment, if you expand a box for visualization reasons, you don't want
+        # to end up with part of a box.
+        #
+        # A slightly more sophisticated might check whether it was in fact the expansion
+        # that made this box larger than the image, but this is the case 99.999% of the time
+        # here, so that doesn't seem necessary.
+        left = max(left, 0);
+        right = max(right, 0)
+        top = max(top, 0);
+        bottom = max(bottom, 0)
+
+        left = min(left, im_width - 1);
+        right = min(right, im_width - 1)
+        top = min(top, im_height - 1);
+        bottom = min(bottom, im_height - 1)
+
+    draw.line([(left, top), (left, bottom), (right, bottom),
+               (right, top), (left, top)], width=thickness, fill=color)
+
+    try:
+        font = ImageFont.truetype('arial.ttf', label_font_size)
+    except IOError:
+        font = ImageFont.load_default()
+
+    # If the total height of the display strings added to the top of the bounding
+    # box exceeds the top of the image, stack the strings below the bounding box
+    # instead of above.
+    display_str_heights = [font.getsize(ds)[1] for ds in display_str_list]
+
+    # Each display_str has a top and bottom margin of 0.05x.
+    total_display_str_height = (1 + 2 * 0.05) * sum(display_str_heights)
+
+    if top > total_display_str_height:
+        text_bottom = top
+    else:
+        text_bottom = bottom + total_display_str_height
+
+    # Reverse list and print from bottom to top.
+    for display_str in display_str_list[::-1]:
+        text_width, text_height = font.getsize(display_str)
+        margin = np.ceil(0.05 * text_height)
+
+        draw.rectangle(
+            [(left, text_bottom - text_height - 2 * margin), (left + text_width,
+                                                              text_bottom)],
+            fill=color)
+
+        draw.text(
+            (left + margin, text_bottom - text_height - margin),
+            display_str,
+            fill='black',
+            font=font)
+
+        text_bottom -= (text_height + 2 * margin)
 
 
 def load_to_crop(img_path: str,
