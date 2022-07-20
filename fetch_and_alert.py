@@ -15,6 +15,7 @@ from tensorflow.keras.applications.resnet50 import ResNet50
 from tensorflow.keras.applications.resnet50 import decode_predictions
 
 from cougarvision_utils.alert import sendAlert, smtp_setup
+from cougarvision_utils.cropping import draw_bounding_box_on_image
 from cougarvision_utils.fetch_emails import imap_setup, fetch_emails, extractAttachments
 from cougarvision_utils.web_scraping import fetch_images
 
@@ -48,7 +49,6 @@ checkpoint_frequency = config['checkpoint_frequency']
 # Classifier Model
 # model = keras.models.load_model(classifier_model)
 model = ResNet50(weights='imagenet')
-
 
 # Set Confidence
 confidence_threshold = config['confidence']
@@ -105,6 +105,16 @@ def detect(images):
                     label = cougars.at[idx, 'prediction']
                     prob = cougars.at[idx, 'prediction_conf']
                     img = Image.open(cougars.at[idx, 'file'])
+                    draw_bounding_box_on_image(img,
+                                               cougars.at[idx, 'bbox2'], cougars.at[idx, 'bbox1'],
+                                               cougars.at[idx, 'bbox2'] + cougars.at[idx, 'bbox4'],
+                                               cougars.at[idx, 'bbox1'] + cougars.at[idx, 'bbox3'],
+                                               clss=idx,
+                                               thickness=4,
+                                               expansion=0,
+                                               display_str_list=f'{label} {prob * 100}',
+                                               use_normalized_coordinates=True,
+                                               label_font_size=25)
                     imageBytes = BytesIO()
                     img.save(imageBytes, format=img.format)
                     smtp_server = smtp_setup(username, password, host)
