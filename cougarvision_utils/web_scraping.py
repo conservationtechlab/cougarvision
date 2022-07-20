@@ -1,9 +1,8 @@
 import datetime
 import time
 import urllib.request
-
+import ruamel.yaml
 import pandas as pd
-import yaml
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
@@ -20,8 +19,9 @@ options.add_argument("--window-size=1920,1080")
 
 
 def fetch_images(config_path):
+    yaml = ruamel.yaml.YAML()
     with open(config_path, 'r') as f:
-        config = yaml.safe_load(f)
+        config = yaml.load(f)
     site = config['site']
     site2 = config['site2']
     username = config['username_scraper']
@@ -50,28 +50,35 @@ def fetch_images(config_path):
     time.sleep(4)
 
     image_urls = driver.find_elements(By.CLASS_NAME, 'css-1vh28r')
+    # make a dictionary with photo id as key and url as value
+    element_dict = {}
+    for image in image_urls:
+        element_dict[image.get_attribute('data-photo-id')] = image
+
+    # make a list of photo ids sorted from greatest to least
+    photo_ids = [x.get_attribute('data-photo-id') for x in image_urls]
+    photo_ids.sort(reverse=True)
+
     image_num = len(image_urls)
     df = pd.DataFrame(
         columns=['file', 'camera_name', 'time', 'date', 'temperature', 'moon', 'camera_id', 'alt', 'image_id', 'src'])
     skip = True
     first = True
     i = 0
-    images_found = 0
     while i < image_num:
-        image_obj = image_urls[i]
-        picture_id = image_obj.get_attribute('data-photo-id')
+        picture_id = photo_ids[i]
+        image_obj = element_dict[picture_id]
+        if last_id == int(picture_id):
+            print("Number of images found: " + str(i))
+            driver.close()
+            return df
         if first:
             first = False
             print("Looking for new images since last id: " + str(last_id))
-            # If no new images since last run exit
-            if last_id == picture_id:
-                print("No new images since last run")
-                driver.close()
-                return df
             # Write the first image ID to file
             if skip:
-                with open(config, 'w') as f:
-                    config['last_id'] = int(picture_id)
+                config['last_id'] = int(picture_id)
+                with open(config_path, 'w') as f:
                     yaml.dump(config, f)
                 skip = False
             # Get scroll height
@@ -90,11 +97,13 @@ def fetch_images(config_path):
                     break
                 if last_id is not None:
                     image_urls = driver.find_elements(By.CLASS_NAME, 'css-1vh28r')
-                    image_obj = image_urls[-1]
-                    picture_id = image_obj.get_attribute('data-photo-id')
+                    # make a list of photo ids sorted from greatest to least
+                    photo_ids = [x.get_attribute('data-photo-id') for x in image_urls]
+                    photo_ids.sort(reverse=True)
+                    picture_id = photo_ids[-1]
                     if int(picture_id) < int(last_id):
+                        picture_id = photo_ids[0]
                         break
-                images_found += 1
                 last_height = new_height
             # Go to the top of the page
             actions.send_keys(Keys.HOME)
@@ -102,8 +111,14 @@ def fetch_images(config_path):
             time.sleep(2)
             # load new number of images
             image_urls = driver.find_elements(By.CLASS_NAME, 'css-1vh28r')
-            image_num = images_found
-            print("Number of images found: " + str(image_num))
+            # make a dictionary with photo id as key and element as value
+            element_dict = {}
+            for image in image_urls:
+                element_dict[image.get_attribute('data-photo-id')] = image
+            # make a list of photo ids sorted from greatest to least
+            photo_ids = [x.get_attribute('data-photo-id') for x in image_urls]
+            photo_ids.sort(reverse=True)
+            image_num = len(photo_ids)
             # Clicks on first image to bring up lightbox
             driver.find_element_by_xpath(
                 '/html/body/div/section/main/div/div[2]/div/div/div/div/div[2]/div[1]/div/img').click()

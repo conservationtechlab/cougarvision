@@ -11,6 +11,8 @@ import yaml
 from PIL import Image
 from animl import FileManagement, ImageCropGenerator, DetectMD
 from tensorflow import keras
+from tensorflow.keras.applications.resnet50 import ResNet50
+from tensorflow.keras.applications.resnet50 import decode_predictions
 
 from cougarvision_utils.alert import sendAlert, smtp_setup
 from cougarvision_utils.fetch_emails import imap_setup, fetch_emails, extractAttachments
@@ -22,8 +24,9 @@ warnings.filterwarnings('ignore', category=FutureWarning)
 parser = argparse.ArgumentParser(description='Retrieves images from email and web scraper and runs detection')
 parser.add_argument('-config', type=str, default="config/fetch_and_alert.yml", help='Path to config file')
 args = parser.parse_args()
+config_file = args.config
 # Load Configuration Settings from YML file
-with open(args.config, 'r') as stream:
+with open(config_file, 'r') as stream:
     config = yaml.safe_load(stream)
     # Set Email Variables for fetching
 username = config['username']
@@ -36,14 +39,16 @@ host = 'imap.gmail.com'
 
 # Model Variables
 detector_model = home_dir + config['detector_model']
-classifier_model = home_dir + config['classifier_model']
+# classifier_model = home_dir + config['classifier_model']
 
 # Model Setup
 checkpoint_path = home_dir + config['checkpoint_path']
 checkpoint_frequency = config['checkpoint_frequency']
 
 # Classifier Model
-model = keras.models.load_model(classifier_model)
+# model = keras.models.load_model(classifier_model)
+model = ResNet50(weights='imagenet')
+
 
 # Set Confidence
 confidence_threshold = config['confidence']
@@ -72,14 +77,21 @@ def detect(images):
                 # create generator for images
                 generator = ImageCropGenerator.GenerateCropsFromFile(animalDataframe)
                 # Run Classifier
-                predictions = model.predict(generator)
+                predictions = model.predict_generator(generator, steps=len(generator), verbose=1)
                 # Parse results
-                maxDataframe = FileManagement.parseCM(animalDataframe, otherDataframe, predictions, classes)
-
+                Data_test = decode_predictions(predictions, top=1)
+                # make dataframe of max confidence predictions
+                df_predictions = pd.DataFrame(columns=['class', 'confidence'])
+                for classified in Data_test:
+                    df_predictions.loc[len(df.index)] = [classified[0][1], classified[0][2]]
+                df_predictions = df_predictions.reset_index(drop=True)
+                # maxDataframe = FileManagement.parseCM(animalDataframe, otherDataframe, predictions, classes)
                 # Creates a large data frame with all relevant data
                 cougars = animalDataframe
-                cougars['prediction'] = maxDataframe['class']
-                cougars['prediction_conf'] = pd.DataFrame(predictions).max(axis=1)
+                # cougars['prediction'] = maxDataframe['class']
+                # cougars['prediction_conf'] = pd.DataFrame(predictions).max(axis=1)
+                cougars['prediction'] = df_predictions['class']
+                cougars['prediction_conf'] = df_predictions['confidence']
                 # Add relevant data to cougars dataframe from original images dataframe
                 cougars = cougars.merge(images)
                 # drops all non cougar detections
@@ -106,7 +118,7 @@ def run_emails():
     mail = imap_setup(host, username, password)
     global timestamp
     print('Starting Email Fetcher')
-    images = extractAttachments(fetch_emails(mail, from_emails, timestamp), mail, config)
+    images = extractAttachments(fetch_emails(mail, from_emails, timestamp), mail, config_file)
     print('Finished Email Fetcher')
     print('Starting Detection')
     detect(images)
@@ -115,7 +127,7 @@ def run_emails():
 
 def run_scraper():
     print('Starting Web Scraper')
-    images = fetch_images(config)
+    images = fetch_images(config_file)
     print('Finished Web Scraper')
     print('Starting Detection')
     detect(images)
