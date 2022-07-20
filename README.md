@@ -1,13 +1,13 @@
 # cougarvision
-Tools to automatically analyze images and videos from telemetering field cameras and to take responsive action. Core mechanism is combining [Megadetector](https://github.com/microsoft/CameraTraps), with interchangeable imagenet, torchscript compiled classifier models.
+Tools to automatically analyze images and videos from telemetering field cameras and to take responsive action. Core mechanism is combining [Megadetector](https://github.com/microsoft/CameraTraps), with interchangeable imagenet compiled classifier models.
 
 ## Streaming
 Stream_detect.py takes in a stream, runs a pipeline to detect various animals. An image is sent to specified emails/phone numbers based on config/stream_detect.yml.
 If a lizard or a cougar is detected then a video is recorded for as long as that animal remains to be detected.
 
-## Static Emails
-Fetch_and_alert.py takes in an email address which periodically receives email with images attached. Minimum fetch period is 10 minutes while working with gmail. These images
-are ran through the pipeline and alerts (sends emails/texts) if a human, vehicle, or cougar is detected.
+## Fetch and alert
+Fetch_and_alert.py combines two functions to retrieve images from [Strikeforce](https://www.strikeforcewireless.com) site and email addresses. A webscrapper is used to retrieve images from Strikeforce username and password can be changed in the config/fetch_and_alert.yml file. Emails are accessed and images attached are extracted, email addresses may also be changed in the same config file. Once extracted these images
+are ran through both detector and classification models. And alerts (sends emails/texts) if a cougar is detected.
 
 ## Processing Batch Images
 Run_batch_images.py can take in an input folder and apply the detector/classifier pipeline to render annotated images along with an output.json file in directory classifications. The output.json contains the final classifications on the cropped images and can be used to compare against a ground truth set. There is also an intermediate output.json which holds the crop detections and is used by the script to crop images, this one can be moved by configuration in the yml file.
