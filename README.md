@@ -1,4 +1,4 @@
-# cougarvision
+# cougarvision 1.1.0
 
 Tools to automatically analyze images and videos from telemetering field cameras and to take responsive action. Core
 mechanism is combining [Megadetector](https://github.com/microsoft/CameraTraps), with interchangeable imagenet compiled
