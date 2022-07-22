@@ -23,7 +23,7 @@ from cougarvision_utils.web_scraping import fetch_images
 warnings.filterwarnings('ignore', category=FutureWarning)
 # Parse arguments
 parser = argparse.ArgumentParser(description='Retrieves images from email and web scraper and runs detection')
-parser.add_argument('-config', type=str, default="config/fetch_and_alert.yml", help='Path to config file')
+parser.add_argument('config', type=str, help='Path to config file')
 args = parser.parse_args()
 config_file = args.config
 # Load Configuration Settings from YML file
@@ -77,13 +77,14 @@ def detect(images):
                 # create generator for images
                 generator = ImageCropGenerator.GenerateCropsFromFile(animalDataframe)
                 # Run Classifier
-                predictions = model.predict_generator(generator, steps=len(generator), verbose=1)
+                predictions = model.predict(generator, steps=len(generator))
                 # Parse results
-                Data_test = decode_predictions(predictions, top=1)
+                parsed_data = decode_predictions(predictions, top=1)
                 # make dataframe of max confidence predictions
                 df_predictions = pd.DataFrame(columns=['class', 'confidence'])
-                for classified in Data_test:
-                    df_predictions.loc[len(df.index)] = [classified[0][1], classified[0][2]]
+                for classified in parsed_data:
+                    data = {'class': classified[0][1], 'confidence': classified[0][2]}
+                    df_predictions = df_predictions.append(data, ignore_index=True)
                 df_predictions = df_predictions.reset_index(drop=True)
                 # maxDataframe = FileManagement.parseCM(animalDataframe, otherDataframe, predictions, classes)
                 # Creates a large data frame with all relevant data
@@ -94,6 +95,8 @@ def detect(images):
                 cougars['prediction_conf'] = df_predictions['confidence']
                 # Add relevant data to cougars dataframe from original images dataframe
                 cougars = cougars.merge(images)
+                # Write Dataframe to csv
+                cougars.to_csv(f'{csv_path}dataframe_{datetime.now().strftime("%m-%d-%Y_%H:%M:%S")}')
                 # drops all non cougar detections
                 cougars = cougars[cougars['prediction'].astype(str) == 'cougar']
                 # drops all detections with confidence less than threshold
@@ -119,8 +122,6 @@ def detect(images):
                     img.save(imageBytes, format=img.format)
                     smtp_server = smtp_setup(username, password, host)
                     sendAlert(label, prob, imageBytes, smtp_server, username, to_emails)
-                # Write Dataframe to csv
-                cougars.to_csv(f'{csv_path}dataframe_{datetime.now().strftime("%m-%d-%Y_%H:%M:%S")}')
 
 
 def run_emails():
