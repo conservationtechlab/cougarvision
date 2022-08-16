@@ -120,12 +120,12 @@ def fetch_images(config_path):
             photo_ids.sort(reverse=True)
             image_num = len(photo_ids)
             # Clicks on first image to bring up lightbox
-            driver.find_element_by_xpath(
+            driver.find_element(By.XPATH,
                 '/html/body/div/section/main/div/div[2]/div/div/div/div/div[2]/div[1]/div/img').click()
             time.sleep(2)
         # Clicks arrow key to advance to next image
         else:
-            driver.find_element_by_xpath('/html/body/div[4]/div/div/div/button[2]').click()
+            driver.find_element(By.XPATH, '/html/body/div[4]/div/div/div/button[2]').click()
             time.sleep(2)
         # Get all information from image
         date_stamp = driver.find_element(By.CLASS_NAME, 'css-11c9ho7').text
