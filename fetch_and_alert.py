@@ -3,6 +3,7 @@ import argparse
 import time
 import warnings
 from datetime import datetime
+from email.message import EmailMessage
 from io import BytesIO
 
 import pandas as pd
@@ -50,7 +51,8 @@ model = keras.models.load_model(classifier_model)
 # Set Confidence and target
 confidence_threshold = config['confidence']
 targets = config['alert_targets']
-
+# Set interval for checking in
+checkin_interval = config['checkin_interval']
 # Set threads for load_and_crop
 threads = config['threads']
 classes = home_dir + config['classes']
@@ -137,9 +139,25 @@ def main():
     print("Sleeping since: " + str(datetime.now()))
 
 
+def checkin():
+    print("Checking in at: " + str(datetime.now()))
+    # Construct Email Content
+    email_message = EmailMessage()
+    email_message.add_header('To', ', '.join(to_emails))
+    email_message.add_header('From', username)
+    email_message.add_header('Subject', 'Checkin')
+    email_message.add_header('X-Priority', '1')  # Urgency, 1 highest, 5 lowest
+    email_message.set_content('Still Alive :)')
+    # Server sends email message
+    smtp_server = smtp_setup(username, password, host)
+    server = smtp_server
+    server.send_message(email_message)
+
+
 main()
 
 schedule.every(10).minutes.do(main)
+schedule.every(checkin_interval).hours.do(checkin)
 
 while True:
     schedule.run_pending()

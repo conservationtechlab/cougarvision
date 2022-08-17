@@ -33,6 +33,7 @@ checkpoint_frequency: -1
 checkpoint_path: Path/To/Checkpoint/Directory
 csv_path: Path/To/SaveORLoad/CSV/File
 classes: Path/To/Classifier/Classes
+checkin_interval: 48
 # Email Settings
 username: Username
 password: Password
@@ -51,7 +52,8 @@ last_id: LastIDNumber
 camera_traps_path: Path/To/CameraTraps/Directory
 ```
 
-- `home_dir` Should contain the path to this repositories root it will be prepended to the other paths in the config.
+- `home_dir` Should contain the path to this repositories root it will be prepended to the other paths in the config
+- `checkin_interval` The system will send an email letting you know it is still running at the given interval in hours
 - `checkpoint_frequency` Determines the frequency of which to create a checkpoint for Megadetector by the number of
   images processed set to -1 to not create any checkpoints
 - `username` `password` These email settings will be used to receive image attachments and send alert messages use a 

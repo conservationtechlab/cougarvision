@@ -6,6 +6,7 @@ checkpoint_frequency: -1
 checkpoint_path: Path/To/Checkpoint/Directory
 csv_path: Path/To/SaveORLoad/CSV/File
 classes: Path/To/Classifier/Classes
+checkin_interval: 48
 # Email Settings
 username: Username
 password: Password
