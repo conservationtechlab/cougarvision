@@ -1,7 +1,7 @@
 # Import local utilities
+import argparse
 import time
 import warnings
-import argparse
 from datetime import datetime
 from io import BytesIO
 
@@ -132,7 +132,7 @@ def run_scraper():
 def main():
     # Run the scheduler
     print("Running fetch_and_alert")
-    #run_emails()
+    # run_emails()
     run_scraper()
     print("Sleeping since: " + str(datetime.now()))
 

@@ -1,31 +1,25 @@
+import logging
 import sys
+import tempfile
 import threading
-import time 
-import humanfriendly
-import json 
+import time
 import uuid
 import warnings
-import logging
-
-import yaml
-import numpy as np
-import torch 
-from torchvision import transforms
-import cv2 
-from PIL import Image
-import cougarvision_utils.alert as alert_util
-import cougarvision_utils.cropping as crop_util
+from collections import deque
 from io import BytesIO
 
-# Adds CameraTraps to Sys path, import specific utilities
-with open("config/cameratraps.yml", 'r') as stream:
-    camera_traps_config = yaml.safe_load(stream)
-    sys.path.append(camera_traps_config['camera_traps_path'])
+import cv2
+import humanfriendly
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+import yaml
+from PIL import Image
+from animl import TFDetector
+from tensorflow import keras
 
-from detection.run_tf_detector import TFDetector
-import visualization.visualization_utils as viz_utils
-
-from collections import deque
+import cougarvision_utils.alert as alert_util
+import cougarvision_utils.cropping as crop_util
 
 frames_deque = deque()
 
@@ -37,28 +31,30 @@ with open("config/stream_detect.yml", 'r') as stream:
     config = yaml.safe_load(stream)
 
 # Loads in Label Category Mappings
-with open("labels/label_categories.txt") as label_category:
-    labels_category = json.load(label_category)
 
 # Loads in Label Category Mappings
-labels_map = json.load(open('labels/labels_map.txt'))
-labels_map = [labels_map[str(i)] for i in range(1000)]
+classes = config['classes']
 
-# Model Setup
+# Loads in alert targets and general targets
+alert_targets = config['alert_targets']
+general_targets = config['general_targets']
+recorded_images_dir = config['image_dir']
+
 # Detector Model
 start_time = time.time()
-tf_detector = TFDetector(config['detector_model'])
+tf_detector = TFDetector.TFDetector(config['detector_model'])
 print(f'Loaded detector model in {humanfriendly.format_timespan(time.time() - start_time)}')
 
 # Classifier Model
+classifier_model = config['classifier_model']
 start_time = time.time()
-model = torch.jit.load(config['classifier_model'])
-model.eval()
+model = keras.models.load_model(classifier_model)
+
 print(f'Loaded classifier model in {humanfriendly.format_timespan(time.time() - start_time)}')
 
-        
 # Set Confidence Threshold
 conf = config['confidence']
+conf_alerts = config['confidence_alerts']
 
 # Set Stream Path
 stream_path = config['stream_path']
@@ -71,7 +67,6 @@ frame_size = tuple(config['frame_size'])
 # Set Video Output Path
 video_output_path = config['video_output_path']
 
-
 # Set Email Variables for fetching
 username = config['username']
 password = config['password']
@@ -80,47 +75,50 @@ to_emails = config['to_emails']
 host = 'imap.gmail.com'
 
 flag = 0
+alert_list = []
+
 
 def receive_frame():
     # Capture first frame
-    ret,frame = cap.read()
-    frame = cv2.flip(frame,0)
-    frame = cv2.resize(frame,frame_size,fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
+    ret, frame = cap.read()
+    frame = cv2.flip(frame, 0)
+    frame = cv2.resize(frame, frame_size, fx=0, fy=0, interpolation=cv2.INTER_CUBIC)
     frames_deque.append(frame)
 
     # Reads frames while capture is online and write thread doesn't have control
-    while(cap.isOpened()):
+    while cap.isOpened():
         if not writer_has_control.locked():
             try:
-                ret,frame = cap.read()
+                ret, frame = cap.read()
                 if not ret:
                     print("False read on frame")
                     continue
                 else:
-                    frame = cv2.flip(frame,0)
-                    frame = cv2.resize(frame,frame_size,fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
+                    frame = cv2.flip(frame, 0)
+                    frame = cv2.resize(frame, frame_size, fx=0, fy=0, interpolation=cv2.INTER_CUBIC)
                     frames_deque.append(frame)
                     # Maintains deque size
-                    while len(frames_deque) > DEQUE_SIZE :
+                    while len(frames_deque) > DEQUE_SIZE:
                         frames_deque.popleft()
             except Exception as e:
                 logging.error(f'Exception: {e} : {time.ctime(time.time())}')
-      
+
+
 def write_video():
-    while(True):
+    while True:
         global flag
         if flag:
             # Acquires Lock - blocks receive frame
             writer_has_control.acquire()
             print("Writing Video Now, Lock acquired")
-            
+
             # Construct Video Writer
-            writer = cv2.VideoWriter(f'{video_output_path}/{uuid.uuid1()}.avi', 
-                            cv2.VideoWriter_fourcc(*'XVID'),
-                            20, frame_size)
+            writer = cv2.VideoWriter(f'{video_output_path}/{uuid.uuid1()}.avi',
+                                     cv2.VideoWriter_fourcc(*'XVID'),
+                                     20, frame_size)
 
             # Write previous 100 frames from the deque
-            while(len(frames_deque) > 0):
+            while len(frames_deque) > 0:
                 writer.write(frames_deque.popleft())
 
             # Set Ret = True to enter while loop
@@ -128,19 +126,19 @@ def write_video():
             # Tells thread that frame_countdown is a global variable
             global frame_countdown
             # Write each next valid frame 
-            while(ret and frame_countdown > 0):
+            while ret and frame_countdown > 0:
                 try:
-                    ret,frame = cap.read()
-                    if(frame is None):
+                    ret, frame = cap.read()
+                    if frame is None:
                         print("Found empty frame")
                     else:
-                        frame = cv2.flip(frame,0)
-                        frame = cv2.resize(frame,frame_size,fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
+                        frame = cv2.flip(frame, 0)
+                        frame = cv2.resize(frame, frame_size, fx=0, fy=0, interpolation=cv2.INTER_CUBIC)
                         frames_deque.append(frame)
                         writer.write(frame)
                         frame_countdown += -1
                         print(frame_countdown)
-                        while len(frames_deque) > DEQUE_SIZE :
+                        while len(frames_deque) > DEQUE_SIZE:
                             frames_deque.popleft()
                 except Exception as e:
                     logging.error(f'Exception: {e} : {time.ctime(time.time())}')
@@ -150,6 +148,7 @@ def write_video():
             writer.release()
             del writer
             writer_has_control.release()
+
 
 def process_frame():
     while True:
@@ -163,95 +162,89 @@ def process_frame():
 
                 # Runs Megadetector on frame
                 t0 = time.time()
+                temp = tempfile.TemporaryFile()
                 result = tf_detector.generate_detections_one_image(
                     Image.fromarray(frame),
-                    '0',
+                    temp.name,
                     conf
                 )
-                print(f'forward propagation time={(time.time())-t0}')
+                temp.close()
+                print(f'forward propagation time={(time.time()) - t0}')
 
                 print(result)
-                
-                
-                
+
                 for detection in result['detections']:
                     # Crops each bbox from detector
                     img = Image.fromarray(frame)
                     bbox = detection['bbox']
                     crop = crop_util.crop(img, bbox)
-
-                    # Preprocessing image for classifier
-                    tfms = transforms.Compose([transforms.Resize(224), transforms.CenterCrop(224), 
-                                        transforms.ToTensor(),
-                                        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),])
-                    crop = tfms(crop).unsqueeze(0)
-                
-
+                    # Preprocess image
+                    crop = tf.image.resize(crop, [456, 456])
+                    crop = np.asarray([crop])
                     # Perform Inference
                     t0 = time.time()
-                    with torch.no_grad():
-                        logits = model(crop)
-                    preds = torch.topk(logits, k=5).indices.squeeze(0).tolist()
-                    print(f'time to perform classification={(time.time())-t0}')
+                    predictions = model.predict(crop)
+                    print(f'time to perform classification={(time.time()) - t0}')
                     print('-----')
-                    
-                    print(preds)
 
-                   
-                    prob = torch.softmax(logits, dim=1)[0, preds[0]].item()
                     global flag
-                    # All labels less than 397 are animals
-                    if(preds[0] <= 397) and prob > conf and preds[0] != 111 and not flag:
-                        label = labels_map[preds[0]].split(',')[0]
-                        viz_utils.draw_bounding_box_on_image(img,
-                               bbox[1], bbox[0], bbox[1] + bbox[3], bbox[0] + bbox[2],
-                               clss=preds[0],
-                               thickness=4,
-                               expansion=0,
-                               display_str_list=['{:<75} ({:.2f}%)'.format(label, prob*100)],
-                               use_normalized_coordinates=True,
-                               label_font_size=16)
-                       
-                        cv2.imwrite(f"recorded_images/{label}-{uuid.uuid1()}.jpg",np.asarray(img))
-                        
+                    # parse the prediction result
+                    predictionsDataframe = pd.DataFrame(predictions)
+                    label = predictionsDataframe.idxmax(axis=1).to_frame(name='class').values[0][0]
+                    prob = predictionsDataframe[label].values[0]
+                    table = pd.read_table(classes, sep=" ", index_col=0)
+                    label = table['x'].values[label]
+                    # check if our detection should be saved and alerted to
+                    if (label in general_targets or label in alert_targets) and prob >= conf and not flag:
+                        crop_util.draw_bounding_box_on_image(img,
+                                                             bbox[1], bbox[0], bbox[1] + bbox[3], bbox[0] + bbox[2],
+                                                             clss=None,
+                                                             thickness=4,
+                                                             expansion=0,
+                                                             display_str_list=[
+                                                                 '{:<75} ({:.2f}%)'.format(label, prob * 100)],
+                                                             use_normalized_coordinates=True,
+                                                             label_font_size=16)
+                        cv2.imwrite(f"{recorded_images_dir}/{label}-{uuid.uuid1()}.jpg", np.asarray(img))
                         imageBytes = BytesIO()
-                        img.save(imageBytes,format="JPEG")
-                        alert_util.sendAlert(f"Found {label}", prob,imageBytes,
-                                    alert_util.smtp_setup(username,password,host),from_email, to_emails)
-                        logging.info(f'Found {label}:{time.ctime(time.time())}')
+                        img.save(imageBytes, format="JPEG")
+                        logging.info(f'Found {label} with probability of {prob}:{time.ctime(time.time())}')
+                        global frame_countdown
+                        print(f'Prob of top predict = {prob}')
+                        if label in alert_targets and prob >= conf_alerts:
+                            x = (label, prob)
+                            alert_list.append(x)
 
-                    global frame_countdown
-                    print(f'Prob of top predict = {prob}')
-                    if str(preds[0]) in labels_category['lizard'] and prob > conf:
-                        label = 'lizard'
+                    # check for alerts
+                    if len(alert_list) > 0:
+                        prob = 0
+                        label = None
+                        for x in alert_list:
+                            if x[1] > prob:
+                                prob = x[1]
+                                label = x[0]
+                        print(f"{label} WAS FOUND")
+                        alert_list.clear()
+                        alert_util.sendAlert(f"Found {label}", prob, imageBytes,
+                                             alert_util.smtp_setup(username, password, host), from_email, to_emails)
                         flag = 1
                         frame_countdown = MAX_FRAME
-                    
-                    elif str(preds[0]) in labels_category['cougar'] and prob > conf:
-                        label = 'cougar'
-                        flag = 1
-                        frame_countdown = MAX_FRAME
-                    
-
-
                 # Write Thread Management
 
-                
-                    
                 # # Start new write thread
                 # elif flag and not writer_has_control.locked():
-                    
+
                 #     frame_countdown = MAX_FRAME
                 #     write_thread = threading.Thread(target=write_video)
                 #     write_thread.start()
-            
-if __name__ == '__main__':
 
+
+if __name__ == '__main__':
     # Init log
-    logging.basicConfig(filename="stream.log",level=logging.DEBUG)
-    
+    logging.basicConfig(filename="stream.log", level=logging.DEBUG)
+
     frame_countdown = 0
-     
+
     # init writer lock
     writer_has_control = threading.Lock()
 
@@ -262,9 +255,8 @@ if __name__ == '__main__':
     # Construct and start main threads
     receive_thread = threading.Thread(target=receive_frame)
     process_thread = threading.Thread(target=process_frame)
-    write_thread   = threading.Thread(target=write_video)
+    write_thread = threading.Thread(target=write_video)
 
     receive_thread.start()
     process_thread.start()
     write_thread.start()
-
