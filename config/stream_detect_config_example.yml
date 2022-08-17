@@ -1,0 +1,20 @@
+# Model paths
+detector_model: Path/To/MegaDetector/Model
+classifier_model: Path/To/Classifier/Model
+classes: Path/To/Classifier/Classes
+# Video settings
+stream_path: rtsp://admin:admin@xxx.xxx.xxx.xxx
+DEQUE_SIZE: 200
+MAX_FRAME: 200
+frame_size: [1024,576]
+video_output_dir: Path/To/Save/Videos
+image_output_dir: Path/To/Save/Images
+# Email settings
+username: email
+password: token
+to_emails: [xxxxx@xxxxx.com, xxxxx@xxxxx.com]
+# Detection targets
+alert_targets: ['cougar', 'bobcat', 'dog']
+general_targets: ['deer', 'human']
+confidence: 0.5
+confidence_alerts: 0.5
