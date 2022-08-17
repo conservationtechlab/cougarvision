@@ -8,8 +8,8 @@ classifier models.
 
 Stream_detect.py takes in a stream, runs a pipeline to detect various animals. An image is sent to specified
 emails/phone numbers based on config/stream_detect.yml.
-If a lizard or a cougar is detected then a video is recorded for as long as that animal remains to be detected.
-
+Alert targets will trigger a message to be sent to the emails, and a video will be saved. General targets will not 
+trigger an alert but will be logged and saved locally. 
 ## Fetch and alert
 
 fetch_and_alert.py combines two functions to retrieve images from [Strikeforce](https://www.strikeforcewireless.com)
