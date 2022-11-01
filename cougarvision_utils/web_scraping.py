@@ -1,23 +1,109 @@
-import datetime
-import time
+import requests
+import json
 import urllib.request
 import ruamel.yaml
-import pandas as pd
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.keys import Keys
-from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.core.utils import ChromeType
-
-options = webdriver.ChromeOptions()
-options.add_argument("--enable-javascript")
-options.add_argument("--disable-dev-shm-usage")
-options.add_argument("--no-sandbox")
-options.add_argument("--headless")
-options.add_argument("--window-size=1920,1080")
+import numpy as np
 
 
+def get_token(config_path):
+  yaml = ruamel.yaml.YAML()
+  with open(config_path, 'r') as f:
+      config = yaml.load(f)
+  base = config['strikeforce_api'] # "https://api.strikeforcewireless.com/api/v2/"
+  username = config['username_scraper']
+  password = config['password_scraper']
+
+  call = base + "users/sign-in/"
+
+  body = {"user":{"email": username, "password":password}}
+
+  response=requests.post(url=call,json=body)
+
+  info = json.loads(response.text)
+
+  auth_token= info['meta']['authentication_token']
+  
+  return auth_token
+
+'''
+#################
+
+#request examples
+
+#get list of camaras
+request <- "cameras"
+parameters <- ""
+
+#recent photo count
+request <- "photos/recent/count"
+parameters <- ""
+
+#get recent photos across cameras
+request <- "photos/recent"
+parameters <- "limit=100"
+
+#get photos from specific camera (will need to loop through pages)
+request <- "photos"
+parameters <- "page=3&sort_date=desc&camera_id[]=59681"
+
+#get photos from specific camera filtered by date (will need to loop through pages)
+request <- "photos"
+parameters <- "page=1&sort_date=desc&camera_id[]=60272&date_start=2022-09-01&date_end=2022-10-07"
+
+#get subscriptions
+request <- "subscriptions"
+parameters <- ""
+'''
+
+
+def request_strikeforce(username, auth_token, base, request, parameters):
+  call = base + request + "?" + parameters
+  response = requests.get(call, headers = {"X-User-Email":username, "X-User-Token":auth_token}) 
+  info = json.loads(response.text)
+  
+  return info 
+
+
+
+
+def fetch_images(config_path, download_dir = None):
+    yaml = ruamel.yaml.YAML()
+    with open(config_path, 'r') as f:
+        config = yaml.load(f)
+        
+    camera_names = dict(config['camera_names'])
+    base = config['strikeforce_api'] 
+    username = config['username_scraper']
+    password = config['password_scraper']
+    auth_token = config['auth_token']
+    last_id = int(config['last_id'])
+
+  # 5 second delay between captures, maximum 12 photos between checks
+    data = request_strikeforce(username, auth_token, base, "photos/recent", "limit=12")
+    photos = data['photos']['data']
+  
+    if (download_dir != None): 
+        for i in range(len(photos)):
+            info = photos[i]['attributes']
+            camera = [photos[i]['relationships']['camera']['data']['id']]
+            urllib.request.urlretrieve(info['file_thumb_url'], 
+                                       download_dir + "/" +  camera + "_" + info['file_thumb_filename'])
+    
+    new_photos = np.array([[x['id'], x['attributes']['file_thumb_url']] for x in photos if int(x['id']) > last_id])
+
+    if len(new_photos) > 0:
+    
+      # update last image
+        new_last = max(new_photos[:,0])
+        config['last_id'] = str(new_last)
+        with open(config_path, 'w') as f:
+            yaml.dump(config, f)
+
+    return new_photos
+  
+
+
+'''
 def fetch_images(config_path):
     yaml = ruamel.yaml.YAML()
     with open(config_path, 'r') as f:
@@ -152,3 +238,4 @@ def fetch_images(config_path):
         i += 1
     driver.close()
     return df
+'''
