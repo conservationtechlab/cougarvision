@@ -38,11 +38,11 @@ csv_path = home_dir + config['csv_path']
 host = 'imap.gmail.com'
 
 # Model Variables
-detector_model = home_dir + config['detector_model']
-classifier_model = home_dir + config['classifier_model']
+detector_model = config['detector_model']
+classifier_model = config['classifier_model']
 
 # Model Setup
-checkpoint_path = home_dir + config['checkpoint_path']
+checkpoint_path = config['checkpoint_path']
 checkpoint_frequency = config['checkpoint_frequency']
 
 # Classifier Model
@@ -140,6 +140,7 @@ def run_emails():
 def run_scraper():
     print('Starting Web Scraper')
     images = fetch_images(config_file)
+    print(images)
     print('Finished Web Scraper')
     print('Starting Detection')
     detect(images)

@@ -18,7 +18,7 @@ def get_token(config_path):
   body = {"user":{"email": username, "password":password}}
 
   response=requests.post(url=call,json=body)
-
+  print(response)
   info = json.loads(response.text)
 
   auth_token= info['meta']['authentication_token']
@@ -78,6 +78,8 @@ def fetch_images(config_path, download_dir = None):
     auth_token = config['auth_token']
     last_id = int(config['last_id'])
 
+  #  auth_token = get_token(config_path)
+  #  print(auth_token)
   # 5 second delay between captures, maximum 12 photos between checks
     data = request_strikeforce(username, auth_token, base, "photos/recent", "limit=12")
     photos = data['photos']['data']
