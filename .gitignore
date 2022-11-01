@@ -28,3 +28,4 @@ email_config.txt
 *.pyc
 *.cpy
 *.cpython
+/config/*
