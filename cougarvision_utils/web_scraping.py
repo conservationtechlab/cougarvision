@@ -66,7 +66,7 @@ def request_strikeforce(username, auth_token, base, request, parameters):
 
 
 
-def fetch_images(config_path, download_dir = None):
+def fetch_images(config_path):
     yaml = ruamel.yaml.YAML()
     with open(config_path, 'r') as f:
         config = yaml.load(f)
@@ -83,24 +83,26 @@ def fetch_images(config_path, download_dir = None):
   # 5 second delay between captures, maximum 12 photos between checks
     data = request_strikeforce(username, auth_token, base, "photos/recent", "limit=12")
     photos = data['photos']['data']
-  
-    if (download_dir != None): 
-        for i in range(len(photos)):
-            info = photos[i]['attributes']
-            camera = [photos[i]['relationships']['camera']['data']['id']]
-            urllib.request.urlretrieve(info['file_thumb_url'], 
-                                       download_dir + "/" +  camera + "_" + info['file_thumb_filename'])
-    
-    new_photos = np.array([[x['id'], x['attributes']['file_thumb_url']] for x in photos if int(x['id']) > last_id])
 
-    if len(new_photos) > 0:
+    new_photos = []
     
-      # update last image
+    for i in range(len(photos)):
+        if int(photos[i]['id']) > last_id:
+            info = photos[i]['attributes']
+            print(info)
+            camera = camera_names[photos[i]['relationships']['camera']['data']['id']]
+            newname = config['save_dir'] +  camera + "_" + info['file_thumb_filename']
+         
+            urllib.request.urlretrieve(info['file_thumb_url'], newname)
+            new_photos.append([photos[i]['id'],info['file_thumb_url'],newname])
+
+    new_photos= np.array(new_photos)
+    if len(new_photos) > 0: # update last image
         new_last = max(new_photos[:,0])
         config['last_id'] = str(new_last)
         with open(config_path, 'w') as f:
             yaml.dump(config, f)
-
+    
     return new_photos
   
 

@@ -72,7 +72,7 @@ def draw_bounding_box_on_image(image,
     label_font_size: font size to attempt to load arial.ttf with
     """
     if clss is None:
-        color = COLORS[1]
+        color = 'Red'
     else:
         color = COLORS[int(clss) % len(COLORS)]
 
