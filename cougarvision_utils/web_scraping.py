@@ -6,24 +6,23 @@ import numpy as np
 
 
 def get_token(config_path):
-  yaml = ruamel.yaml.YAML()
-  with open(config_path, 'r') as f:
-      config = yaml.load(f)
-  base = config['strikeforce_api'] # "https://api.strikeforcewireless.com/api/v2/"
-  username = config['username_scraper']
-  password = config['password_scraper']
+    yaml = ruamel.yaml.YAML()
+    with open(config_path, 'r') as f:
+        config = yaml.load(f)
+    base = config['strikeforce_api'] # "https://api.strikeforcewireless.com/api/v2/"
+    username = config['username_scraper']
+    password = config['password_scraper']
 
-  call = base + "users/sign-in/"
+    call = base + "users/sign-in/"
 
-  body = {"user":{"email": username, "password":password}}
+    body = {"user":{"email": username, "password":password}}
 
-  response=requests.post(url=call,json=body)
-  print(response)
-  info = json.loads(response.text)
+    response=requests.post(url=call,json=body)
+    print(response)
+    info = json.loads(response.text)
 
-  auth_token= info['meta']['authentication_token']
-  
-  return auth_token
+    auth_token= info['meta']['authentication_token']
+    return auth_token
 
 '''
 #################
@@ -57,22 +56,17 @@ parameters <- ""
 
 
 def request_strikeforce(username, auth_token, base, request, parameters):
-  call = base + request + "?" + parameters
-  response = requests.get(call, headers = {"X-User-Email":username, "X-User-Token":auth_token}) 
-  info = json.loads(response.text)
-  
-  return info 
-
-
-
+    call = base + request + "?" + parameters
+    response = requests.get(call, headers = {"X-User-Email":username, "X-User-Token":auth_token})
+    info = json.loads(response.text)
+    return info
 
 def fetch_images(config_path):
     yaml = ruamel.yaml.YAML()
     with open(config_path, 'r') as f:
         config = yaml.load(f)
-        
     camera_names = dict(config['camera_names'])
-    base = config['strikeforce_api'] 
+    base = config['strikeforce_api']
     username = config['username_scraper']
     password = config['password_scraper']
     auth_token = config['auth_token']
@@ -85,14 +79,12 @@ def fetch_images(config_path):
     photos = data['photos']['data']
 
     new_photos = []
-    
     for i in range(len(photos)):
         if int(photos[i]['id']) > last_id:
             info = photos[i]['attributes']
             print(info)
             camera = camera_names[photos[i]['relationships']['camera']['data']['id']]
             newname = config['save_dir'] +  camera + "_" + info['file_thumb_filename']
-         
             urllib.request.urlretrieve(info['file_thumb_url'], newname)
             new_photos.append([photos[i]['id'],info['file_thumb_url'],newname])
 
@@ -102,11 +94,7 @@ def fetch_images(config_path):
         config['last_id'] = str(new_last)
         with open(config_path, 'w') as f:
             yaml.dump(config, f)
-    
     return new_photos
-  
-
-
 '''
 def fetch_images(config_path):
     yaml = ruamel.yaml.YAML()
