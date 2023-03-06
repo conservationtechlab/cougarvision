@@ -16,7 +16,7 @@ from tensorflow import keras
 from cougarvision_utils.alert import sendAlert, smtp_setup
 from cougarvision_utils.cropping import draw_bounding_box_on_image
 from cougarvision_utils.fetch_emails import imap_setup, fetch_emails, extractAttachments
-from cougarvision_utils.web_scraping import fetch_images
+from cougarvision_utils.get_images import fetch_image_api
 
 # Numpy FutureWarnings from tensorflow import
 warnings.filterwarnings('ignore', category=FutureWarning)
@@ -119,7 +119,7 @@ def run_emails():
 
 def run_scraper():
     print('Starting Web Scraper')
-    images = fetch_images(config_file)
+    images = fetch_image_api(config_file)
     print('Finished Web Scraper')
     print('Starting Detection')
     detect(images)
