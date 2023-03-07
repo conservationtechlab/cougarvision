@@ -14,9 +14,9 @@ from tensorflow import keras
 
 from cougarvision_utils.alert import sendAlert, smtp_setup
 from cougarvision_utils.cropping import draw_bounding_box_on_image
-from cougarvision_utils.fetch_emails import imap_setup, fetch_emails
-from cougarvision_utils.fetch_emails import extractAttachments
 from cougarvision_utils.get_images import fetch_image_api
+# include next line if using run_emails function
+# from cougarvision_utils.web_scraping import run_emails
 
 # Numpy FutureWarnings from tensorflow import
 warnings.filterwarnings('ignore', category=FutureWarning)
@@ -33,7 +33,6 @@ with open(config_file, 'r') as stream:
 username = config['username']
 password = config['password']
 
-from_emails = config['from_emails']
 to_emails = config['to_emails']
 log_dir = config['log_dir']
 save_dir = config['save_dir']
@@ -118,19 +117,6 @@ def detect(images):
                 # Write Dataframe to csv
                 date = "%m-%d-%Y_%H:%M:%S"
                 cougars.to_csv(f'{log_dir}dataframe_{dt.now().strftime(date)}')
-
-
-def run_emails():
-    # Gets a list of attachments from unread emails from bigfoot camera
-    mail = imap_setup(host, username, password)
-    global timestamp
-    print('Starting Email Fetcher')
-    images = extractAttachments(fetch_emails(mail, from_emails,
-                                             timestamp), mail, config_file)
-    print('Finished Email Fetcher')
-    print('Starting Detection')
-    detect(images)
-    print('Finished Detection')
 
 
 def run_scraper():

@@ -3,6 +3,7 @@ import json
 import urllib.request
 import ruamel.yaml
 import numpy as np
+from fetch_emails import imap_setup, fetch_emails, extractAttachments
 
 
 def fetch_images(config_path):
@@ -139,4 +140,20 @@ def fetch_images(config_path):
         i += 1
     driver.close()
     return df
+
+
+def run_emails():
+    # Gets a list of attachments from unread emails from bigfoot camera
+    mail = imap_setup(host, username, password)
+    global timestamp
+    print('Starting Email Fetcher')
+    images = extractAttachments(fetch_emails(mail, from_emails,
+                                             timestamp), mail, config_file)
+    print('Finished Email Fetcher')
+    print('Starting Detection')
+    detect(images)
+    print('Finished Detection')
+
+
+
 
