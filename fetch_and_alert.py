@@ -2,11 +2,10 @@
 import argparse
 import time
 import warnings
-from datetime import datetime
+from datetime import datetime as dt
 from email.message import EmailMessage
 from io import BytesIO
 
-import pandas as pd
 import schedule
 import yaml
 from PIL import Image
@@ -15,13 +14,15 @@ from tensorflow import keras
 
 from cougarvision_utils.alert import sendAlert, smtp_setup
 from cougarvision_utils.cropping import draw_bounding_box_on_image
-from cougarvision_utils.fetch_emails import imap_setup, fetch_emails, extractAttachments
+from cougarvision_utils.fetch_emails import imap_setup, fetch_emails
+from cougarvision_utils.fetch_emails import extractAttachments
 from cougarvision_utils.get_images import fetch_image_api
 
 # Numpy FutureWarnings from tensorflow import
 warnings.filterwarnings('ignore', category=FutureWarning)
 # Parse arguments
-parser = argparse.ArgumentParser(description='Retrieves images from email and web scraper and runs detection')
+parser = argparse.ArgumentParser(description='Retrieves images from \
+                                 email & web scraper & runs detection')
 parser.add_argument('config', type=str, help='Path to config file')
 args = parser.parse_args()
 config_file = args.config
@@ -54,55 +55,69 @@ checkin_interval = config['checkin_interval']
 # Set threads for load_and_crop
 threads = config['threads']
 classes = config['classes']
-timestamp = datetime.now()
-
+timestamp = dt.now()
 
 
 def detect(images):
-  if len(images) > 0:
-      # extract paths from dataframe
-      image_paths = images[:,2]
-      
-      # Run Detection
-      results = DetectMD.load_and_run_detector_batch(image_paths, detector_model, log_dir,
-                                                     confidence_threshold, checkpoint_frequency, [])
-      # Parse results
-      df = FileManagement.parseMD(results)
-      # filter out all non animal detections
-      
-      if not df.empty:
-          animalDataframe, otherDataframe = FileManagement.filterImages(df)
-          # run classifier on animal detections if there are any
-          if not animalDataframe.empty:
-              # create generator for images
-              generator = ImageCropGenerator.GenerateCropsFromFile(animalDataframe)
-              # Run Classifier
-              predictions = model.predict_generator(generator, steps=len(generator), verbose=1)
-              # Parse results
-              maxDataframe = FileManagement.parseCM(animalDataframe, None, predictions, classes)
-              # Creates a data frame with all relevant data
-              cougars = maxDataframe[maxDataframe['class'].isin(targets)]
-              # drops all detections with confidence less than threshold
-              cougars = cougars[cougars['conf'] >= confidence_threshold]
-              # reset dataframe index
-              cougars = cougars.reset_index(drop=True)
-              # Sends alert for each cougar detection
-              for idx in range(len(cougars.index)):
-                  label = cougars.at[idx, 'class']
-                  prob = cougars.at[idx, 'conf']
-                  img = Image.open(cougars.at[idx, 'file'])
-                  draw_bounding_box_on_image(img,
-                                             cougars.at[idx, 'bbox2'], cougars.at[idx, 'bbox1'],
-                                             cougars.at[idx, 'bbox2'] + cougars.at[idx, 'bbox4'],
-                                             cougars.at[idx, 'bbox1'] + cougars.at[idx, 'bbox3'],
-                                             expansion=0,
-                                             use_normalized_coordinates=True,)
-                  imageBytes = BytesIO()
-                  img.save(imageBytes, format=img.format)
-                  smtp_server = smtp_setup(username, password, host)
-                  sendAlert(label, prob, imageBytes, smtp_server, username, to_emails)
-              # Write Dataframe to csv
-              cougars.to_csv(f'{log_dir}dataframe_{datetime.now().strftime("%m-%d-%Y_%H:%M:%S")}')
+    if len(images) > 0:
+        # extract paths from dataframe
+        image_paths = images[:, 2]
+        # Run Detection
+        results = DetectMD.load_and_run_detector_batch(image_paths,
+                                                       detector_model,
+                                                       log_dir,
+                                                       confidence_threshold,
+                                                       checkpoint_frequency,
+                                                       [])
+        # Parse results
+        df = FileManagement.parseMD(results)
+        # filter out all non animal detections
+        if not df.empty:
+            animalDataframe, otherDataframe = FileManagement.filterImages(df)
+            # run classifier on animal detections if there are any
+            if not animalDataframe.empty:
+                # create generator for images
+                generator = ImageCropGenerator.\
+                    GenerateCropsFromFile(animalDataframe)
+                # Run Classifier
+                predictions = model.predict_generator(generator,
+                                                      steps=len(generator),
+                                                      verbose=1)
+                # Parse results
+                maxDataframe = FileManagement.parseCM(animalDataframe, None,
+                                                      predictions, classes)
+                # Creates a data frame with all relevant data
+                cougars = maxDataframe[maxDataframe['class'].isin(targets)]
+                # drops all detections with confidence less than threshold
+                cougars = cougars[cougars['conf'] >= confidence_threshold]
+                # reset dataframe index
+                cougars = cougars.reset_index(drop=True)
+                # Sends alert for each cougar detection
+                for idx in range(len(cougars.index)):
+                    label = cougars.at[idx, 'class']
+                    prob = cougars.at[idx, 'conf']
+                    img = Image.open(cougars.at[idx, 'file'])
+                    draw_bounding_box_on_image(img,
+                                               cougars.at[idx, 'bbox2'],
+                                               cougars.at[idx, 'bbox1'],
+                                               cougars.at[idx,
+                                                          'bbox2'] +
+                                               cougars.at[idx,
+                                                          'bbox4'],
+                                               cougars.at[idx,
+                                                          'bbox1'] +
+                                               cougars.at[idx,
+                                                          'bbox3'],
+                                               expansion=0,
+                                               use_normalized_coordinates=True)
+                    imageBytes = BytesIO()
+                    img.save(imageBytes, format=img.format)
+                    smtp_server = smtp_setup(username, password, host)
+                    sendAlert(label, prob, imageBytes, smtp_server,
+                              username, to_emails)
+                # Write Dataframe to csv
+                date = "%m-%d-%Y_%H:%M:%S"
+                cougars.to_csv(f'{log_dir}dataframe_{dt.now().strftime(date)}')
 
 
 def run_emails():
@@ -110,7 +125,8 @@ def run_emails():
     mail = imap_setup(host, username, password)
     global timestamp
     print('Starting Email Fetcher')
-    images = extractAttachments(fetch_emails(mail, from_emails, timestamp), mail, config_file)
+    images = extractAttachments(fetch_emails(mail, from_emails,
+                                             timestamp), mail, config_file)
     print('Finished Email Fetcher')
     print('Starting Detection')
     detect(images)
@@ -131,11 +147,11 @@ def main():
     print("Running fetch_and_alert")
     # run_emails()
     run_scraper()
-    print("Sleeping since: " + str(datetime.now()))
+    print("Sleeping since: " + str(dt.now()))
 
 
 def checkin():
-    print("Checking in at: " + str(datetime.now()))
+    print("Checking in at: " + str(dt.now()))
     # Construct Email Content
     email_message = EmailMessage()
     email_message.add_header('To', ', '.join(to_emails))
