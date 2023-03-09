@@ -155,5 +155,23 @@ def run_emails():
     print('Finished Detection')
 
 
+def get_token(config_path):
+    yaml = ruamel.yaml.YAML()
+    with open(config_path, 'r') as f:
+        config = yaml.load(f)
+    base = config['strikeforce_api']
+    # "https://api.strikeforcewireless.com/api/v2/"
+    username = config['username_scraper']
+    password = config['password_scraper']
 
+    call = base + "users/sign-in/"
+
+    body = {"user": {"email": username, "password": password}}
+
+    response = requests.post(url=call, json=body)
+    print(response)
+    info = json.loads(response.text)
+
+    auth_token = info['meta']['authentication_token']
+    return auth_token
 
