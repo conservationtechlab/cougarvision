@@ -1,6 +1,15 @@
 # cougarvision 1.1.0
 Tools to automatically analyze images and videos from telemetering field cameras and to take responsive action. Core mechanism is combining [Megadetector](https://github.com/microsoft/CameraTraps), with interchangeable imagenet compiled classifier models.
 
+# Origins
+
+CougarVision was begun as Jared Macshane's project when he was a
+graduate student fellow in the San Diego Zoo Wildlife Alliance's
+Conservation Technology Lab's Fellows in Conservation Technology
+program. Its name is an homage both to the species for which it was
+originally developed and the mascot of Cal State San Marcos where
+Jared was then studying, which is also the cougar.
+
 ## Streaming
 Stream_detect.py takes in a stream, runs a pipeline to detect various animals. An image is sent to specified emails/phone numbers based on config/stream_detect.yml.
 If a lizard or a cougar is detected then a video is recorded for as long as that animal remains to be detected.
