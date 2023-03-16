@@ -1,20 +1,26 @@
-from animl import FileManagement, ImageCropGenerator, DetectMD
-from cougarvision_utils.cropping import draw_bounding_box_on_image
-from cougarvision_utils.alert import smtp_setup, sendAlert
 from io import BytesIO
 from datetime import datetime as dt
 from PIL import Image
+from tensorflow import keras
+from animl import FileManagement, ImageCropGenerator, DetectMD
+from cougarvision_utils.cropping import draw_bounding_box_on_image
+from cougarvision_utils.alert import smtp_setup, sendAlert
 import ruamel.yaml
 
 
-def detect(images, config_file):
-    yaml = ruamel.yaml.YAML()
-    with open(config_file, 'r') as f:
-        config = yaml.load(f)
+def detect(images, config):
     detector_model = config['detector_model']
+    classifier_model = config['classifier_model']
+    model = keras.models.load_model(classifier_model)
     log_dir = config['log_dir']
     checkpoint_frequency = config['checkpoint_frequency']
     confidence_threshold = config['confidence']
+    classes = config['classes']
+    targets = config['alert_targets']
+    username = config['username']
+    password = config['password']
+    to_emails = config['to_emails']
+    host = 'imap.gmail.com'
     if len(images) > 0:
         # extract paths from dataframe
         image_paths = images[:, 2]
@@ -26,24 +32,24 @@ def detect(images, config_file):
                                                        checkpoint_frequency,
                                                        [])
         # Parse results
-        df = FileManagement.parseMD(results)
+        data_frame = FileManagement.parseMD(results)
         # filter out all non animal detections
-        if not df.empty:
-            animalDataframe, otherDataframe = FileManagement.filterImages(df)
+        if not data_frame.empty:
+            animal_df, other_df = FileManagement.filterImages(data_frame)
             # run classifier on animal detections if there are any
-            if not animalDataframe.empty:
+            if not animal_df.empty:
                 # create generator for images
                 generator = ImageCropGenerator.\
-                    GenerateCropsFromFile(animalDataframe)
+                    GenerateCropsFromFile(animal_df)
                 # Run Classifier
                 predictions = model.predict_generator(generator,
                                                       steps=len(generator),
                                                       verbose=1)
                 # Parse results
-                maxDataframe = FileManagement.parseCM(animalDataframe, None,
-                                                      predictions, classes)
+                max_df = FileManagement.parseCM(animal_df, None,
+                                                predictions, classes)
                 # Creates a data frame with all relevant data
-                cougars = maxDataframe[maxDataframe['class'].isin(targets)]
+                cougars = max_df[max_df['class'].isin(targets)]
                 # drops all detections with confidence less than threshold
                 cougars = cougars[cougars['conf'] >= confidence_threshold]
                 # reset dataframe index
@@ -66,10 +72,10 @@ def detect(images, config_file):
                                                           'bbox3'],
                                                expansion=0,
                                                use_normalized_coordinates=True)
-                    imageBytes = BytesIO()
-                    img.save(imageBytes, format=img.format)
+                    image_bytes = BytesIO()
+                    img.save(image_bytes, format=img.format)
                     smtp_server = smtp_setup(username, password, host)
-                    sendAlert(label, prob, imageBytes, smtp_server,
+                    sendAlert(label, prob, image_bytes, smtp_server,
                               username, to_emails)
                 # Write Dataframe to csv
                 date = "%m-%d-%Y_%H:%M:%S"

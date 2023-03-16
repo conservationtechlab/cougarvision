@@ -40,7 +40,7 @@ def run_scraper():
     images = fetch_image_api(config_file)
     print('Finished Web Scraper')
     print('Starting Detection')
-    detect(images, config_file)
+    detect(images, config)
     print('Finished Detection')
 
 
