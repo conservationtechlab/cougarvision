@@ -37,7 +37,7 @@ checkin_interval = config['checkin_interval']
 
 def run_scraper():
     print('Starting Web Scraper')
-    images = fetch_image_api(config_file)
+    images = fetch_image_api(config)
     print('Finished Web Scraper')
     print('Starting Detection')
     detect(images, config)

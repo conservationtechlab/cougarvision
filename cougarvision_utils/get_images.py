@@ -1,8 +1,8 @@
-import requests
 import json
+import requests
 import urllib.request
-import ruamel.yaml
 import numpy as np
+import os.path
 
 
 '''
@@ -46,16 +46,30 @@ def request_strikeforce(username, auth_token, base, request, parameters):
     return info
 
 
-def fetch_image_api(config_path):
-    yaml = ruamel.yaml.YAML()
-    with open(config_path, 'r') as f:
-        config = yaml.load(f)
+def fetch_image_api(config):
     camera_names = dict(config['camera_names'])
     base = config['strikeforce_api']
     username = config['username_scraper']
 # password = config['password_scraper']
     auth_token = config['auth_token']
-    last_id = int(config['last_id'])
+    path = "./last_id.txt"
+    checkfile = os.path.exists(path)
+    if checkfile == False:
+        f = open("last_id.txt", "x")
+        f.close()
+        first_id = str(0) # function to get the most recent id from sf)
+        f = open('last_id.txt', 'w')
+        f.writelines(first_id)
+        f.close()
+    thefile = open('last_id.txt', 'r')
+    last_id = thefile.readlines()
+    thefile.close()
+    for line in last_id:
+        line.strip()
+    last_id = int(line)
+    print(last_id)
+    thefile.close()    
+#    last_id = int(config['last_id'])
 
 # auth_token = get_token(config_path)
 # print(auth_token)
@@ -80,7 +94,8 @@ def fetch_image_api(config_path):
     new_photos = np.array(new_photos)
     if len(new_photos) > 0:  # update last image
         new_last = max(new_photos[:, 0])
-        config['last_id'] = str(new_last)
-        with open(config_path, 'w') as f:
-            yaml.dump(config, f)
+        new_id = str(new_last)
+        thefile = open('last_id.txt', 'w')
+        thefile.writelines(new_id)
+        thefile.close()
     return new_photos
