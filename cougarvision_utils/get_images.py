@@ -1,8 +1,8 @@
 import json
-import requests
 import urllib.request
-import numpy as np
 import os.path
+import requests
+import numpy as np
 
 
 '''
@@ -39,6 +39,8 @@ parameters <- ""
 
 
 def request_strikeforce(username, auth_token, base, request, parameters):
+    '''Takes in auth values and api call parameters and returns the data about
+    the specified images from strikeforce'''
     call = base + request + "?" + parameters
     response = requests.get(call, headers={"X-User-Email": username,
                                            "X-User-Token": auth_token})
@@ -47,6 +49,8 @@ def request_strikeforce(username, auth_token, base, request, parameters):
 
 
 def fetch_image_api(config):
+    '''Takes in config values and returns info about each new photo
+    on strikeforce since the last run of the program'''
     camera_names = dict(config['camera_names'])
     base = config['strikeforce_api']
     username = config['username_scraper']
@@ -54,21 +58,20 @@ def fetch_image_api(config):
     auth_token = config['auth_token']
     path = "./last_id.txt"
     checkfile = os.path.exists(path)
-    if checkfile == False:
-        f = open("last_id.txt", "x")
-        f.close()
+    if checkfile is False:
+        new_file = open("last_id.txt", "x")
+        new_file.close()
         first_id = str(0) # function to get the most recent id from sf)
-        f = open('last_id.txt', 'w')
-        f.writelines(first_id)
-        f.close()
-    thefile = open('last_id.txt', 'r')
-    last_id = thefile.readlines()
-    thefile.close()
+        new_file = open('last_id.txt', 'w')
+        new_file.writelines(first_id)
+        new_file.close()
+    id_file = open('last_id.txt', 'r')
+    last_id = id_file.readlines()
+    id_file.close()
     for line in last_id:
         line.strip()
     last_id = int(line)
-    print(last_id)
-    thefile.close()    
+    id_file.close()
 #    last_id = int(config['last_id'])
 
 # auth_token = get_token(config_path)
