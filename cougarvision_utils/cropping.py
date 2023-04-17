@@ -1,4 +1,14 @@
-from typing import Any, Iterable, Mapping, Sequence
+'''Cropping
+
+This script defines draw_bounding_box_on_image and crop which end up getting called
+by multiple modules within cougarvision. The first function takes whatever images
+are provided, eihter fetched strikeforce images or batch uploads, and draws the
+box around the animal of interest based on the box size provided by the detector
+model. The crop function then cuts off all other areas of the image so that the
+classifier only needs to worry about the pixels with the animal of interest.
+'''
+
+from typing import Sequence
 
 import numpy as np
 from PIL import Image, ImageFont, ImageDraw
@@ -100,14 +110,14 @@ def draw_bounding_box_on_image(image,
         # A slightly more sophisticated might check whether it was in fact the expansion
         # that made this box larger than the image, but this is the case 99.999% of the time
         # here, so that doesn't seem necessary.
-        left = max(left, 0);
+        left = max(left, 0)
         right = max(right, 0)
-        top = max(top, 0);
+        top = max(top, 0)
         bottom = max(bottom, 0)
 
-        left = min(left, im_width - 1);
+        left = min(left, im_width - 1)
         right = min(right, im_width - 1)
-        top = min(top, im_height - 1);
+        top = min(top, im_height - 1)
         bottom = min(bottom, im_height - 1)
 
     draw.line([(left, top), (left, bottom), (right, bottom),
@@ -150,41 +160,6 @@ def draw_bounding_box_on_image(image,
         text_bottom -= (text_height + 2 * margin)
 
 
-def load_to_crop(img_path: str,
-                 bbox_dicts: Iterable[Mapping[str, Any]],
-                 confidence_threshold: float
-                 ):
-    did_download = False
-    num_new_crops = 0
-    crops = []
-    # crop_path => normalized bbox coordinates [xmin, ymin, width, height]
-    bboxes_tocrop: dict[str, list[float]] = {}
-    for i, bbox_dict in enumerate(bbox_dicts):
-        # only ground-truth bboxes do not have a "confidence" value
-        if 'conf' in bbox_dict and bbox_dict['conf'] < confidence_threshold:
-            bbox_dicts.pop(i)
-            continue
-        # if bbox_dict['category'] != 'animal':
-        #     continue
-    if len(bboxes_tocrop) == 0:
-        return did_download, num_new_crops
-
-    img = Image.open(img_path)
-    img.show()
-
-    assert img is not None, 'image failed to load or download properly'
-    if img.mode != 'RGB':
-        img = img.convert(mode='RGB')  # always save as RGB for consistency
-
-    # crop the image
-    for crop_path, bbox in bboxes_tocrop.items():
-        num_new_crops += 1
-        crops.append([crop(
-            img, bbox_norm=bbox), bbox])
-
-    return did_download, num_new_crops, crops
-
-
 def crop(img: Image.Image, bbox_norm: Sequence[float]) -> bool:
     """Crops and returns an image
 
@@ -206,6 +181,6 @@ def crop(img: Image.Image, bbox_norm: Sequence[float]) -> bool:
         return False
 
     # Image.crop() takes box=[left, upper, right, lower]
-    crop = img.crop(box=[xmin, ymin, xmin + box_w, ymin + box_h])
+    crop_img = img.crop(box=[xmin, ymin, xmin + box_w, ymin + box_h])
 
-    return crop
+    return crop_img

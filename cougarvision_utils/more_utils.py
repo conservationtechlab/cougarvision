@@ -1,8 +1,9 @@
-import requests
 import json
 import urllib.request
+from typing import Any, Iterable, Mapping
+import requests
+from PIL import Image
 import ruamel.yaml
-import numpy as np
 from fetch_emails import imap_setup, fetch_emails, extractAttachments
 
 
@@ -174,4 +175,40 @@ def get_token(config_path):
 
     auth_token = info['meta']['authentication_token']
     return auth_token
+
+
+def load_to_crop(img_path: str,
+                 bbox_dicts: Iterable[Mapping[str, Any]],
+                 confidence_threshold: float
+                 ):
+    did_download = False
+    num_new_crops = 0
+    crops = []
+    # crop_path => normalized bbox coordinates [xmin, ymin, width, height]
+    bboxes_tocrop: dict[str, list[float]] = {}
+    for i, bbox_dict in enumerate(bbox_dicts):
+        # only ground-truth bboxes do not have a "confidence" value
+        if 'conf' in bbox_dict and bbox_dict['conf'] < confidence_threshold:
+            bbox_dicts.pop(i)
+            continue
+        # if bbox_dict['category'] != 'animal':
+        #     continue
+    if len(bboxes_tocrop) == 0:
+        return did_download, num_new_crops
+
+    img = Image.open(img_path)
+    img.show()
+
+    assert img is not None, 'image failed to load or download properly'
+    if img.mode != 'RGB':
+        img = img.convert(mode='RGB')  # always save as RGB for consistency
+
+    # crop the image
+    for bbox in bboxes_tocrop.items():
+        num_new_crops += 1
+        crops.append([crop(
+            img, bbox_norm=bbox), bbox])
+
+    return did_download, num_new_crops, crops
+
 
