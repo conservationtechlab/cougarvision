@@ -1,14 +1,30 @@
+'''Fetch and Alert
+
+This script allows users to retrieve thumbnail images uploaded
+from cellular camera traps, classify them by species, and send
+the photo as an alert to a specified end point.
+
+This script and its modules depend on some but not all scripts
+in this module including, cougarvision_utils/alert.py, cropping.py,
+detect_img.py, get_images.py, ImageCropGenerator.py, and
+earthranger_utils/attach_image_er.py, and post_event_er.py, and the
+config/fetch_and_alert.yml and last_id.txt.
+
+One must configure their individual fetch_and_alert.yml file to fit
+their needs by ensuring the file paths, usernames and passwords, camera
+dictionary, and image classifiers are correct. The .yml file is also
+where one can choose whether they would like email alerts or to send
+the classified images to Earthranger.
+'''
+
 # Import local utilities
 import argparse
 import time
 import warnings
 from datetime import datetime as dt
 from email.message import EmailMessage
-
 import yaml
 import schedule
-
-
 from cougarvision_utils.detect_img import detect
 from cougarvision_utils.alert import smtp_setup
 from cougarvision_utils.get_images import fetch_image_api
