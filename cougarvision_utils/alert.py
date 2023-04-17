@@ -4,14 +4,14 @@ from smtplib import SMTP_SSL, SMTP_SSL_PORT
 
 
 def smtp_setup(username, password, host):
-    # Init sending mail 
+    # Init sending mail
     smtp_server = SMTP_SSL(host, port=SMTP_SSL_PORT)
     smtp_server.set_debuglevel(1)  # Show SMTP server interactions
     smtp_server.login(username, password)
     return smtp_server
 
 
-def sendAlert(alert, conf, img, smtp_server, from_email, to_emails):
+def send_alert(alert, conf, img, smtp_server, from_email, to_emails):
     # Construct Email Content
     email_message = EmailMessage()
     email_message.add_header('To', ', '.join(to_emails))
@@ -25,7 +25,8 @@ def sendAlert(alert, conf, img, smtp_server, from_email, to_emails):
 
     # Attach image to email
     filename = 'detection.jpg'
-    maintype, _, subtype = (mimetypes.guess_type(filename)[0] or 'application/octet-stream').partition("/")
+    maintype, _, subtype = (mimetypes.guess_type(filename)[0] or
+                            'application/octet-stream').partition("/")
     email_message.add_attachment(binary_data, maintype=maintype, subtype=subtype, filename=filename)
 
     # Server sends email message
