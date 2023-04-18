@@ -19,7 +19,7 @@ from cougarvision_utils.cropping import draw_bounding_box_on_image
 from cougarvision_utils.alert import smtp_setup, send_alert
 from cougarvision_utils.earthranger_utils.post_event_er import post_event
 from cougarvision_utils.earthranger_utils.attach_image_er import attach_image
-
+from cougarvision_utils.earthranger_utils.get_recorded_at_time import is_cougar
 
 
 def detect(images, config):
@@ -108,6 +108,8 @@ def detect(images, config):
                     img.save(image_bytes, format="JPEG")
                     img_byte = image_bytes.getvalue()
                     cam_name = cougars.at[idx, 'cam_name']
+                    if label == 'cougar':
+                        is_cougar(cam_name, token, authorization)
                     # Email or Earthranger alerts as dictated in the config yml
                     if use_variation == 2:
                         event_id = post_event(label, cam_name, token, authorization)
