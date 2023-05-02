@@ -10,6 +10,7 @@ emails via the smtp_server created.
 import mimetypes
 from email.message import EmailMessage
 from smtplib import SMTP_SSL, SMTP_SSL_PORT
+from datetime import datetime as dt
 
 
 def smtp_setup(username, password, host):
@@ -71,5 +72,21 @@ def send_alert(alert, conf, img, smtp_server, from_email, to_emails):
                                  subtype=subtype, filename=filename)
 
     # Server sends email message
+    server = smtp_server
+    server.send_message(email_message)
+
+
+def checkin(TO_EMAILS, USERNAME, PASSWORD, HOST):
+    '''Sends server status to specified email at specified time interval'''
+    print("Checking in at: " + str(dt.now()))
+    # Construct Email Content
+    email_message = EmailMessage()
+    email_message.add_header('To', ', '.join(TO_EMAILS))
+    email_message.add_header('From', USERNAME)
+    email_message.add_header('Subject', 'Checkin')
+    email_message.add_header('X-Priority', '1')  # Urgency, 1 highest, 5 lowest
+    email_message.set_content('Still Alive :)')
+    # Server sends email message
+    smtp_server = smtp_setup(USERNAME, PASSWORD, HOST)
     server = smtp_server
     server.send_message(email_message)

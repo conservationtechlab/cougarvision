@@ -26,7 +26,7 @@ from email.message import EmailMessage
 import yaml
 import schedule
 from cougarvision_utils.detect_img import detect
-from cougarvision_utils.alert import smtp_setup
+from cougarvision_utils.alert import checkin
 from cougarvision_utils.get_images import fetch_image_api
 
 
@@ -65,27 +65,12 @@ def fetch_detect_alert():
     print("Sleeping since: " + str(dt.now()))
 
 
-def checkin():
-    '''Sends server status to specified email at specified time interval'''
-    print("Checking in at: " + str(dt.now()))
-    # Construct Email Content
-    email_message = EmailMessage()
-    email_message.add_header('To', ', '.join(TO_EMAILS))
-    email_message.add_header('From', USERNAME)
-    email_message.add_header('Subject', 'Checkin')
-    email_message.add_header('X-Priority', '1')  # Urgency, 1 highest, 5 lowest
-    email_message.set_content('Still Alive :)')
-    # Server sends email message
-    smtp_server = smtp_setup(USERNAME, PASSWORD, HOST)
-    server = smtp_server
-    server.send_message(email_message)
-
-
 def main():
     ''''Runs main program and schedules future runs'''
     fetch_detect_alert()
     schedule.every(10).minutes.do(fetch_detect_alert)
-    schedule.every(CHECKIN_INTERVAL).hours.do(checkin)
+    schedule.every(CHECKIN_INTERVAL).hours.do(checkin, TO_EMAILS,
+    							 USERNAME, PASSWORD, HOST)
 
     while True:
         schedule.run_pending()
