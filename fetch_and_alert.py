@@ -52,25 +52,16 @@ HOST = 'imap.gmail.com'
 CHECKIN_INTERVAL = CONFIG['checkin_interval']
 
 
-def run_scraper():
-    ''''Gets the new images from strikeforce and runs a pre-trained
-    detector model on them and sends images with animals of interest to
-    specified emails'''
-    print('Starting Web Scraper')
+def fetch_detect_alert():
+    '''Functions for fetching images, detection, and sending alerts'''
+    # Run the scheduler
+    print("Running fetch_and_alert")
+    print("Fetching images")
     images = fetch_image_api(CONFIG)
-    print('Finished Web Scraper')
+    print('Finished fetching images')
     print('Starting Detection')
     detect(images, CONFIG)
     print('Finished Detection')
-
-
-def main():
-    '''Runs the fetching and alerting functions and begins scheduler
-    to loop the fetching and alerting periodically'''
-    # Run the scheduler
-    print("Running fetch_and_alert")
-    # run_emails()
-    run_scraper()
     print("Sleeping since: " + str(dt.now()))
 
 
@@ -90,11 +81,16 @@ def checkin():
     server.send_message(email_message)
 
 
-main()
+def main():
+    ''''Runs main program and schedules future runs'''
+    fetch_detect_alert()
+    schedule.every(10).minutes.do(fetch_detect_alert)
+    schedule.every(CHECKIN_INTERVAL).hours.do(checkin)
 
-schedule.every(10).minutes.do(main)
-schedule.every(CHECKIN_INTERVAL).hours.do(checkin)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+
+if  __name__ == "__main__":
+    main()
