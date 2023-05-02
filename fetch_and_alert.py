@@ -39,7 +39,7 @@ PARSER.add_argument('config', type=str, help='Path to config file')
 ARGS = PARSER.parse_args()
 CONFIG_FILE = ARGS.config
 # Load Configuration Settings from YML file
-with open(CONFIG_FILE, 'r') as stream:
+with open(CONFIG_FILE, 'r', encoding='utf-8') as stream:
     CONFIG = yaml.safe_load(stream)
 # Set Email Variables for fetching
 USERNAME = CONFIG['username']
