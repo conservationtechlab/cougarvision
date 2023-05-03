@@ -22,7 +22,6 @@ import argparse
 import time
 import warnings
 from datetime import datetime as dt
-from email.message import EmailMessage
 import yaml
 import schedule
 from cougarvision_utils.detect_img import detect
@@ -70,12 +69,12 @@ def main():
     fetch_detect_alert()
     schedule.every(10).minutes.do(fetch_detect_alert)
     schedule.every(CHECKIN_INTERVAL).hours.do(checkin, TO_EMAILS,
-    							 USERNAME, PASSWORD, HOST)
+                                              USERNAME, PASSWORD, HOST)
 
     while True:
         schedule.run_pending()
         time.sleep(1)
 
 
-if  __name__ == "__main__":
+if __name__ == "__main__":
     main()
