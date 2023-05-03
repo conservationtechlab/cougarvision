@@ -1,113 +1,12 @@
-import requests
 import json
 import urllib.request
+from typing import Any, Iterable, Mapping
+import requests
+from PIL import Image
 import ruamel.yaml
-import numpy as np
+from fetch_emails import imap_setup, fetch_emails, extractAttachments
 
 
-def get_token(config_path):
-  yaml = ruamel.yaml.YAML()
-  with open(config_path, 'r') as f:
-      config = yaml.load(f)
-  base = config['strikeforce_api'] # "https://api.strikeforcewireless.com/api/v2/"
-  username = config['username_scraper']
-  password = config['password_scraper']
-
-  call = base + "users/sign-in/"
-
-  body = {"user":{"email": username, "password":password}}
-
-  response=requests.post(url=call,json=body)
-  print(response)
-  info = json.loads(response.text)
-
-  auth_token= info['meta']['authentication_token']
-  
-  return auth_token
-
-'''
-#################
-
-#request examples
-
-#get list of camaras
-request <- "cameras"
-parameters <- ""
-
-#recent photo count
-request <- "photos/recent/count"
-parameters <- ""
-
-#get recent photos across cameras
-request <- "photos/recent"
-parameters <- "limit=100"
-
-#get photos from specific camera (will need to loop through pages)
-request <- "photos"
-parameters <- "page=3&sort_date=desc&camera_id[]=59681"
-
-#get photos from specific camera filtered by date (will need to loop through pages)
-request <- "photos"
-parameters <- "page=1&sort_date=desc&camera_id[]=60272&date_start=2022-09-01&date_end=2022-10-07"
-
-#get subscriptions
-request <- "subscriptions"
-parameters <- ""
-'''
-
-
-def request_strikeforce(username, auth_token, base, request, parameters):
-  call = base + request + "?" + parameters
-  response = requests.get(call, headers = {"X-User-Email":username, "X-User-Token":auth_token}) 
-  info = json.loads(response.text)
-  
-  return info 
-
-
-
-
-def fetch_images(config_path):
-    yaml = ruamel.yaml.YAML()
-    with open(config_path, 'r') as f:
-        config = yaml.load(f)
-        
-    camera_names = dict(config['camera_names'])
-    base = config['strikeforce_api'] 
-    username = config['username_scraper']
-    password = config['password_scraper']
-    auth_token = config['auth_token']
-    last_id = int(config['last_id'])
-
-  #  auth_token = get_token(config_path)
-  #  print(auth_token)
-  # 5 second delay between captures, maximum 12 photos between checks
-    data = request_strikeforce(username, auth_token, base, "photos/recent", "limit=12")
-    photos = data['photos']['data']
-
-    new_photos = []
-    
-    for i in range(len(photos)):
-        if int(photos[i]['id']) > last_id:
-            info = photos[i]['attributes']
-            print(info)
-            camera = camera_names[photos[i]['relationships']['camera']['data']['id']]
-            newname = config['save_dir'] +  camera + "_" + info['file_thumb_filename']
-         
-            urllib.request.urlretrieve(info['file_thumb_url'], newname)
-            new_photos.append([photos[i]['id'],info['file_thumb_url'],newname])
-
-    new_photos= np.array(new_photos)
-    if len(new_photos) > 0: # update last image
-        new_last = max(new_photos[:,0])
-        config['last_id'] = str(new_last)
-        with open(config_path, 'w') as f:
-            yaml.dump(config, f)
-    
-    return new_photos
-  
-
-
-'''
 def fetch_images(config_path):
     yaml = ruamel.yaml.YAML()
     with open(config_path, 'r') as f:
@@ -242,4 +141,74 @@ def fetch_images(config_path):
         i += 1
     driver.close()
     return df
-'''
+
+
+def run_emails():
+    # Gets a list of attachments from unread emails from bigfoot camera
+    mail = imap_setup(host, username, password)
+    global timestamp
+    print('Starting Email Fetcher')
+    images = extractAttachments(fetch_emails(mail, from_emails,
+                                             timestamp), mail, config_file)
+    print('Finished Email Fetcher')
+    print('Starting Detection')
+    detect(images)
+    print('Finished Detection')
+
+
+def get_token(config_path):
+    yaml = ruamel.yaml.YAML()
+    with open(config_path, 'r') as f:
+        config = yaml.load(f)
+    base = config['strikeforce_api']
+    # "https://api.strikeforcewireless.com/api/v2/"
+    username = config['username_scraper']
+    password = config['password_scraper']
+
+    call = base + "users/sign-in/"
+
+    body = {"user": {"email": username, "password": password}}
+
+    response = requests.post(url=call, json=body)
+    print(response)
+    info = json.loads(response.text)
+
+    auth_token = info['meta']['authentication_token']
+    return auth_token
+
+
+def load_to_crop(img_path: str,
+                 bbox_dicts: Iterable[Mapping[str, Any]],
+                 confidence_threshold: float
+                 ):
+    did_download = False
+    num_new_crops = 0
+    crops = []
+    # crop_path => normalized bbox coordinates [xmin, ymin, width, height]
+    bboxes_tocrop: dict[str, list[float]] = {}
+    for i, bbox_dict in enumerate(bbox_dicts):
+        # only ground-truth bboxes do not have a "confidence" value
+        if 'conf' in bbox_dict and bbox_dict['conf'] < confidence_threshold:
+            bbox_dicts.pop(i)
+            continue
+        # if bbox_dict['category'] != 'animal':
+        #     continue
+    if len(bboxes_tocrop) == 0:
+        return did_download, num_new_crops
+
+    img = Image.open(img_path)
+    img.show()
+
+    assert img is not None, 'image failed to load or download properly'
+    if img.mode != 'RGB':
+        img = img.convert(mode='RGB')  # always save as RGB for consistency
+
+    # crop the image
+    for bbox in bboxes_tocrop.items():
+        num_new_crops += 1
+        crops.append([crop(
+            img, bbox_norm=bbox), bbox])
+
+    return did_download, num_new_crops, crops
+
+

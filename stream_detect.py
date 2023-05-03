@@ -216,7 +216,7 @@ def process_frame():
                         
                         imageBytes = BytesIO()
                         img.save(imageBytes,format="JPEG")
-                        alert_util.sendAlert(f"Found {label}", prob,imageBytes,
+                        alert_util.send_alert(f"Found {label}", prob,imageBytes,
                                     alert_util.smtp_setup(username,password,host),from_email, to_emails)
                         logging.info(f'Found {label}:{time.ctime(time.time())}')
 

@@ -1,159 +1,80 @@
+'''Fetch and Alert
+
+This script allows users to retrieve thumbnail images uploaded
+from cellular camera traps, classify them by species, and send
+the photo as an alert to a specified end point.
+
+This script and its modules depend on some but not all scripts
+in this module including, cougarvision_utils/alert.py, cropping.py,
+detect_img.py, get_images.py, ImageCropGenerator.py, and
+earthranger_utils/attach_image_er.py, and post_event_er.py, and the
+config/fetch_and_alert.yml and last_id.txt.
+
+One must configure their individual fetch_and_alert.yml file to fit
+their needs by ensuring the file paths, usernames and passwords, camera
+dictionary, and image classifiers are correct. The .yml file is also
+where one can choose whether they would like email alerts or to send
+the classified images to Earthranger.
+'''
+
 # Import local utilities
 import argparse
 import time
 import warnings
-from datetime import datetime
-from email.message import EmailMessage
-from io import BytesIO
-
-import pandas as pd
-import schedule
+from datetime import datetime as dt
 import yaml
-from PIL import Image
-from animl import FileManagement, ImageCropGenerator, DetectMD
-from tensorflow import keras
+import schedule
+from cougarvision_utils.detect_img import detect
+from cougarvision_utils.alert import checkin
+from cougarvision_utils.get_images import fetch_image_api
 
-from cougarvision_utils.alert import sendAlert, smtp_setup
-from cougarvision_utils.cropping import draw_bounding_box_on_image
-from cougarvision_utils.fetch_emails import imap_setup, fetch_emails, extractAttachments
-from cougarvision_utils.web_scraping import fetch_images
 
 # Numpy FutureWarnings from tensorflow import
 warnings.filterwarnings('ignore', category=FutureWarning)
 # Parse arguments
-parser = argparse.ArgumentParser(description='Retrieves images from email and web scraper and runs detection')
-parser.add_argument('config', type=str, help='Path to config file')
-args = parser.parse_args()
-config_file = args.config
+PARSER = argparse.ArgumentParser(description='Retrieves images from \
+                                 email & web scraper & runs detection')
+PARSER.add_argument('config', type=str, help='Path to config file')
+ARGS = PARSER.parse_args()
+CONFIG_FILE = ARGS.config
 # Load Configuration Settings from YML file
-with open(config_file, 'r') as stream:
-    config = yaml.safe_load(stream)
+with open(CONFIG_FILE, 'r', encoding='utf-8') as stream:
+    CONFIG = yaml.safe_load(stream)
 # Set Email Variables for fetching
-username = config['username']
-password = config['password']
+USERNAME = CONFIG['username']
+PASSWORD = CONFIG['password']
+TO_EMAILS = CONFIG['to_emails']
+HOST = 'imap.gmail.com'
 
-from_emails = config['from_emails']
-to_emails = config['to_emails']
-log_dir = config['log_dir']
-save_dir = config['save_dir']
-host = 'imap.gmail.com'
 
-# Model Variables
-detector_model = config['detector_model']
-classifier_model = config['classifier_model']
-checkpoint_frequency = config['checkpoint_frequency']
-
-# Classifier Model
-model = keras.models.load_model(classifier_model)
-
-# Set Confidence and target
-confidence_threshold = config['confidence']
-targets = config['alert_targets']
 # Set interval for checking in
-checkin_interval = config['checkin_interval']
-# Set threads for load_and_crop
-threads = config['threads']
-classes = config['classes']
-timestamp = datetime.now()
+CHECKIN_INTERVAL = CONFIG['checkin_interval']
 
 
-
-def detect(images):
-  if len(images) > 0:
-      # extract paths from dataframe
-      image_paths = images[:,2]
-      
-      # Run Detection
-      results = DetectMD.load_and_run_detector_batch(image_paths, detector_model, log_dir,
-                                                     confidence_threshold, checkpoint_frequency, [])
-      # Parse results
-      df = FileManagement.parseMD(results)
-      # filter out all non animal detections
-      
-      if not df.empty:
-          animalDataframe, otherDataframe = FileManagement.filterImages(df)
-          # run classifier on animal detections if there are any
-          if not animalDataframe.empty:
-              # create generator for images
-              generator = ImageCropGenerator.GenerateCropsFromFile(animalDataframe)
-              # Run Classifier
-              predictions = model.predict_generator(generator, steps=len(generator), verbose=1)
-              # Parse results
-              maxDataframe = FileManagement.parseCM(animalDataframe, None, predictions, classes)
-              # Creates a data frame with all relevant data
-              cougars = maxDataframe[maxDataframe['class'].isin(targets)]
-              # drops all detections with confidence less than threshold
-              cougars = cougars[cougars['conf'] >= confidence_threshold]
-              # reset dataframe index
-              cougars = cougars.reset_index(drop=True)
-              # Sends alert for each cougar detection
-              for idx in range(len(cougars.index)):
-                  label = cougars.at[idx, 'class']
-                  prob = cougars.at[idx, 'conf']
-                  img = Image.open(cougars.at[idx, 'file'])
-                  draw_bounding_box_on_image(img,
-                                             cougars.at[idx, 'bbox2'], cougars.at[idx, 'bbox1'],
-                                             cougars.at[idx, 'bbox2'] + cougars.at[idx, 'bbox4'],
-                                             cougars.at[idx, 'bbox1'] + cougars.at[idx, 'bbox3'],
-                                             expansion=0,
-                                             use_normalized_coordinates=True,)
-                  imageBytes = BytesIO()
-                  img.save(imageBytes, format=img.format)
-                  smtp_server = smtp_setup(username, password, host)
-                  sendAlert(label, prob, imageBytes, smtp_server, username, to_emails)
-              # Write Dataframe to csv
-              cougars.to_csv(f'{log_dir}dataframe_{datetime.now().strftime("%m-%d-%Y_%H:%M:%S")}')
-
-
-def run_emails():
-    # Gets a list of attachments from unread emails from bigfoot camera
-    mail = imap_setup(host, username, password)
-    global timestamp
-    print('Starting Email Fetcher')
-    images = extractAttachments(fetch_emails(mail, from_emails, timestamp), mail, config_file)
-    print('Finished Email Fetcher')
+def fetch_detect_alert():
+    '''Functions for fetching images, detection, and sending alerts'''
+    # Run the scheduler
+    print("Running fetch_and_alert")
+    print("Fetching images")
+    images = fetch_image_api(CONFIG)
+    print('Finished fetching images')
     print('Starting Detection')
-    detect(images)
+    detect(images, CONFIG)
     print('Finished Detection')
-
-
-def run_scraper():
-    print('Starting Web Scraper')
-    images = fetch_images(config_file)
-    print('Finished Web Scraper')
-    print('Starting Detection')
-    detect(images)
-    print('Finished Detection')
+    print("Sleeping since: " + str(dt.now()))
 
 
 def main():
-    # Run the scheduler
-    print("Running fetch_and_alert")
-    # run_emails()
-    run_scraper()
-    print("Sleeping since: " + str(datetime.now()))
+    ''''Runs main program and schedules future runs'''
+    fetch_detect_alert()
+    schedule.every(10).minutes.do(fetch_detect_alert)
+    schedule.every(CHECKIN_INTERVAL).hours.do(checkin, TO_EMAILS,
+                                              USERNAME, PASSWORD, HOST)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
 
-def checkin():
-    print("Checking in at: " + str(datetime.now()))
-    # Construct Email Content
-    email_message = EmailMessage()
-    email_message.add_header('To', ', '.join(to_emails))
-    email_message.add_header('From', username)
-    email_message.add_header('Subject', 'Checkin')
-    email_message.add_header('X-Priority', '1')  # Urgency, 1 highest, 5 lowest
-    email_message.set_content('Still Alive :)')
-    # Server sends email message
-    smtp_server = smtp_setup(username, password, host)
-    server = smtp_server
-    server.send_message(email_message)
-
-
-main()
-
-schedule.every(10).minutes.do(main)
-schedule.every(checkin_interval).hours.do(checkin)
-
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+if __name__ == "__main__":
+    main()
