@@ -19,6 +19,7 @@ the classified images to Earthranger.
 
 # Import local utilities
 import argparse
+import logging
 import time
 import warnings
 from datetime import datetime as dt
@@ -27,6 +28,7 @@ import schedule
 from cougarvision_utils.detect_img import detect
 from cougarvision_utils.alert import checkin
 from cougarvision_utils.get_images import fetch_image_api
+from cougarvision_utils.logging import setup_logging
 
 
 # Numpy FutureWarnings from tensorflow import
@@ -66,6 +68,7 @@ def fetch_detect_alert():
 
 def main():
     ''''Runs main program and schedules future runs'''
+    setup_logging('fetch_and_alert.log')
     fetch_detect_alert()
     schedule.every(10).minutes.do(fetch_detect_alert)
     schedule.every(CHECKIN_INTERVAL).hours.do(checkin, TO_EMAILS,
