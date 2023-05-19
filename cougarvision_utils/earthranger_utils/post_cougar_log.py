@@ -1,7 +1,7 @@
 '''Post Cougar Log
 
-This module defines a function called is_cougar which adds an observation
-to a specific camera in Earthranger with the time and the fact that a cougar
+This module defines a function called is_target which adds an observation
+to a specific camera in Earthranger with the time and the fact that a target
 was detected.
 '''
 from datetime import datetime
@@ -9,13 +9,13 @@ import requests
 from cougarvision_utils.earthranger_utils.get_cam_location import cam_location
 
 
-def is_cougar(cam_name, token, authorization):
-    '''Is Cougar
+def is_target(cam_name, token, authorization, label):
+    '''Animal of interest historical log post
 
     This function takes in the camera name and http api tokens only if
-    a cougar was detected, and it then creates an observation for the specific
-    camera a cougar was detected at and logs the time so that there is a historical
-    backlog for each camera of all its cougar detections.
+    a target animal was detected, and it then creates an observation for
+    the specific camera it was detected at and logs the time so that there
+    is a historical backlog for each camera of all its target detections.
 
     Args:
     cam_name: a string of the specific name of the camera that the image came from
@@ -45,6 +45,6 @@ def is_cougar(cam_name, token, authorization):
 
     url2 = 'https://sagebrush.pamdas.org/api/v1.0/observations/'
 
-    payload = {"location": {"longitude": longi, "latitude": lat}, "recorded_at": formatted_time, "source": source_id, "device_status_properties": [{"value": "cougar", "label": "animal", "units": ""}], "additional": {"animal": "cougar"}}
+    payload = {"location": {"longitude": longi, "latitude": lat}, "recorded_at": formatted_time, "source": source_id, "device_status_properties": [{"value": label, "label": "animal", "units": ""}], "additional": {"animal": label}}
 
     requests.post(url2, headers=headers, json=payload)
