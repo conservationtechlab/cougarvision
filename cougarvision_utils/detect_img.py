@@ -17,9 +17,7 @@ from tensorflow import keras
 from animl import FileManagement, ImageCropGenerator, DetectMD
 from cougarvision_utils.cropping import draw_bounding_box_on_image
 from cougarvision_utils.alert import smtp_setup, send_alert
-from cougarvision_utils.earthranger_utils.post_event_er import post_event
-from cougarvision_utils.earthranger_utils.attach_image_er import attach_image
-from cougarvision_utils.earthranger_utils.post_cougar_log import is_target
+from earthranger_utils import is_target, attach_image, post_event
 
 
 def detect(images, config):
