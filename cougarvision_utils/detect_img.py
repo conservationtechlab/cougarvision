@@ -15,14 +15,13 @@ import re
 from PIL import Image
 from tensorflow import keras
 from animl import FileManagement, ImageCropGenerator, DetectMD
+from sageranger import is_target, attach_image, post_event
+
 from cougarvision_utils.cropping import draw_bounding_box_on_image
 from cougarvision_utils.alert import smtp_setup, send_alert
-from cougarvision_utils.earthranger_utils.post_event_er import post_event
-from cougarvision_utils.earthranger_utils.attach_image_er import attach_image
-from cougarvision_utils.earthranger_utils.get_recorded_at_time import is_cougar
 
 
-def detect(images, config):
+def detect(images, config):  # pylint: disable-msg=too-many-locals
     '''
     This function takes in a dataframe of images and runs a detector model,
     classifies the species of interest, and sends alerts either to email or an
@@ -32,8 +31,8 @@ def detect(images, config):
     images: a nested array of information regarding each photo that is to be
         run through the detector and is formatted
         ['strikeforce id']['thumbnail url']['local file path']
-    config: the unpacked config values from fetch_and_alert.yml that contains necessary
-        parameters the function needs
+    config: the unpacked config values from fetch_and_alert.yml that contains
+        necessary parameters the function needs
     '''
     detector_model = config['detector_model']
     use_variation = int(config['use_variation'])
@@ -64,7 +63,7 @@ def detect(images, config):
         data_frame = FileManagement.parseMD(results)
         # filter out all non animal detections
         if not data_frame.empty:
-            animal_df, other_df = FileManagement.filterImages(data_frame)
+            animal_df, _ = FileManagement.filterImages(data_frame)
             # run classifier on animal detections if there are any
             if not animal_df.empty:
                 # create generator for images
@@ -85,11 +84,13 @@ def detect(images, config):
                 # reset dataframe index
                 cougars = cougars.reset_index(drop=True)
                 # create a row in the dataframe containing only the camera name
-                cougars['cam_name'] = cougars['file'].apply(lambda x: re.findall(r'[A-Z]\d+', x)[0])
+                # flake8: disable-next
+                cougars['cam_name'] = cougars['file'].apply(lambda x: re.findall(r'[A-Z]\d+', x)[0])  # noqa: E501  # pylint: disable-msg=line-too-long
                 # Sends alert for each cougar detection
                 for idx in range(len(cougars.index)):
                     label = cougars.at[idx, 'class']
-                    prob = cougars.at[idx, 'conf']
+                    # uncomment this line to use conf value for dev email alert
+                    # prob = cougars.at[idx, 'conf']
                     img = Image.open(cougars.at[idx, 'file'])
                     draw_bounding_box_on_image(img,
                                                cougars.at[idx, 'bbox2'],
@@ -108,16 +109,23 @@ def detect(images, config):
                     img.save(image_bytes, format="JPEG")
                     img_byte = image_bytes.getvalue()
                     cam_name = cougars.at[idx, 'cam_name']
-                    if label == 'cougar':
-                        is_cougar(cam_name, token, authorization)
+                    if label in targets:
+                        is_target(cam_name, token, authorization, label)
                     # Email or Earthranger alerts as dictated in the config yml
                     if use_variation == 2:
-                        event_id = post_event(label, cam_name, token, authorization)
-                        response = attach_image(event_id, img_byte, token, authorization, label)
+                        event_id = post_event(label,
+                                              cam_name,
+                                              token,
+                                              authorization)
+                        response = attach_image(event_id,
+                                                img_byte,
+                                                token,
+                                                authorization,
+                                                label)
                         print(response)
                     else:
                         smtp_server = smtp_setup(username, password, host)
-                        send_alert(label, prob, image_bytes, smtp_server,
+                        send_alert(label, image_bytes, smtp_server,
                                    username, to_emails)
                 # Write Dataframe to csv
                 date = "%m-%d-%Y_%H:%M:%S"

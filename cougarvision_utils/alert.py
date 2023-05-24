@@ -35,7 +35,7 @@ def smtp_setup(username, password, host):
     return smtp_server
 
 
-def send_alert(alert, conf, img, smtp_server, from_email, to_emails):
+def send_alert(alert, img, smtp_server, from_email, to_emails):
     '''Send Alert
 
     This function takes in the animal label, the image of the animal of
@@ -58,8 +58,12 @@ def send_alert(alert, conf, img, smtp_server, from_email, to_emails):
     email_message.add_header('From', from_email)
     email_message.add_header('Subject', 'Alert!')
     email_message.add_header('X-Priority', '1')  # Urgency, 1 highest, 5 lowest
-    email_message.set_content('I found a ' + alert + ' with confidence '
-                              + str(conf))
+    message = "Potential " + alert + " detected by CougarVision "\
+              + "system.\n\nPlease review attached image to verify detection."\
+              + " Cougarvision is set to be sensitive to avoid missing "\
+              + "species of interest so other animals and artifacts have been"\
+              + " known to trigger the system."
+    email_message.set_content(message)
 
     # Prepare Image format
     binary_data = img.getvalue()
@@ -76,17 +80,17 @@ def send_alert(alert, conf, img, smtp_server, from_email, to_emails):
     server.send_message(email_message)
 
 
-def checkin(TO_EMAILS, USERNAME, PASSWORD, HOST):
+def checkin(to_emails, username, password, host):
     '''Sends server status to specified email at specified time interval'''
     print("Checking in at: " + str(dt.now()))
     # Construct Email Content
     email_message = EmailMessage()
-    email_message.add_header('To', ', '.join(TO_EMAILS))
-    email_message.add_header('From', USERNAME)
+    email_message.add_header('To', ', '.join(to_emails))
+    email_message.add_header('From', username)
     email_message.add_header('Subject', 'Checkin')
     email_message.add_header('X-Priority', '1')  # Urgency, 1 highest, 5 lowest
     email_message.set_content('Still Alive :)')
     # Server sends email message
-    smtp_server = smtp_setup(USERNAME, PASSWORD, HOST)
+    smtp_server = smtp_setup(username, password, host)
     server = smtp_server
     server.send_message(email_message)
