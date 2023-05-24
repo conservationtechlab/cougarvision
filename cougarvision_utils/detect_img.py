@@ -115,7 +115,7 @@ def detect(images, config):
                         print(response)
                     else:
                         smtp_server = smtp_setup(username, password, host)
-                        send_alert(label, prob, image_bytes, smtp_server,
+                        send_alert(label, image_bytes, smtp_server,
                                    username, to_emails)
                 # Write Dataframe to csv
                 date = "%m-%d-%Y_%H:%M:%S"
