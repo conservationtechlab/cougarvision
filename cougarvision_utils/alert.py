@@ -58,10 +58,12 @@ def send_alert(alert, img, smtp_server, from_email, to_emails):
     email_message.add_header('From', from_email)
     email_message.add_header('Subject', 'Alert!')
     email_message.add_header('X-Priority', '1')  # Urgency, 1 highest, 5 lowest
-    email_message.set_content('Potential ' + alert + ' detected by CougarVision \
-system.\n\nPlease review attached image to verify detection. CougarVision \
-is set to be sensitive to avoid missing species of interest so other animals \
-and artifacts have been known to trigger the system.')
+    message = "Potential " + alert + " detected by CougarVision "\
+              + "system.\n\nPlease review attached image to verify detection."\
+              + " Cougarvision is set to be sensitive to avoid missing "\
+              + "species of interest so other animals and artifacts have been"\
+              + " known to trigger the system."
+    email_message.set_content(message)
 
     # Prepare Image format
     binary_data = img.getvalue()
