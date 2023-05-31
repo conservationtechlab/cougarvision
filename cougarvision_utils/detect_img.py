@@ -35,7 +35,8 @@ def detect(images, config):  # pylint: disable-msg=too-many-locals
         necessary parameters the function needs
     '''
     detector_model = config['detector_model']
-    use_variation = int(config['use_variation'])
+    email_alerts = bool(config['email_alerts'])
+    er_alerts = bool(config['er_alerts'])
     classifier_model = config['classifier_model']
     model = keras.models.load_model(classifier_model)
     log_dir = config['log_dir']
@@ -112,7 +113,7 @@ def detect(images, config):  # pylint: disable-msg=too-many-locals
                     if label in targets:
                         is_target(cam_name, token, authorization, label)
                     # Email or Earthranger alerts as dictated in the config yml
-                    if use_variation == 2:
+                    if er_alerts is True:
                         event_id = post_event(label,
                                               cam_name,
                                               token,
@@ -123,7 +124,7 @@ def detect(images, config):  # pylint: disable-msg=too-many-locals
                                                 authorization,
                                                 label)
                         print(response)
-                    else:
+                    if email_alerts is True:
                         smtp_server = smtp_setup(username, password, host)
                         send_alert(label, image_bytes, smtp_server,
                                    username, to_emails)
