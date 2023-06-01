@@ -43,7 +43,7 @@ with open(CONFIG_FILE, 'r', encoding='utf-8') as stream:
 # Set Email Variables for fetching
 USERNAME = CONFIG['username']
 PASSWORD = CONFIG['password']
-TO_EMAILS = CONFIG['to_emails']
+DEV_EMAILS = CONFIG['dev_emails']
 HOST = 'imap.gmail.com'
 
 
@@ -68,7 +68,7 @@ def main():
     ''''Runs main program and schedules future runs'''
     fetch_detect_alert()
     schedule.every(10).minutes.do(fetch_detect_alert)
-    schedule.every(CHECKIN_INTERVAL).hours.do(checkin, TO_EMAILS,
+    schedule.every(CHECKIN_INTERVAL).hours.do(checkin, DEV_EMAILS,
                                               USERNAME, PASSWORD, HOST)
 
     while True:
