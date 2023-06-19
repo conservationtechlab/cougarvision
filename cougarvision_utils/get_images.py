@@ -69,6 +69,7 @@ def request_strikeforce(username, auth_token, base, request, parameters):
     call = base + request + "?" + parameters
     response = requests.get(call, headers={"X-User-Email": username,
                                            "X-User-Token": auth_token})
+    print(response.text)
     info = json.loads(response.text)
     return info
 
@@ -86,9 +87,10 @@ def fetch_image_api(config):
     '''
     camera_names = dict(config['camera_names'])
     base = config['strikeforce_api']
-    username = config['username_scraper']
-    auth_token = config['auth_token']
+    account1, account2 = config['username_scraper']
+    token1, token2 = config['auth_token']
     path = "./last_id.txt"
+    password = config['password_scraper']
     checkfile = os.path.exists(path)
     if checkfile is False:
         new_file = open("last_id.txt", "x")
@@ -106,9 +108,11 @@ def fetch_image_api(config):
     id_file.close()
 
 # 5 second delay between captures, maximum 12 photos between checks
-    data = request_strikeforce(username, auth_token, base,
+    data = request_strikeforce(account1, token1, base,
                                "photos/recent", "limit=12")
-    photos = data['photos']['data']
+    data2 = request_strikeforce(account2, token2, base,
+                               "photos/recent", "limit=12")
+    photos = data['photos']['data'] + data2['photos']['data']
 
     new_photos = []
     for i in range(len(photos)):
@@ -116,9 +120,10 @@ def fetch_image_api(config):
             info = photos[i]['attributes']
             print(info)
             camera = camera_names[photos[i]['relationships']
-                                  ['camera']['data']['id']]
+                                 ['camera']['data']['id']]
             newname = config['save_dir'] + camera
             newname += "_" + info['file_thumb_filename']
+            print(newname)
             urllib.request.urlretrieve(info['file_thumb_url'], newname)
             new_photos.append([photos[i]['id'],
                                info['file_thumb_url'], newname])

@@ -110,7 +110,7 @@ def detect(images, config):  # pylint: disable-msg=too-many-locals
                     img.save(image_bytes, format="JPEG")
                     img_byte = image_bytes.getvalue()
                     cam_name = cougars.at[idx, 'cam_name']
-                    if label in targets:
+                    if label in targets and er_alerts is True:
                         is_target(cam_name, token, authorization, label)
                     # Email or Earthranger alerts as dictated in the config yml
                     if er_alerts is True:
