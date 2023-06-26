@@ -24,10 +24,12 @@ import warnings
 from datetime import datetime as dt
 import yaml
 import schedule
+import requests
+
 from cougarvision_utils.detect_img import detect
 from cougarvision_utils.alert import checkin
 from cougarvision_utils.get_images import fetch_image_api
-
+from sageranger.post_monthly import post_monthly_obs
 
 # Numpy FutureWarnings from tensorflow import
 warnings.filterwarnings('ignore', category=FutureWarning)
@@ -44,6 +46,8 @@ with open(CONFIG_FILE, 'r', encoding='utf-8') as stream:
 USERNAME = CONFIG['username']
 PASSWORD = CONFIG['password']
 TO_EMAILS = CONFIG['to_emails']
+TOKEN = CONFIG['token']
+AUTH = CONFIG['authorization']
 HOST = 'imap.gmail.com'
 
 
@@ -70,6 +74,7 @@ def main():
     schedule.every(10).minutes.do(fetch_detect_alert)
     schedule.every(CHECKIN_INTERVAL).hours.do(checkin, TO_EMAILS,
                                               USERNAME, PASSWORD, HOST)
+    schedule.every(30).days.do(post_monthly_obs, TOKEN, AUTH)
 
     while True:
         schedule.run_pending()
