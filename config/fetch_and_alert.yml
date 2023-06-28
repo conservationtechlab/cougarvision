@@ -1,0 +1,46 @@
+ #home_dir - An example of address of'courgarvision file' location.
+home_dir: /home/johnsmith/cougarvision 
+# 1 = email alerts and 2 = earthranger alerts
+use_variation: 2 
+#detector_model - An example directory path of the "megadetecor_v4.1.pb"
+detector_model: /home/johnsmith/cougarvision/detector_models/megadetector_v4.1.pb 
+#classifier_model - An example directory path of "EfficientNetB5_456_Unfrozen_05_0.26_0.92.h5".
+classifier_model: /home/johnsmith/cougarvision/classifier_models/EfficientNetB5_456_Unfrozen_05_0.26_0.92.h5 
+checkpoint_frequency: -1 
+ #log_dir - An example directory path of the "logs".
+log_dir: /home/johnsmith/cougarvision/logs/
+#classes - An example directory path of the "sw_classes.txt".
+classes: /home/johnsmith/cougarvision/labels/sw_classes.txt 
+#to_email - An example of email (your email)  where all the api information will be sent to.
+to_emails: [your@email.com]  
+#threshold confidence score 
+confidence: 0.01 
+#cpu threads
+threads: 8
+# Web Scraping
+#strike force api
+strikeforce_api: https://api.strikeforcewireless.com/api/v2/
+#username_scraper 
+username_scraper: yourusername.cam@gmail.com
+#password_scraper
+password_scraper: yourpassword
+#strike force wireless system to view images and video on your phone.
+#authorization token from Strike Force
+auth_token: npKlKokpl-tyhjkilo
+#save_dir - An example of directory path of "images". Where the images get store.
+save_dir: /home/johnsmith/images/ 
+#camera name 
+camera_names: {'62201': B018, '59760': B016, '59681': B013, '59758': B015, '60095': B014,
+  '60272': B017, '85767': B041, '105353': B044, '105355': B045, '105357': B046, '105359': B047,
+  '105360': B048, '104322': B049}  
+ #input animal variable that you wanted to target
+alert_targets: [cougar, bobcat, skunk, deer, dog, coyote, rabbit, elephant]
+hours before send
+#checkn_interval - check in to see if courgarvision is working and set how many time it should be ping.
+checkin_interval: 24
+#check in email 
+admin: user@email.com 
+#An API token is the form of authentication similar to a username/password.
+token: [insert token]
+#APIs use authorization to ensure that client requests access data securely. 
+authorization: Bearer [insert authorization]
