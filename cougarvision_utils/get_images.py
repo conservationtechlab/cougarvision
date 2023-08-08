@@ -87,8 +87,8 @@ def fetch_image_api(config):
     '''
     camera_names = dict(config['camera_names'])
     base = config['strikeforce_api']
-    account1, account2 = config['username_scraper']
-    token1, token2 = config['auth_token']
+    accounts = config['username_scraper']
+    tokens = config['auth_token']
     path = "./last_id.txt"
     password = config['password_scraper']
     checkfile = os.path.exists(path)
@@ -106,13 +106,12 @@ def fetch_image_api(config):
         line.strip()
     last_id = int(line)
     id_file.close()
-
+    photos = []
 # 5 second delay between captures, maximum 12 photos between checks
-    data = request_strikeforce(account1, token1, base,
-                               "photos/recent", "limit=12")
-    data2 = request_strikeforce(account2, token2, base,
-                               "photos/recent", "limit=12")
-    photos = data['photos']['data'] + data2['photos']['data']
+    for account, token in zip(accounts, tokens):
+        data = request_strikeforce(account, token, base,
+                                   "photos/recent", "limit=12")
+        photos += data['photos']['data']
 
     new_photos = []
     for i in range(len(photos)):
