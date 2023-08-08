@@ -35,7 +35,8 @@ def detect(images, config):  # pylint: disable-msg=too-many-locals
         necessary parameters the function needs
     '''
     detector_model = config['detector_model']
-    use_variation = int(config['use_variation'])
+    email_alerts = bool(config['email_alerts'])
+    er_alerts = bool(config['er_alerts'])
     classifier_model = config['classifier_model']
     model = keras.models.load_model(classifier_model)
     log_dir = config['log_dir']
@@ -45,7 +46,8 @@ def detect(images, config):  # pylint: disable-msg=too-many-locals
     targets = config['alert_targets']
     username = config['username']
     password = config['password']
-    to_emails = config['to_emails']
+    consumer_emails = config['consumer_emails']
+    dev_emails = config['dev_emails']
     host = 'imap.gmail.com'
     token = config['token']
     authorization = config['authorization']
@@ -89,8 +91,7 @@ def detect(images, config):  # pylint: disable-msg=too-many-locals
                 # Sends alert for each cougar detection
                 for idx in range(len(cougars.index)):
                     label = cougars.at[idx, 'class']
-                    # uncomment this line to use conf value for dev email alert
-                    # prob = cougars.at[idx, 'conf']
+                    prob = str(cougars.at[idx, 'conf'])
                     img = Image.open(cougars.at[idx, 'file'])
                     draw_bounding_box_on_image(img,
                                                cougars.at[idx, 'bbox2'],
@@ -109,10 +110,10 @@ def detect(images, config):  # pylint: disable-msg=too-many-locals
                     img.save(image_bytes, format="JPEG")
                     img_byte = image_bytes.getvalue()
                     cam_name = cougars.at[idx, 'cam_name']
-                    if label in targets:
+                    if label in targets and er_alerts is True:
                         is_target(cam_name, token, authorization, label)
                     # Email or Earthranger alerts as dictated in the config yml
-                    if use_variation == 2:
+                    if er_alerts is True:
                         event_id = post_event(label,
                                               cam_name,
                                               token,
@@ -123,10 +124,14 @@ def detect(images, config):  # pylint: disable-msg=too-many-locals
                                                 authorization,
                                                 label)
                         print(response)
-                    else:
+                    if email_alerts is True:
                         smtp_server = smtp_setup(username, password, host)
+                        dev = 0
                         send_alert(label, image_bytes, smtp_server,
-                                   username, to_emails)
+                                   username, consumer_emails, dev, prob)
+                        dev = 1
+                        send_alert(label, image_bytes, smtp_server,
+                                   username, dev_emails, dev, prob)
                 # Write Dataframe to csv
                 date = "%m-%d-%Y_%H:%M:%S"
                 cougars.to_csv(f'{log_dir}dataframe_{dt.now().strftime(date)}')
