@@ -12,14 +12,22 @@ that must be imported from animl.
 from io import BytesIO
 from datetime import datetime as dt
 import re
+import yaml
+import sys
+import yolov5
 from PIL import Image
 from tensorflow import keras
-from animl import FileManagement, ImageCropGenerator, DetectMD
+from animl import parseResults, imageCropGenerator, splitData, detectMD
 from sageranger import is_target, attach_image, post_event
+from animl.detectMD import load_MD_model, detect_MD_batch
 
 from cougarvision_utils.cropping import draw_bounding_box_on_image
 from cougarvision_utils.alert import smtp_setup, send_alert
 
+
+with open("config/cameratraps.yml", 'r') as stream:
+    camera_traps_config = yaml.safe_load(stream)
+    sys.path.append(camera_traps_config['camera_traps_path'])
 
 def detect(images, config):  # pylint: disable-msg=too-many-locals
     '''
@@ -41,7 +49,7 @@ def detect(images, config):  # pylint: disable-msg=too-many-locals
     model = keras.models.load_model(classifier_model)
     log_dir = config['log_dir']
     checkpoint_frequency = config['checkpoint_frequency']
-    confidence_threshold = config['confidence']
+    confidence = config['confidence']
     classes = config['classes']
     targets = config['alert_targets']
     username = config['username']
@@ -55,34 +63,38 @@ def detect(images, config):  # pylint: disable-msg=too-many-locals
         # extract paths from dataframe
         image_paths = images[:, 2]
         # Run Detection
-        results = DetectMD.load_and_run_detector_batch(image_paths,
-                                                       detector_model,
-                                                       log_dir,
-                                                       confidence_threshold,
-                                                       checkpoint_frequency,
-                                                       [])
-        # Parse results
-        data_frame = FileManagement.parseMD(results)
+        loaded_model = load_MD_model(detector_model)                                                    
+        results = detect_MD_batch(loaded_model,
+                                  image_paths,
+                                  checkpoint_path=None,
+                                  confidence_threshold=confidence,
+                                  checkpoint_frequency=-1,
+                                  results=None,
+                                  n_cores=1,
+                                  quiet=False,
+                                  image_size=None)
+        # Parse results                                                           
+        data_frame = parseResults.parseMD(results, None, None)
         # filter out all non animal detections
         if not data_frame.empty:
-            animal_df, _ = FileManagement.filterImages(data_frame)
+            animal_df= splitData.getAnimals(data_frame)   
+            otherdf = splitData.getEmpty(data_frame)           ###new function: split file
             # run classifier on animal detections if there are any
             if not animal_df.empty:
                 # create generator for images
 
-                generator = ImageCropGenerator.\
-                    GenerateCropsFromFile(animal_df)
+                generator = imageCropGenerator.\
+                    GenerateCropsFromFile(animal_df)                            ### changed function
                 # Run Classifier
                 predictions = model.predict_generator(generator,
                                                       steps=len(generator),
-                                                      verbose=1)
+                                                      verbose=1)                                    
                 # Parse results
-                max_df = FileManagement.parseCM(animal_df, None,
-                                                predictions, classes)
+                max_df = parseResults.applyPredictions(animal_df, predictions, classes, None, False)
                 # Creates a data frame with all relevant data
-                cougars = max_df[max_df['class'].isin(targets)]
+                cougars = max_df[max_df['prediction'].isin(targets)]
                 # drops all detections with confidence less than threshold
-                cougars = cougars[cougars['conf'] >= confidence_threshold]
+                cougars = cougars[cougars['conf'] >= confidence]
                 # reset dataframe index
                 cougars = cougars.reset_index(drop=True)
                 # create a row in the dataframe containing only the camera name
@@ -90,8 +102,10 @@ def detect(images, config):  # pylint: disable-msg=too-many-locals
                 cougars['cam_name'] = cougars['file'].apply(lambda x: re.findall(r'[A-Z]\d+', x)[0])  # noqa: E501  # pylint: disable-msg=line-too-long
                 # Sends alert for each cougar detection
                 for idx in range(len(cougars.index)):
-                    label = cougars.at[idx, 'class']
+                    label = cougars.at[idx, 'prediction']
+                    # uncomment this line to use conf value for dev email alert
                     prob = str(cougars.at[idx, 'conf'])
+                    #label = cougars.at[idx, 'class']
                     img = Image.open(cougars.at[idx, 'file'])
                     draw_bounding_box_on_image(img,
                                                cougars.at[idx, 'bbox2'],
