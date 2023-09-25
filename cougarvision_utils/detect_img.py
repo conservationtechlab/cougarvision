@@ -17,8 +17,9 @@ import sys
 import yolov5
 from PIL import Image
 from tensorflow import keras
-from animl import parseResults, imageCropGenerator, splitData
+from animl import parseResults, imageCropGenerator, splitData, detectMD
 from sageranger import is_target, attach_image, post_event
+from animl.detectMD import load_MD_model, detect_MD_batch
 
 from cougarvision_utils.cropping import draw_bounding_box_on_image
 from cougarvision_utils.alert import smtp_setup, send_alert
@@ -27,8 +28,6 @@ from cougarvision_utils.alert import smtp_setup, send_alert
 with open("config/cameratraps.yml", 'r') as stream:
     camera_traps_config = yaml.safe_load(stream)
     sys.path.append(camera_traps_config['camera_traps_path'])
-
-from detection.run_detector_batch import load_and_run_detector_batch # call from CameraTraps
 
 def detect(images, config):  # pylint: disable-msg=too-many-locals
     '''
@@ -49,7 +48,7 @@ def detect(images, config):  # pylint: disable-msg=too-many-locals
     model = keras.models.load_model(classifier_model)
     log_dir = config['log_dir']
     checkpoint_frequency = config['checkpoint_frequency']
-    confidence_threshold = config['confidence']
+    confidence = config['confidence']
     classes = config['classes']
     targets = config['alert_targets']
     username = config['username']
@@ -61,13 +60,17 @@ def detect(images, config):  # pylint: disable-msg=too-many-locals
     if len(images) > 0:
         # extract paths from dataframe
         image_paths = images[:, 2]
-        # Run Detection                                                      
-        results = load_and_run_detector_batch(detector_model,
-        						 image_paths,
-        						 None,
-        						 confidence_threshold,
-                                                       checkpoint_frequency, None, 1,
-                                                       False,False,None)
+        # Run Detection
+        loaded_model = load_MD_model(detector_model)                                                    
+        results = detect_MD_batch(loaded_model,
+                                  image_paths,
+                                  checkpoint_path=None,
+                                  confidence_threshold=confidence,
+                                  checkpoint_frequency=-1,
+                                  results=None,
+                                  n_cores=1,
+                                  quiet=False,
+                                  image_size=None)
         # Parse results                                                           
         data_frame = parseResults.parseMD(results, None, None)
         # filter out all non animal detections
@@ -89,7 +92,7 @@ def detect(images, config):  # pylint: disable-msg=too-many-locals
                 # Creates a data frame with all relevant data
                 cougars = max_df[max_df['prediction'].isin(targets)]
                 # drops all detections with confidence less than threshold
-                cougars = cougars[cougars['conf'] >= confidence_threshold]
+                cougars = cougars[cougars['conf'] >= confidence]
                 # reset dataframe index
                 cougars = cougars.reset_index(drop=True)
                 # create a row in the dataframe containing only the camera name
