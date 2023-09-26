@@ -17,6 +17,7 @@ import urllib.request
 import os.path
 import requests
 import numpy as np
+import logging
 
 
 '''
@@ -118,8 +119,13 @@ def fetch_image_api(config):
         if int(photos[i]['id']) > last_id:
             info = photos[i]['attributes']
             print(info)
-            camera = camera_names[photos[i]['relationships']
-                                 ['camera']['data']['id']]
+            try:
+                camera = camera_names[photos[i]['relationships']
+                                     ['camera']['data']['id']]
+            except KeyError:
+                logging.warning('Cannot retrieve photo from camera\
+                as there is no asssociated ID in the config file')
+                continue
             newname = config['save_dir'] + camera
             newname += "_" + info['file_thumb_filename']
             print(newname)
