@@ -30,6 +30,9 @@ from cougarvision_utils.detect_img import detect
 from cougarvision_utils.alert import checkin
 from cougarvision_utils.get_images import fetch_image_api
 from sageranger.post_monthly import post_monthly_obs
+from animl.predictSpecies import load_classifier
+from animl.detectMD import load_MD_model
+
 
 # Numpy FutureWarnings from tensorflow import
 warnings.filterwarnings('ignore', category=FutureWarning)
@@ -48,11 +51,18 @@ PASSWORD = CONFIG['password']
 TO_EMAILS = CONFIG['to_emails']
 TOKEN = CONFIG['token']
 AUTH = CONFIG['authorization']
+CLASSIFIER = CONFIG['classifier_model']
+DETECTOR = CONFIG['detector_model']
+DEV_EMAILS = CONFIG['dev_emails']
 HOST = 'imap.gmail.com'
 
 
 # Set interval for checking in
 CHECKIN_INTERVAL = CONFIG['checkin_interval']
+
+# load models once
+CLASSIFIER_MODEL = load_classifier(CLASSIFIER)
+DETECTOR_MODEL = load_MD_model(DETECTOR)
 
 
 def fetch_detect_alert():
@@ -63,7 +73,7 @@ def fetch_detect_alert():
     images = fetch_image_api(CONFIG)
     print('Finished fetching images')
     print('Starting Detection')
-    detect(images, CONFIG)
+    detect(images, CONFIG, CLASSIFIER_MODEL, DETECTOR_MODEL)
     print('Finished Detection')
     print("Sleeping since: " + str(dt.now()))
 
@@ -72,7 +82,7 @@ def main():
     ''''Runs main program and schedules future runs'''
     fetch_detect_alert()
     schedule.every(10).minutes.do(fetch_detect_alert)
-    schedule.every(CHECKIN_INTERVAL).hours.do(checkin, TO_EMAILS,
+    schedule.every(CHECKIN_INTERVAL).hours.do(checkin, DEV_EMAILS,
                                               USERNAME, PASSWORD, HOST)
     schedule.every(30).days.do(post_monthly_obs, TOKEN, AUTH)
 
