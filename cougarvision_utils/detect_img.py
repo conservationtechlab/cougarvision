@@ -19,6 +19,7 @@ from PIL import Image
 from animl import parseResults, imageCropGenerator, splitData, detectMD
 from sageranger import is_target, attach_image, post_event
 from animl.detectMD import detect_MD_batch
+import os
 
 from cougarvision_utils.cropping import draw_bounding_box_on_image
 from cougarvision_utils.alert import smtp_setup, send_alert
@@ -27,6 +28,16 @@ from cougarvision_utils.alert import smtp_setup, send_alert
 with open("config/cameratraps.yml", 'r') as stream:
     camera_traps_config = yaml.safe_load(stream)
     sys.path.append(camera_traps_config['camera_traps_path'])
+    
+    
+def get_last_file_number(folder_path):
+    max_num = 0
+    for filename in os.listdir(folder_path):
+        # Extract digits from the filename using regex
+        num = re.findall(r'\d+', filename)
+        if num:  # If there are digits in the filename
+            max_num = max(max_num, int(num[-1]))  # Use the last set of digits as the number
+    return max_num
 
 
 def detect(images, config, c_model, d_model):
@@ -124,6 +135,15 @@ def detect(images, config, c_model, d_model):
                     image_bytes = BytesIO()
                     img.save(image_bytes, format="JPEG")
                     img_byte = image_bytes.getvalue()
+                    
+                    folder_path = '/home/katie/Documents/cougarvision/demo_images'
+                    last_file_number = get_last_file_number(folder_path)
+                    new_file_number = last_file_number + 1
+                    new_file_name = f"{folder_path}/image_{new_file_number}.jpg"
+
+                    with open(new_file_name, "wb") as f:
+                        f.write(img_byte)
+                    
                     cam_name = cougars.at[idx, 'cam_name']
                     if label in targets and er_alerts is True:
                         is_target(cam_name, token, authorization, label)

@@ -85,7 +85,7 @@ def main():
     ''''Runs main program and schedules future runs'''
     logger()
     fetch_detect_alert()
-    schedule.every(10).minutes.do(fetch_detect_alert)
+    schedule.every(10).seconds.do(fetch_detect_alert)
     schedule.every(CHECKIN_INTERVAL).hours.do(checkin, DEV_EMAILS,
                                               USERNAME, PASSWORD, HOST)
     schedule.every(30).days.do(post_monthly_obs, TOKEN, AUTH)
