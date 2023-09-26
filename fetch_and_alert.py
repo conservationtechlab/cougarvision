@@ -27,6 +27,8 @@ import schedule
 from cougarvision_utils.detect_img import detect
 from cougarvision_utils.alert import checkin
 from cougarvision_utils.get_images import fetch_image_api
+from animl.predictSpecies import load_classifier
+from animl.detectMD import load_MD_model
 
 
 # Numpy FutureWarnings from tensorflow import
@@ -43,12 +45,19 @@ with open(CONFIG_FILE, 'r', encoding='utf-8') as stream:
 # Set Email Variables for fetching
 USERNAME = CONFIG['username']
 PASSWORD = CONFIG['password']
+TO_EMAILS = CONFIG['to_emails']
+CLASSIFIER = CONFIG['classifier_model']
+DETECTOR = CONFIG['detector_model']
 DEV_EMAILS = CONFIG['dev_emails']
 HOST = 'imap.gmail.com'
 
 
 # Set interval for checking in
 CHECKIN_INTERVAL = CONFIG['checkin_interval']
+
+# load models once
+CLASSIFIER_MODEL = load_classifier(CLASSIFIER)
+DETECTOR_MODEL = load_MD_model(DETECTOR)
 
 
 def fetch_detect_alert():
@@ -59,7 +68,7 @@ def fetch_detect_alert():
     images = fetch_image_api(CONFIG)
     print('Finished fetching images')
     print('Starting Detection')
-    detect(images, CONFIG)
+    detect(images, CONFIG, CLASSIFIER_MODEL, DETECTOR_MODEL)
     print('Finished Detection')
     print("Sleeping since: " + str(dt.now()))
 

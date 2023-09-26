@@ -16,10 +16,9 @@ import yaml
 import sys
 import yolov5
 from PIL import Image
-from tensorflow import keras
 from animl import parseResults, imageCropGenerator, splitData, detectMD
 from sageranger import is_target, attach_image, post_event
-from animl.detectMD import load_MD_model, detect_MD_batch
+from animl.detectMD import detect_MD_batch
 
 from cougarvision_utils.cropping import draw_bounding_box_on_image
 from cougarvision_utils.alert import smtp_setup, send_alert
@@ -29,7 +28,8 @@ with open("config/cameratraps.yml", 'r') as stream:
     camera_traps_config = yaml.safe_load(stream)
     sys.path.append(camera_traps_config['camera_traps_path'])
 
-def detect(images, config):  # pylint: disable-msg=too-many-locals
+
+def detect(images, config, c_model, d_model):
     '''
     This function takes in a dataframe of images and runs a detector model,
     classifies the species of interest, and sends alerts either to email or an
@@ -42,13 +42,11 @@ def detect(images, config):  # pylint: disable-msg=too-many-locals
     config: the unpacked config values from fetch_and_alert.yml that contains
         necessary parameters the function needs
     '''
-    detector_model = config['detector_model']
+    use_variation = int(config['use_variation'])
     email_alerts = bool(config['email_alerts'])
     er_alerts = bool(config['er_alerts'])
-    classifier_model = config['classifier_model']
-    model = keras.models.load_model(classifier_model)
     log_dir = config['log_dir']
-    checkpoint_frequency = config['checkpoint_frequency']
+    checkpoint_f = config['checkpoint_frequency']
     confidence = config['confidence']
     classes = config['classes']
     targets = config['alert_targets']
@@ -63,34 +61,37 @@ def detect(images, config):  # pylint: disable-msg=too-many-locals
         # extract paths from dataframe
         image_paths = images[:, 2]
         # Run Detection
-        loaded_model = load_MD_model(detector_model)                                                    
-        results = detect_MD_batch(loaded_model,
+        results = detect_MD_batch(d_model,
                                   image_paths,
                                   checkpoint_path=None,
                                   confidence_threshold=confidence,
-                                  checkpoint_frequency=-1,
+                                  checkpoint_frequency=checkpoint_f,
                                   results=None,
                                   n_cores=1,
                                   quiet=False,
                                   image_size=None)
-        # Parse results                                                           
+        # Parse results
         data_frame = parseResults.parseMD(results, None, None)
         # filter out all non animal detections
         if not data_frame.empty:
-            animal_df= splitData.getAnimals(data_frame)   
-            otherdf = splitData.getEmpty(data_frame)           ###new function: split file
+            animal_df = splitData.getAnimals(data_frame)
+            otherdf = splitData.getEmpty(data_frame)
             # run classifier on animal detections if there are any
             if not animal_df.empty:
                 # create generator for images
 
                 generator = imageCropGenerator.\
-                    GenerateCropsFromFile(animal_df)                            ### changed function
+                    GenerateCropsFromFile(animal_df)  # changed function
                 # Run Classifier
-                predictions = model.predict_generator(generator,
-                                                      steps=len(generator),
-                                                      verbose=1)                                    
+                predictions = c_model.predict_generator(generator,
+                                                        steps=len(generator),
+                                                        verbose=1)
                 # Parse results
-                max_df = parseResults.applyPredictions(animal_df, predictions, classes, None, False)
+                max_df = parseResults.applyPredictions(animal_df,
+                                                       predictions,
+                                                       classes,
+                                                       None,
+                                                       False)
                 # Creates a data frame with all relevant data
                 cougars = max_df[max_df['prediction'].isin(targets)]
                 # drops all detections with confidence less than threshold
