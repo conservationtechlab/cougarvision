@@ -24,6 +24,7 @@ import warnings
 from datetime import datetime as dt
 import yaml
 import schedule
+import logging
 
 from cougarvision_utils.detect_img import detect
 from cougarvision_utils.alert import checkin
@@ -47,7 +48,6 @@ with open(CONFIG_FILE, 'r', encoding='utf-8') as stream:
 # Set Email Variables for fetching
 USERNAME = CONFIG['username']
 PASSWORD = CONFIG['password']
-TO_EMAILS = CONFIG['to_emails']
 TOKEN = CONFIG['token']
 AUTH = CONFIG['authorization']
 CLASSIFIER = CONFIG['classifier_model']
@@ -62,6 +62,10 @@ CHECKIN_INTERVAL = CONFIG['checkin_interval']
 # load models once
 CLASSIFIER_MODEL = load_classifier(CLASSIFIER)
 DETECTOR_MODEL = load_MD_model(DETECTOR)
+
+
+def logger():
+    logging.basicConfig(filename='cougarvision.log', level=logging.INFO)
 
 
 def fetch_detect_alert():
@@ -79,6 +83,7 @@ def fetch_detect_alert():
 
 def main():
     ''''Runs main program and schedules future runs'''
+    logger()
     fetch_detect_alert()
     schedule.every(10).minutes.do(fetch_detect_alert)
     schedule.every(CHECKIN_INTERVAL).hours.do(checkin, DEV_EMAILS,
