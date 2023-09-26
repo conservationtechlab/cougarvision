@@ -24,7 +24,6 @@ import warnings
 from datetime import datetime as dt
 import yaml
 import schedule
-import requests
 
 from cougarvision_utils.detect_img import detect
 from cougarvision_utils.alert import checkin
