@@ -76,7 +76,8 @@ def fetch_detect_alert():
     images = fetch_image_api(CONFIG)
     print('Finished fetching images')
     print('Starting Detection')
-    detect(images, CONFIG, CLASSIFIER_MODEL, DETECTOR_MODEL)
+    for i in images:
+        detect(i, CONFIG, CLASSIFIER_MODEL, DETECTOR_MODEL)
     print('Finished Detection')
     print("Sleeping since: " + str(dt.now()))
 

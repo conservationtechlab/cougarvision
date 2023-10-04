@@ -70,7 +70,7 @@ def detect(images, config, c_model, d_model):
     authorization = config['authorization']
     if len(images) > 0:
         # extract paths from dataframe
-        image_paths = images[:, 2]
+        image_paths = images[2]
         # Run Detection
         results = detect_MD_batch(d_model,
                                   image_paths,
