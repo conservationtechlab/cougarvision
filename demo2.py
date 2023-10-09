@@ -12,7 +12,8 @@ def get_screen_resolutions():
 def get_newest_images(folder_path, num_images):                                                                 
     files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]    
     files.sort(key=lambda x: int(os.path.splitext(x.split('_')[1])[0]))                             
-    newest_files = files[-num_images:]                                                                       
+    newest_files = files[-num_images:]
+    newest_files.reverse()                                                                       
     images = [cv2.imread(os.path.join(folder_path, file)) for file in newest_files]                 
     return images                                                                                 
                                                                                                     
@@ -35,7 +36,7 @@ def display_more_images(images, window_name='Newest Image'):
     cv2.imshow(window_name, display_img)                                                           
                                                                                                     
 if __name__ == "__main__":                                                                          
-    folder_path = '/home/katie/Documents/cougarvision/demo_images'  # Change this to your folder 
+    folder_path = '/home/katiedemo/demo_images'  # Change this to your folder 
     window_name = 'CougarVision'                                                                    
     newest_window_name = "Newest Image"                                                              
     
