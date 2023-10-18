@@ -53,7 +53,7 @@ def detect(images, config, c_model, d_model):
     config: the unpacked config values from fetch_and_alert.yml that contains
         necessary parameters the function needs
     '''
-    use_variation = int(config['use_variation'])
+    #use_variation = int(config['use_variation'])
     email_alerts = bool(config['email_alerts'])
     er_alerts = bool(config['er_alerts'])
     log_dir = config['log_dir']
@@ -136,7 +136,7 @@ def detect(images, config, c_model, d_model):
                     img.save(image_bytes, format="JPEG")
                     img_byte = image_bytes.getvalue()
                     
-                    folder_path = '/home/katie/Documents/cougarvision/demo_images'
+                    folder_path = '/home/katiedemo/demo_images'
                     last_file_number = get_last_file_number(folder_path)
                     new_file_number = last_file_number + 1
                     new_file_name = f"{folder_path}/image_{new_file_number}.jpg"
