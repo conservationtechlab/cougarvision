@@ -18,6 +18,7 @@ import os.path
 import requests
 import numpy as np
 import logging
+import re
 
 
 '''
@@ -51,6 +52,17 @@ parameters <- ""
 '''
 
 
+def get_last_file_number(folder_path):
+    max_num = 0
+    for filename in os.listdir(folder_path):
+        # Extract digits from the filename using regex
+        num = re.findall(r'\d+', filename)
+        if num:  # If there are digits in the filename
+            max_num = max(max_num, int(num[-1]))  # Use the last set of digits as the number
+    return max_num
+    
+    
+
 def request_strikeforce(username, auth_token, base, request, parameters):
     '''
     Takes in auth values and api call parameters and returns the data about
@@ -70,9 +82,11 @@ def request_strikeforce(username, auth_token, base, request, parameters):
     call = base + request + "?" + parameters
     response = requests.get(call, headers={"X-User-Email": username,
                                            "X-User-Token": auth_token})
-    print(response.text)
     info = json.loads(response.text)
     return info
+    
+
+
 
 
 def fetch_image_api(config):
@@ -115,6 +129,7 @@ def fetch_image_api(config):
         photos += data['photos']['data']
 
     new_photos = []
+    photos = sorted(photos, key=lambda x: x['attributes']['original_datetime'])
     for i in range(len(photos)):
         if int(photos[i]['id']) > last_id:
             info = photos[i]['attributes']
@@ -132,6 +147,14 @@ def fetch_image_api(config):
             urllib.request.urlretrieve(info['file_thumb_url'], newname)
             new_photos.append([photos[i]['id'],
                                info['file_thumb_url'], newname])
+            newname = '/home/katiedemo/unlabeled_photos/' + 'image'
+            new_file_num = get_last_file_number('/home/katiedemo/unlabeled_photos')
+            new_file_num = new_file_num + 1
+            new_file_num = str(new_file_num)
+            newname += "_" + new_file_num
+            print(newname)
+            urllib.request.urlretrieve(info['file_thumb_url'], newname)
+
 
     new_photos = np.array(new_photos)
     if len(new_photos) > 0:  # update last image
