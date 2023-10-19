@@ -11,6 +11,7 @@ that must be imported from animl.
 
 from io import BytesIO
 from datetime import datetime as dt
+import time
 import re
 import yaml
 import sys
@@ -74,6 +75,7 @@ def detect(images, config, c_model, d_model):
         # extract paths from dataframe
         image_paths = images[2]
         # Run Detection
+        start = time.time()
         results = detect_MD_batch(d_model,
                                   image_paths,
                                   checkpoint_path=None,
@@ -83,6 +85,9 @@ def detect(images, config, c_model, d_model):
                                   n_cores=1,
                                   quiet=False,
                                   image_size=None)
+        end = time.time()
+        md_time = end - start
+        logging.debug('Time to detect: ' + str(md_time))
         # Parse results
         data_frame = parseResults.parseMD(results, None, None)
         # filter out all non animal detections
@@ -96,9 +101,13 @@ def detect(images, config, c_model, d_model):
                 generator = imageCropGenerator.\
                     GenerateCropsFromFile(animal_df)  # changed function
                 # Run Classifier
+                start = time.time()
                 predictions = c_model.predict_generator(generator,
                                                         steps=len(generator),
                                                         verbose=1)
+                end = time.time()
+                cls_time = end - start
+                logging.debug('Time to classify: ' + str(cls_time))
                 # Parse results
                 max_df = parseResults.applyPredictions(animal_df,
                                                        predictions,

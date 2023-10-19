@@ -66,7 +66,7 @@ DETECTOR_MODEL = load_MD_model(DETECTOR)
 
 
 def logger():
-    logging.basicConfig(filename='cougarvision.log', format='%(levelname)s:%(asctime)s:%(module)s:%(funcName)s: %(message)s', level=logging.INFO)
+    logging.basicConfig(filename='cougarvision.log', format='%(levelname)s:%(asctime)s:%(module)s:%(funcName)s: %(message)s', level=logging.DEBUG)
 
 
 def fetch_detect_alert():
