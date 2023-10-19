@@ -68,6 +68,7 @@ def detect(images, config, c_model, d_model):
     host = 'imap.gmail.com'
     token = config['token']
     authorization = config['authorization']
+    color = config['color']
     if len(images) > 0:
         # extract paths from dataframe
         image_paths = images[2]
@@ -130,6 +131,7 @@ def detect(images, config, c_model, d_model):
                                                           'bbox1'] +
                                                cougars.at[idx,
                                                           'bbox3'],
+                                               color,
                                                expansion=0,
                                                use_normalized_coordinates=True)
                     image_bytes = BytesIO()
