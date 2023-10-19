@@ -20,6 +20,7 @@ from animl import parseResults, imageCropGenerator, splitData, detectMD
 from sageranger import is_target, attach_image, post_event
 from animl.detectMD import detect_MD_batch
 import os
+import logging
 
 from cougarvision_utils.cropping import draw_bounding_box_on_image
 from cougarvision_utils.alert import smtp_setup, send_alert
@@ -150,6 +151,7 @@ def detect(images, config, c_model, d_model):
                     if label in targets and er_alerts is True:
                         is_target(cam_name, token, authorization, label)
                     # Email or Earthranger alerts as dictated in the config yml
+                    logging.info('Sending detection to Earthranger')
                     if er_alerts is True:
                         event_id = post_event(label,
                                               cam_name,
@@ -160,7 +162,9 @@ def detect(images, config, c_model, d_model):
                                                 token,
                                                 authorization,
                                                 label)
-                        print(response)
+                        logging.info(response)
+                    
+                    logging.info('Sending detection email')
                     if email_alerts is True:
                         smtp_server = smtp_setup(username, password, host)
                         dev = 0
@@ -169,6 +173,7 @@ def detect(images, config, c_model, d_model):
                         dev = 1
                         send_alert(label, image_bytes, smtp_server,
                                    username, dev_emails, dev, prob)
+                    logging.info('Finished sending detection email')
                 # Write Dataframe to csv
                 date = "%m-%d-%Y_%H:%M:%S"
                 cougars.to_csv(f'{log_dir}dataframe_{dt.now().strftime(date)}')

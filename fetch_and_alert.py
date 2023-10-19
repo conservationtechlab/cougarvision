@@ -29,7 +29,7 @@ import logging
 from cougarvision_utils.detect_img import detect
 from cougarvision_utils.alert import checkin
 from cougarvision_utils.get_images import fetch_image_api
-from sageranger.post_monthly import post_monthly_obs
+#from sageranger.post_monthly import post_monthly_obs
 from animl.predictSpecies import load_classifier
 from animl.detectMD import load_MD_model
 
@@ -54,6 +54,7 @@ CLASSIFIER = CONFIG['classifier_model']
 DETECTOR = CONFIG['detector_model']
 DEV_EMAILS = CONFIG['dev_emails']
 HOST = 'imap.gmail.com'
+RUN_SCHEDULER = CONFIG['run_scheduler']
 
 
 # Set interval for checking in
@@ -65,7 +66,7 @@ DETECTOR_MODEL = load_MD_model(DETECTOR)
 
 
 def logger():
-    logging.basicConfig(filename='cougarvision.log', level=logging.INFO)
+    logging.basicConfig(filename='cougarvision.log', format='%(levelname)s:%(asctime)s:%(module)s:%(funcName)s: %(message)s', level=logging.INFO)
 
 
 def fetch_detect_alert():
@@ -86,10 +87,10 @@ def main():
     ''''Runs main program and schedules future runs'''
     logger()
     fetch_detect_alert()
-    schedule.every(10).seconds.do(fetch_detect_alert)
+    schedule.every(RUN_SCHEDULER).seconds.do(fetch_detect_alert)
     schedule.every(CHECKIN_INTERVAL).hours.do(checkin, DEV_EMAILS,
                                               USERNAME, PASSWORD, HOST)
-    schedule.every(30).days.do(post_monthly_obs, TOKEN, AUTH)
+    #schedule.every(30).days.do(post_monthly_obs, TOKEN, AUTH)
 
     while True:
         schedule.run_pending()

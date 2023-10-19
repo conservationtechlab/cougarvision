@@ -80,14 +80,17 @@ def request_strikeforce(username, auth_token, base, request, parameters):
         strikeforce
     '''
     call = base + request + "?" + parameters
-    response = requests.get(call, headers={"X-User-Email": username,
-                                           "X-User-Token": auth_token})
+    try:
+        logging.info("Getting new image data from Strikeforce")
+        response = requests.get(call, headers={"X-User-Email": username,
+                                               "X-User-Token": auth_token})
+    except requests.exceptions.ConnectionError:
+        logging.warning("Connection Error, max retries exceeded")
+        info = 0
+        return
     info = json.loads(response.text)
     return info
     
-
-
-
 
 def fetch_image_api(config):
     '''
@@ -126,6 +129,10 @@ def fetch_image_api(config):
     for account, token in zip(accounts, tokens):
         data = request_strikeforce(account, token, base,
                                    "photos/recent", "limit=12")
+        if data == 0:
+            new_photos = []
+            logging.warning('Returning to main loop after failed http request, will try again')
+            return new_photos
         photos += data['photos']['data']
 
     new_photos = []
@@ -133,17 +140,15 @@ def fetch_image_api(config):
     for i in range(len(photos)):
         if int(photos[i]['id']) > last_id:
             info = photos[i]['attributes']
-            print(info)
+            logging.info(info)
             try:
                 camera = camera_names[photos[i]['relationships']
                                      ['camera']['data']['id']]
             except KeyError:
-                logging.warning('Cannot retrieve photo from camera\
-                as there is no asssociated ID in the config file')
+                logging.warning('Cannot retrieve photo from camera as there is no associated ID in the config file')
                 continue
             newname = config['save_dir'] + camera
             newname += "_" + info['file_thumb_filename']
-            print(newname)
             urllib.request.urlretrieve(info['file_thumb_url'], newname)
             new_photos.append([photos[i]['id'],
                                info['file_thumb_url'], newname])
@@ -152,7 +157,6 @@ def fetch_image_api(config):
             new_file_num = new_file_num + 1
             new_file_num = str(new_file_num)
             newname += "_" + new_file_num
-            print(newname)
             urllib.request.urlretrieve(info['file_thumb_url'], newname)
 
 
