@@ -84,12 +84,17 @@ def request_strikeforce(username, auth_token, base, request, parameters):
         logging.info("Getting new image data from Strikeforce")
         response = requests.get(call, headers={"X-User-Email": username,
                                                "X-User-Token": auth_token})
+        try:
+            info = json.loads(response.text)
+            return info
+        except JSONDecodeError:
+            logging.warning('An error occurred while decoding JSON')
+            info = 0
+            return info
     except requests.exceptions.ConnectionError:
         logging.warning("Connection Error, max retries exceeded")
         info = 0
-        return
-    info = json.loads(response.text)
-    return info
+        return info
     
 
 def fetch_image_api(config):
@@ -133,7 +138,8 @@ def fetch_image_api(config):
             new_photos = []
             logging.warning('Returning to main loop after failed http request, will try again')
             return new_photos
-        photos += data['photos']['data']
+        else:
+            photos += data['photos']['data']
 
     new_photos = []
     photos = sorted(photos, key=lambda x: x['attributes']['original_datetime'])
