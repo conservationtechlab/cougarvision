@@ -16,7 +16,7 @@ import yaml
 import sys
 import yolov5
 from PIL import Image
-from animl import parseResults, imageCropGenerator, splitData, detectMD
+from animl import parse_results, generator, split, detectMD
 from sageranger import is_target, attach_image, post_event
 from animl.detectMD import detect_MD_batch
 
