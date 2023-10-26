@@ -55,6 +55,10 @@ python3 fetch_and_alert.py config/fetch_and_alert.yml
 In order to retrieve photos from strikeforce, you need the api auth token for your account. We currently have a python script within /cougarvision_utils/strikeforceget.py that can obtain this auth_token given the strikeforce account username and password. 
 Once you have this token, place it in 'auth_token' within the config file. 
 To obtain the unique camera IDs in Strikeforce, run the script within /cougarvision_utils/strikeforcegetcameras.py with your email and the auth_token obtained from strikekforceget.py and it will output the unique strikeforce ID along with your camera names. 
+```
+python3 strikeforceget.py
+python3 strikeforcegetcameras.py
+```
 In this version of CougarVision, all camera names need to be 4 characters long, so if your camera names exceed this length, shorten them to 4 characters within the config directory. 
 
 ## EarthRanger integration
