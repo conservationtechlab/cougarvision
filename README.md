@@ -50,7 +50,13 @@ To run fetch_and_alert.py, the config/fetch_and_alert.yml must be configured acc
 python3 fetch_and_alert.py config/fetch_and_alert.yml
 
 ```
-
+## Installing animl
+Currently, animl must be downloaded from github and placed within /cougarvision.
+```
+git clone https://github.com/conservationtechlab/animl-py
+cd animl-py/src/
+mv animl ~/<path to cougarvision>
+```
 ## Obtaining Strikeforce camera dictionary/auth_token
 In order to retrieve photos from strikeforce, you need the api auth token for your account. We currently have a python script within /cougarvision_utils/strikeforceget.py that can obtain this auth_token given the strikeforce account username and password. 
 Once you have this token, place it in 'auth_token' within the config file. 
