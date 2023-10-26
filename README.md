@@ -67,6 +67,9 @@ In order for this integration to work, the camera name in EarthRanger must be th
 ## Email alerts
 In order to send email alerts, CougarVision needs to know from what email to send them. For this, any email will do, but you need to include the email and password to the email. We just created a gmail specifically for this purpose, and include the email and the password under 'username' and 'password' in the config file. 
 
+## Additional setup
+Create two directories anywhere, one called 'images' and one called 'logs'. Place their file paths in the config under 'save_dir' and 'log_dir'. This will be where all photos from strikeforce are stored locally and where all the dataframes containing detection information for each photo will live. 
+
 # Streaming
 Stream_detect.py takes in a stream, runs a pipeline to detect various animals. An image is sent to specified emails/phone numbers based on config/stream_detect.yml.
 If a lizard or a cougar is detected then a video is recorded for as long as that animal remains to be detected.
