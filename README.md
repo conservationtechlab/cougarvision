@@ -57,6 +57,13 @@ git clone https://github.com/conservationtechlab/animl-py
 cd animl-py/src/
 mv animl ~/<path to cougarvision>
 ```
+## Installing yolov5
+Detector functionality depends on the [Yolov5 repo](https://github.com/ultralytics/yolov5). While cougarvision conda environment is activated, run the following lines:
+```
+git clone https://github.com/ultralytics/yolov5
+cd yolov5
+python -m pip install yolov5
+```
 ## Obtaining Strikeforce camera dictionary/auth_token
 In order to retrieve photos from strikeforce, you need the api auth token for your account. We currently have a python script within /cougarvision_utils/strikeforceget.py that can obtain this auth_token given the strikeforce account username and password. 
 Once you have this token, place it in 'auth_token' within the config file. 
