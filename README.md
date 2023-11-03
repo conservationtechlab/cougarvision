@@ -15,6 +15,11 @@ First, you must install conda (whatever the latest version of Anaconda is) on yo
 
 [Instructions to install conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html)
 
+If you haven't done so already:
+```
+sudo apt install git
+```
+Now you should be ready to clone the repository:
 ```
 git clone https://github.com/conservationtechlab/cougarvision.git
 
@@ -51,18 +56,8 @@ python3 fetch_and_alert.py config/fetch_and_alert.yml
 
 ```
 ## Installing animl
-Currently, animl must be downloaded from github and placed within /cougarvision.
 ```
-git clone https://github.com/conservationtechlab/animl-py
-cd animl-py/src/
-mv animl ~/<path to cougarvision>
-```
-## Installing yolov5
-Detector functionality depends on the [Yolov5 repo](https://github.com/ultralytics/yolov5). While cougarvision conda environment is activated, run the following lines:
-```
-git clone https://github.com/ultralytics/yolov5
-cd yolov5
-python -m pip install yolov5
+pip3 install animl
 ```
 ## Obtaining Strikeforce camera dictionary/auth_token
 In order to retrieve photos from strikeforce, you need the api auth token for your account. We currently have a python script within /cougarvision_utils/strikeforceget.py that can obtain this auth_token given the strikeforce account username and password. 
@@ -97,4 +92,4 @@ Run_batch_images.py can take in an input folder and apply the detector/classifie
 These scripts rely on the [CameraTraps Repo](https://github.com/microsoft/CameraTraps). Download this repo and place it anywhere. Add that path to config. The CameraTraps repo will then be added to the python sys environment variables upon loading an individual script.
 
 # Improvement Efforts
-If you encounter any issues upon install or would like a feature added, create an issue in the issue tracker on this github and we will do our best to accomodate!
+If you encounter any issues upon install or would like a feature added, create an issue in the issue tracker on this github and we will do our best to accomodate! Specifically we are looking to add new integrations for other types of cellular camera traps.
