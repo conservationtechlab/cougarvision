@@ -22,16 +22,16 @@ import argparse
 import time
 import warnings
 from datetime import datetime as dt
+import logging
 import yaml
 import schedule
-import logging
 
 from cougarvision_utils.detect_img import detect
 from cougarvision_utils.alert import checkin
 from cougarvision_utils.get_images import fetch_image_api
 from sageranger.post_monthly import post_monthly_obs
-from animl.predictSpecies import load_classifier
-from animl.detectMD import load_MD_model
+from animl.classify import load_classifier
+from animl.detectMD import load_model
 
 
 # Numpy FutureWarnings from tensorflow import
@@ -61,10 +61,11 @@ CHECKIN_INTERVAL = CONFIG['checkin_interval']
 
 # load models once
 CLASSIFIER_MODEL = load_classifier(CLASSIFIER)
-DETECTOR_MODEL = load_MD_model(DETECTOR)
+DETECTOR_MODEL = load_model(DETECTOR)
 
 
 def logger():
+    '''Function for creating log file'''
     logging.basicConfig(filename='cougarvision.log', level=logging.INFO)
 
 
