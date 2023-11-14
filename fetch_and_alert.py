@@ -31,7 +31,7 @@ from cougarvision_utils.alert import checkin
 from cougarvision_utils.get_images import fetch_image_api
 from sageranger.post_monthly import post_monthly_obs
 from animl.classify import load_classifier
-from animl.detectMD import load_model
+from animl import megadetector
 
 
 # Numpy FutureWarnings from tensorflow import
@@ -61,7 +61,7 @@ CHECKIN_INTERVAL = CONFIG['checkin_interval']
 
 # load models once
 CLASSIFIER_MODEL = load_classifier(CLASSIFIER)
-DETECTOR_MODEL = load_model(DETECTOR)
+DETECTOR_MODEL = megadetector.MegaDetector(DETECTOR)
 
 
 def logger():

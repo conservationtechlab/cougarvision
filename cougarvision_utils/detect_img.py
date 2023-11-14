@@ -16,7 +16,7 @@ import yaml
 import sys
 import yolov5
 from PIL import Image
-from animl import parse_results, generator, split, detectMD
+from animl import parse_results, classify, split, detectMD
 from sageranger import is_target, attach_image, post_event
 from animl.detectMD import detect_MD_batch
 
@@ -67,31 +67,27 @@ def detect(images, config, c_model, d_model):
                                   confidence_threshold=confidence,
                                   checkpoint_frequency=checkpoint_f,
                                   results=None,
-                                  n_cores=1,
                                   quiet=False,
                                   image_size=None)
         # Parse results
-        data_frame = parseResults.parseMD(results, None, None)
+        data_frame = parse_results.from_MD(results, None, None)
         # filter out all non animal detections
         if not data_frame.empty:
-            animal_df = splitData.getAnimals(data_frame)
-            otherdf = splitData.getEmpty(data_frame)
+            animal_df = split.getAnimals(data_frame)
+            otherdf = split.getEmpty(data_frame)
             # run classifier on animal detections if there are any
             if not animal_df.empty:
                 # create generator for images
-
-                generator = imageCropGenerator.\
-                    GenerateCropsFromFile(animal_df)  # changed function
-                # Run Classifier
-                predictions = c_model.predict_generator(generator,
-                                                        steps=len(generator),
-                                                        verbose=1)
+                print("starting classification")
+                predictions = classify.predict_species(animal_df, c_model, batch=4)
+                print("finished classification")
                 # Parse results
-                max_df = parseResults.applyPredictions(animal_df,
+                max_df = parse_results.from_classifier(animal_df,
                                                        predictions,
                                                        classes,
-                                                       None,
-                                                       False)
+                                                       None)
+                print("parsed results")
+                print(max_df)
                 # Creates a data frame with all relevant data
                 cougars = max_df[max_df['prediction'].isin(targets)]
                 # drops all detections with confidence less than threshold
