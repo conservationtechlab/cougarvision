@@ -76,17 +76,13 @@ def detect(images, config, c_model, d_model):
             # run classifier on animal detections if there are any
             if not animal_df.empty:
                 # create generator for images
-                print("starting classification")
                 predictions = classify.predict_species(animal_df, c_model,
                                                        batch=4)
-                print("finished classification")
                 # Parse results
                 max_df = parse_results.from_classifier(animal_df,
                                                        predictions,
                                                        classes,
                                                        None)
-                print("parsed results")
-                print(max_df)
                 # Creates a data frame with all relevant data
                 cougars = max_df[max_df['prediction'].isin(targets)]
                 # drops all detections with confidence less than threshold
