@@ -12,11 +12,10 @@ that must be imported from animl.
 from io import BytesIO
 from datetime import datetime as dt
 import re
-import yaml
 import sys
-import yolov5
+import yaml
 from PIL import Image
-from animl import parse_results, generator, split, detectMD
+from animl import parse_results, classify, split
 from sageranger import is_target, attach_image, post_event
 from animl.detectMD import detect_MD_batch
 
@@ -25,8 +24,8 @@ from cougarvision_utils.alert import smtp_setup, send_alert
 
 
 with open("config/cameratraps.yml", 'r') as stream:
-    camera_traps_config = yaml.safe_load(stream)
-    sys.path.append(camera_traps_config['camera_traps_path'])
+    CAM_CONFIG = yaml.safe_load(stream)
+    sys.path.append(CAM_CONFIG['camera_traps_path'])
 
 
 def detect(images, config, c_model, d_model):
@@ -42,7 +41,6 @@ def detect(images, config, c_model, d_model):
     config: the unpacked config values from fetch_and_alert.yml that contains
         necessary parameters the function needs
     '''
-    use_variation = int(config['use_variation'])
     email_alerts = bool(config['email_alerts'])
     er_alerts = bool(config['er_alerts'])
     log_dir = config['log_dir']
@@ -67,31 +65,24 @@ def detect(images, config, c_model, d_model):
                                   confidence_threshold=confidence,
                                   checkpoint_frequency=checkpoint_f,
                                   results=None,
-                                  n_cores=1,
                                   quiet=False,
                                   image_size=None)
         # Parse results
-        data_frame = parseResults.parseMD(results, None, None)
+        data_frame = parse_results.from_MD(results, None, None)
         # filter out all non animal detections
         if not data_frame.empty:
-            animal_df = splitData.getAnimals(data_frame)
-            otherdf = splitData.getEmpty(data_frame)
+            animal_df = split.getAnimals(data_frame)
+            other_df = split.getEmpty(data_frame)
             # run classifier on animal detections if there are any
             if not animal_df.empty:
                 # create generator for images
-
-                generator = imageCropGenerator.\
-                    GenerateCropsFromFile(animal_df)  # changed function
-                # Run Classifier
-                predictions = c_model.predict_generator(generator,
-                                                        steps=len(generator),
-                                                        verbose=1)
+                predictions = classify.predict_species(animal_df, c_model,
+                                                       batch=4)
                 # Parse results
-                max_df = parseResults.applyPredictions(animal_df,
+                max_df = parse_results.from_classifier(animal_df,
                                                        predictions,
                                                        classes,
-                                                       None,
-                                                       False)
+                                                       None)
                 # Creates a data frame with all relevant data
                 cougars = max_df[max_df['prediction'].isin(targets)]
                 # drops all detections with confidence less than threshold
@@ -106,7 +97,7 @@ def detect(images, config, c_model, d_model):
                     label = cougars.at[idx, 'prediction']
                     # uncomment this line to use conf value for dev email alert
                     prob = str(cougars.at[idx, 'conf'])
-                    #label = cougars.at[idx, 'class']
+                    label = cougars.at[idx, 'class']
                     img = Image.open(cougars.at[idx, 'file'])
                     draw_bounding_box_on_image(img,
                                                cougars.at[idx, 'bbox2'],
