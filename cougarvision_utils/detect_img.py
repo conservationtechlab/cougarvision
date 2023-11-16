@@ -11,7 +11,6 @@ that must be imported from animl.
 
 from io import BytesIO
 from datetime import datetime as dt
-import time
 import re
 import sys
 import yaml
@@ -19,8 +18,6 @@ from PIL import Image
 from animl import parse_results, classify, split
 from sageranger import is_target, attach_image, post_event
 from animl.detectMD import detect_MD_batch
-import os
-import logging
 
 from cougarvision_utils.cropping import draw_bounding_box_on_image
 from cougarvision_utils.alert import smtp_setup, send_alert
@@ -58,12 +55,10 @@ def detect(images, config, c_model, d_model):
     host = 'imap.gmail.com'
     token = config['token']
     authorization = config['authorization']
-    color = config['color']
     if len(images) > 0:
         # extract paths from dataframe
-        image_paths = images[2]
+        image_paths = images[:, 2]
         # Run Detection
-        start = time.time()
         results = detect_MD_batch(d_model,
                                   image_paths,
                                   checkpoint_path=None,
@@ -72,9 +67,6 @@ def detect(images, config, c_model, d_model):
                                   results=None,
                                   quiet=False,
                                   image_size=None)
-        end = time.time()
-        md_time = end - start
-        logging.debug('Time to detect: ' + str(md_time))
         # Parse results
         data_frame = parse_results.from_MD(results, None, None)
         # filter out all non animal detections
@@ -118,26 +110,15 @@ def detect(images, config, c_model, d_model):
                                                           'bbox1'] +
                                                cougars.at[idx,
                                                           'bbox3'],
-                                               color,
                                                expansion=0,
                                                use_normalized_coordinates=True)
                     image_bytes = BytesIO()
                     img.save(image_bytes, format="JPEG")
                     img_byte = image_bytes.getvalue()
-                    
-                    folder_path = '/home/katiedemo/demo_images'
-                    last_file_number = get_last_file_number(folder_path)
-                    new_file_number = last_file_number + 1
-                    new_file_name = f"{folder_path}/image_{new_file_number}.jpg"
-
-                    with open(new_file_name, "wb") as f:
-                        f.write(img_byte)
-                    
                     cam_name = cougars.at[idx, 'cam_name']
                     if label in targets and er_alerts is True:
                         is_target(cam_name, token, authorization, label)
                     # Email or Earthranger alerts as dictated in the config yml
-                    logging.info('Sending detection to Earthranger')
                     if er_alerts is True:
                         event_id = post_event(label,
                                               cam_name,
@@ -148,9 +129,7 @@ def detect(images, config, c_model, d_model):
                                                 token,
                                                 authorization,
                                                 label)
-                        logging.info(response)
-                    
-                    logging.info('Sending detection email')
+                        print(response)
                     if email_alerts is True:
                         smtp_server = smtp_setup(username, password, host)
                         dev = 0
@@ -159,7 +138,6 @@ def detect(images, config, c_model, d_model):
                         dev = 1
                         send_alert(label, image_bytes, smtp_server,
                                    username, dev_emails, dev, prob)
-                    logging.info('Finished sending detection email')
                 # Write Dataframe to csv
                 date = "%m-%d-%Y_%H:%M:%S"
                 cougars.to_csv(f'{log_dir}dataframe_{dt.now().strftime(date)}')
