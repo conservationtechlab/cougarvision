@@ -1,9 +1,9 @@
 #home_dir - path to local cougarvision repo
 home_dir: /home/johnsmith/cougarvision 
-email_alerts: True
-er_alerts: True
+# 1 = email alerts and 2 = earthranger alerts
+use_variation: 2 
 #detector_model - path to detector model
-detector_model: /home/johnsmith/cougarvision/detector_models/megadetector.pt
+detector_model: /home/johnsmith/cougarvision/detector_models/megadetector_v4.1.pb 
 #classifier_model - path to classifier model
 classifier_model: /home/johnsmith/cougarvision/classifier_models/EfficientNetB5_456_Unfrozen_05_0.26_0.92.h5 
 checkpoint_frequency: -1 
@@ -11,29 +11,30 @@ checkpoint_frequency: -1
 log_dir: /home/johnsmith/cougarvision/logs/
 #classes - path to the class list for the classifier model
 classes: /home/johnsmith/cougarvision/labels/sw_classes.txt 
-#the emails that will receive email alerts, can be multiple emails
-consumer_emails: [<insert emails>]
-# the amiul (s) you with to receive the developmemt email alert- contains confidence value of detection
-dev_emails: [<insert emails>] 
+#to_email - the email that will receive email alerts, can be multiple emails
+to_emails: [your@email.com]  
 #threshold confidence score 
-confidence: 0.7
+confidence: 0.01 
 #cpu threads
 threads: 8
 # Web Scraping
 #strike force api url
 strikeforce_api: https://api.strikeforcewireless.com/api/v2/
 #strikeforce wireless username 
-username_scraper: [yourusername.cam@gmail.com]
+username_scraper: yourusername.cam@gmail.com
 #strikeforce wireless password
-password_scraper: [yourpassword]
-#authorization token from Strike Force, can be obtained with login credentials and using strikeforceget.py in /cougarvision_utils folder
-auth_token: ["<insert account token>"]
+password_scraper: yourpassword
+#authorization token from Strike Force
+auth_token: <must get from web dev tools after strikeforcewireless login>
 #save_dir - path to where the images get stored (must create folder)
 save_dir: /home/johnsmith/images/ 
-#dictionary containing the strikeforce unique ID with the actual 4 digit camera name, ID can be obtained using strikeforcegetcameras.py within the /cougarvision_utils folder
-camera_names: {'<strikeforce id>': <camera name>, ...}  
+#dict of camera names and their respective strikeforce wireless ids, these must be retrieved from
+#strikeforce wireless web dev tools in the code and currently the cam names must be 4 chars long 
+camera_names: {'62201': B018, '59760': B016, '59681': B013, '59758': B015, '60095': B014,
+  '60272': B017, '85767': B041, '105353': B044, '105355': B045, '105357': B046, '105359': B047,
+  '105360': B048, '104322': B049}  
 #animals that the detector will send alerts for if detected (from class list)
-alert_targets: [cougar, bobcat, skunk, deer, dog, coyote]
+alert_targets: [cougar, bobcat, skunk, deer, dog, coyote, rabbit, elephant]
 #checkn_interval - time interval between still-alive emails to let us know no errors have crashed
 #cougarvision if it's running constantly
 checkin_interval: 24
@@ -41,6 +42,6 @@ checkin_interval: 24
 admin: admin@email.com 
 #x-csrf token retreived from earthranger interactive api example requests, must be logged into an
 #existing earthranger account with interactive api access
-token: '<insert token>'
+token: [insert token]
 #authorization bearer token retreived from same earthranger interactive api example requests 
-authorization: 'Bearer <insert authorization>'
+authorization: Bearer [insert authorization]
