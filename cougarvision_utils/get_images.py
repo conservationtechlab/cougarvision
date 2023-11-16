@@ -18,6 +18,7 @@ import os.path
 import requests
 import numpy as np
 import logging
+import re
 
 
 '''
@@ -51,6 +52,17 @@ parameters <- ""
 '''
 
 
+def get_last_file_number(folder_path):
+    max_num = 0
+    for filename in os.listdir(folder_path):
+        # Extract digits from the filename using regex
+        num = re.findall(r'\d+', filename)
+        if num:  # If there are digits in the filename
+            max_num = max(max_num, int(num[-1]))  # Use the last set of digits as the number
+    return max_num
+    
+    
+
 def request_strikeforce(username, auth_token, base, request, parameters):
     '''
     Takes in auth values and api call parameters and returns the data about
@@ -68,12 +80,22 @@ def request_strikeforce(username, auth_token, base, request, parameters):
         strikeforce
     '''
     call = base + request + "?" + parameters
-    response = requests.get(call, headers={"X-User-Email": username,
-                                           "X-User-Token": auth_token})
-    print(response.text)
-    info = json.loads(response.text)
-    return info
-
+    try:
+        logging.info("Getting new image data from Strikeforce")
+        response = requests.get(call, headers={"X-User-Email": username,
+                                               "X-User-Token": auth_token})
+        try:
+            info = json.loads(response.text)
+            return info
+        except JSONDecodeError:
+            logging.warning('An error occurred while decoding JSON')
+            info = 0
+            return info
+    except requests.exceptions.ConnectionError:
+        logging.warning("Connection Error, max retries exceeded")
+        info = 0
+        return info
+    
 
 def fetch_image_api(config):
     '''
@@ -112,26 +134,37 @@ def fetch_image_api(config):
     for account, token in zip(accounts, tokens):
         data = request_strikeforce(account, token, base,
                                    "photos/recent", "limit=12")
-        photos += data['photos']['data']
+        if data == 0:
+            new_photos = []
+            logging.warning('Returning to main loop after failed http request, will try again')
+            return new_photos
+        else:
+            photos += data['photos']['data']
 
     new_photos = []
+    photos = sorted(photos, key=lambda x: x['attributes']['original_datetime'])
     for i in range(len(photos)):
         if int(photos[i]['id']) > last_id:
             info = photos[i]['attributes']
-            print(info)
+            logging.info(info)
             try:
                 camera = camera_names[photos[i]['relationships']
                                      ['camera']['data']['id']]
             except KeyError:
-                logging.warning('Cannot retrieve photo from camera\
-                as there is no asssociated ID in the config file')
+                logging.warning('Cannot retrieve photo from camera as there is no associated ID in the config file')
                 continue
             newname = config['save_dir'] + camera
             newname += "_" + info['file_thumb_filename']
-            print(newname)
             urllib.request.urlretrieve(info['file_thumb_url'], newname)
             new_photos.append([photos[i]['id'],
                                info['file_thumb_url'], newname])
+            newname = '/home/katiedemo/unlabeled_photos/' + 'image'
+            new_file_num = get_last_file_number('/home/katiedemo/unlabeled_photos')
+            new_file_num = new_file_num + 1
+            new_file_num = str(new_file_num)
+            newname += "_" + new_file_num
+            urllib.request.urlretrieve(info['file_thumb_url'], newname)
+
 
     new_photos = np.array(new_photos)
     if len(new_photos) > 0:  # update last image

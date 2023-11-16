@@ -54,6 +54,7 @@ CLASSIFIER = CONFIG['classifier_model']
 DETECTOR = CONFIG['detector_model']
 DEV_EMAILS = CONFIG['dev_emails']
 HOST = 'imap.gmail.com'
+RUN_SCHEDULER = CONFIG['run_scheduler']
 
 
 # Set interval for checking in
@@ -77,7 +78,8 @@ def fetch_detect_alert():
     images = fetch_image_api(CONFIG)
     print('Finished fetching images')
     print('Starting Detection')
-    detect(images, CONFIG, CLASSIFIER_MODEL, DETECTOR_MODEL)
+    for i in images:
+        detect(i, CONFIG, CLASSIFIER_MODEL, DETECTOR_MODEL)
     print('Finished Detection')
     print("Sleeping since: " + str(dt.now()))
 
@@ -86,10 +88,10 @@ def main():
     ''''Runs main program and schedules future runs'''
     logger()
     fetch_detect_alert()
-    schedule.every(10).minutes.do(fetch_detect_alert)
+    schedule.every(RUN_SCHEDULER).seconds.do(fetch_detect_alert)
     schedule.every(CHECKIN_INTERVAL).hours.do(checkin, DEV_EMAILS,
                                               USERNAME, PASSWORD, HOST)
-    schedule.every(30).days.do(post_monthly_obs, TOKEN, AUTH)
+    #schedule.every(30).days.do(post_monthly_obs, TOKEN, AUTH)
 
     while True:
         schedule.run_pending()
