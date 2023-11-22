@@ -13,33 +13,23 @@ from io import BytesIO
 from datetime import datetime as dt
 import time
 import re
-import yaml
 import sys
-import yolov5
+import logging
+import yaml
 from PIL import Image
-from animl import parseResults, imageCropGenerator, splitData, detectMD
+from animl import parse_results, classify, split
 from sageranger import is_target, attach_image, post_event
 from animl.detectMD import detect_MD_batch
-import os
-import logging
 
 from cougarvision_utils.cropping import draw_bounding_box_on_image
 from cougarvision_utils.alert import smtp_setup, send_alert
+from cougarvision_visualize.visualize_output import get_last_file_number
+from cougarvision_visualize.visualize_output import create_folder
 
 
 with open("config/cameratraps.yml", 'r') as stream:
     camera_traps_config = yaml.safe_load(stream)
     sys.path.append(camera_traps_config['camera_traps_path'])
-    
-    
-def get_last_file_number(folder_path):
-    max_num = 0
-    for filename in os.listdir(folder_path):
-        # Extract digits from the filename using regex
-        num = re.findall(r'\d+', filename)
-        if num:  # If there are digits in the filename
-            max_num = max(max_num, int(num[-1]))  # Use the last set of digits as the number
-    return max_num
 
 
 def detect(images, config, c_model, d_model):
@@ -55,7 +45,7 @@ def detect(images, config, c_model, d_model):
     config: the unpacked config values from fetch_and_alert.yml that contains
         necessary parameters the function needs
     '''
-    #use_variation = int(config['use_variation'])
+    # use_variation = int(config['use_variation'])
     email_alerts = bool(config['email_alerts'])
     er_alerts = bool(config['er_alerts'])
     log_dir = config['log_dir']
@@ -71,6 +61,8 @@ def detect(images, config, c_model, d_model):
     token = config['token']
     authorization = config['authorization']
     color = config['color']
+    visualize_output = config['visualize_output']
+    labeled_img = config['path_to_labeled_output']
     if len(images) > 0:
         # extract paths from dataframe
         image_paths = images[2]
@@ -82,34 +74,28 @@ def detect(images, config, c_model, d_model):
                                   confidence_threshold=confidence,
                                   checkpoint_frequency=checkpoint_f,
                                   results=None,
-                                  n_cores=1,
                                   quiet=False,
                                   image_size=None)
         end = time.time()
         md_time = end - start
         logging.debug('Time to detect: ' + str(md_time))
         # Parse results
-        data_frame = parseResults.parseMD(results, None, None)
+        data_frame = parse_results.from_MD(results, None, None)
         # filter out all non animal detections
         if not data_frame.empty:
-            animal_df = splitData.getAnimals(data_frame)
-            otherdf = splitData.getEmpty(data_frame)
+            animal_df = split.getAnimals(data_frame)
+            otherdf = split.getEmpty(data_frame)
             # run classifier on animal detections if there are any
             if not animal_df.empty:
                 # create generator for images
-
-                generator = imageCropGenerator.\
-                    GenerateCropsFromFile(animal_df)  # changed function
-                # Run Classifier
                 start = time.time()
-                predictions = c_model.predict_generator(generator,
-                                                        steps=len(generator),
-                                                        verbose=1)
+                predictions = classify.predict_species(animal_df, c_model,
+                                                       batch=4)
                 end = time.time()
                 cls_time = end - start
                 logging.debug('Time to classify: ' + str(cls_time))
                 # Parse results
-                max_df = parseResults.applyPredictions(animal_df,
+                max_df = parse_results.from_classifier(animal_df,
                                                        predictions,
                                                        classes,
                                                        None,
@@ -128,7 +114,7 @@ def detect(images, config, c_model, d_model):
                     label = cougars.at[idx, 'prediction']
                     # uncomment this line to use conf value for dev email alert
                     prob = str(cougars.at[idx, 'conf'])
-                    #label = cougars.at[idx, 'class']
+                    label = cougars.at[idx, 'class']
                     img = Image.open(cougars.at[idx, 'file'])
                     draw_bounding_box_on_image(img,
                                                cougars.at[idx, 'bbox2'],
@@ -147,15 +133,15 @@ def detect(images, config, c_model, d_model):
                     image_bytes = BytesIO()
                     img.save(image_bytes, format="JPEG")
                     img_byte = image_bytes.getvalue()
-                    
-                    folder_path = '/home/katiedemo/demo_images'
-                    last_file_number = get_last_file_number(folder_path)
-                    new_file_number = last_file_number + 1
-                    new_file_name = f"{folder_path}/image_{new_file_number}.jpg"
+                    if visualize_output is True:
+                        folder_path = create_folder(labeled_img)
+                        last_file_number = get_last_file_number(folder_path)
+                        new_file_number = last_file_number + 1
+                        new_file_name = f"{folder_path}/image_{new_file_number}.jpg"
 
-                    with open(new_file_name, "wb") as f:
-                        f.write(img_byte)
-                    
+                        with open(new_file_name, "wb") as folder:
+                            folder.write(img_byte)
+
                     cam_name = cougars.at[idx, 'cam_name']
                     if label in targets and er_alerts is True:
                         is_target(cam_name, token, authorization, label)
@@ -172,7 +158,7 @@ def detect(images, config, c_model, d_model):
                                                 authorization,
                                                 label)
                         logging.info(response)
-                    
+
                     logging.info('Sending detection email')
                     if email_alerts is True:
                         smtp_server = smtp_setup(username, password, host)

@@ -22,16 +22,16 @@ import argparse
 import time
 import warnings
 from datetime import datetime as dt
+import logging
 import yaml
 import schedule
-import logging
 
 from cougarvision_utils.detect_img import detect
 from cougarvision_utils.alert import checkin
 from cougarvision_utils.get_images import fetch_image_api
-#from sageranger.post_monthly import post_monthly_obs
-from animl.predictSpecies import load_classifier
-from animl.detectMD import load_MD_model
+# from sageranger.post_monthly import post_monthly_obs
+from animl.classify import load_classifier
+from animl import megadetector
 
 
 # Numpy FutureWarnings from tensorflow import
@@ -55,6 +55,7 @@ DETECTOR = CONFIG['detector_model']
 DEV_EMAILS = CONFIG['dev_emails']
 HOST = 'imap.gmail.com'
 RUN_SCHEDULER = CONFIG['run_scheduler']
+VISUALIZE_OUTPUT = CONFIG['visualize_output']
 
 
 # Set interval for checking in
@@ -62,10 +63,11 @@ CHECKIN_INTERVAL = CONFIG['checkin_interval']
 
 # load models once
 CLASSIFIER_MODEL = load_classifier(CLASSIFIER)
-DETECTOR_MODEL = load_MD_model(DETECTOR)
+DETECTOR_MODEL = megadetector.MegaDetector(DETECTOR)
 
 
 def logger():
+    '''Function to define logging file parameters'''
     logging.basicConfig(filename='cougarvision.log', format='%(levelname)s:%(asctime)s:%(module)s:%(funcName)s: %(message)s', level=logging.DEBUG)
 
 
@@ -87,10 +89,13 @@ def main():
     ''''Runs main program and schedules future runs'''
     logger()
     fetch_detect_alert()
-    schedule.every(RUN_SCHEDULER).seconds.do(fetch_detect_alert)
+    if VISUALIZE_OUTPUT is True:
+        schedule.every(RUN_SCHEDULER).seconds.do(fetch_detect_alert)
+    else:
+        schedule.every(RUN_SCHEDULER).minutes.do(fetch_detect_alert)
     schedule.every(CHECKIN_INTERVAL).hours.do(checkin, DEV_EMAILS,
                                               USERNAME, PASSWORD, HOST)
-    #schedule.every(30).days.do(post_monthly_obs, TOKEN, AUTH)
+    # schedule.every(30).days.do(post_monthly_obs, TOKEN, AUTH)
 
     while True:
         schedule.run_pending()

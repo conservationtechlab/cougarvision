@@ -15,10 +15,11 @@ one currently present.
 import json
 import urllib.request
 import os.path
+import logging
 import requests
 import numpy as np
-import logging
-import re
+from cougarvision_visualize.visualize_output import get_last_file_number
+from cougarvision_visualize.visualize_output import create_folder
 
 
 '''
@@ -52,17 +53,6 @@ parameters <- ""
 '''
 
 
-def get_last_file_number(folder_path):
-    max_num = 0
-    for filename in os.listdir(folder_path):
-        # Extract digits from the filename using regex
-        num = re.findall(r'\d+', filename)
-        if num:  # If there are digits in the filename
-            max_num = max(max_num, int(num[-1]))  # Use the last set of digits as the number
-    return max_num
-    
-    
-
 def request_strikeforce(username, auth_token, base, request, parameters):
     '''
     Takes in auth values and api call parameters and returns the data about
@@ -87,7 +77,7 @@ def request_strikeforce(username, auth_token, base, request, parameters):
         try:
             info = json.loads(response.text)
             return info
-        except JSONDecodeError:
+        except json.decoder.JSONDecodeError:
             logging.warning('An error occurred while decoding JSON')
             info = 0
             return info
@@ -95,7 +85,7 @@ def request_strikeforce(username, auth_token, base, request, parameters):
         logging.warning("Connection Error, max retries exceeded")
         info = 0
         return info
-    
+
 
 def fetch_image_api(config):
     '''
@@ -113,12 +103,13 @@ def fetch_image_api(config):
     accounts = config['username_scraper']
     tokens = config['auth_token']
     path = "./last_id.txt"
-    password = config['password_scraper']
+    visualize_output = config['visualize_output']
+    unlabeled_img = config['path_to_unlabeled_output']
     checkfile = os.path.exists(path)
     if checkfile is False:
         new_file = open("last_id.txt", "x")
         new_file.close()
-        first_id = str(0) # function to get the most recent id from sf)
+        first_id = str(0)  # function to get the most recent id from sf)
         new_file = open('last_id.txt', 'w')
         new_file.writelines(first_id)
         new_file.close()
@@ -136,7 +127,7 @@ def fetch_image_api(config):
                                    "photos/recent", "limit=12")
         if data == 0:
             new_photos = []
-            logging.warning('Returning to main loop after failed http request, will try again')
+            logging.warning('Returning to main loop after failed http request')
             return new_photos
         else:
             photos += data['photos']['data']
@@ -149,22 +140,24 @@ def fetch_image_api(config):
             logging.info(info)
             try:
                 camera = camera_names[photos[i]['relationships']
-                                     ['camera']['data']['id']]
+                                      ['camera']['data']['id']]
             except KeyError:
-                logging.warning('Cannot retrieve photo from camera as there is no associated ID in the config file')
+                logging.warning('skipped img: no associated cam ID')
                 continue
             newname = config['save_dir'] + camera
             newname += "_" + info['file_thumb_filename']
             urllib.request.urlretrieve(info['file_thumb_url'], newname)
             new_photos.append([photos[i]['id'],
                                info['file_thumb_url'], newname])
-            newname = '/home/katiedemo/unlabeled_photos/' + 'image'
-            new_file_num = get_last_file_number('/home/katiedemo/unlabeled_photos')
-            new_file_num = new_file_num + 1
-            new_file_num = str(new_file_num)
-            newname += "_" + new_file_num
-            urllib.request.urlretrieve(info['file_thumb_url'], newname)
 
+            if visualize_output is True:
+                file_path = create_folder(unlabeled_img)
+                newname = file_path + 'image'
+                new_file_num = get_last_file_number(file_path)
+                new_file_num = new_file_num + 1
+                new_file_num = str(new_file_num)
+                newname += "_" + new_file_num
+                urllib.request.urlretrieve(info['file_thumb_url'], newname)
 
     new_photos = np.array(new_photos)
     if len(new_photos) > 0:  # update last image

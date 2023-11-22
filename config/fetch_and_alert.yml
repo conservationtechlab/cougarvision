@@ -12,9 +12,13 @@ log_dir: /home/johnsmith/cougarvision/logs/
 #classes - path to the class list for the classifier model
 classes: /home/johnsmith/cougarvision/labels/sw_classes.txt 
 #to_email - the email that will receive email alerts, can be multiple emails
+#Run version that allows for images cast to two screens? True/False
+visualize_output: True
+path_to_unlabeled_output: /path/to/unlabeled/img/folder
+path_to_labeled_output: /path/to/labeled/img/folder
 to_emails: [your@email.com]  
 #threshold confidence score 
-confidence: 0.01 
+confidence: 0.7
 #cpu threads
 threads: 8
 # Web Scraping
