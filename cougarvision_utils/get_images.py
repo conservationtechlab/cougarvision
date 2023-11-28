@@ -18,8 +18,7 @@ import os.path
 import logging
 import requests
 import numpy as np
-from cougarvision_visualize.visualize_helper import get_last_file_number
-from cougarvision_visualize.visualize_helper import create_folder
+from cougarvision_visualize.visualize_helper import get_last_file_number, create_folder
 
 
 '''
@@ -71,7 +70,7 @@ def request_strikeforce(username, auth_token, base, request, parameters):
     '''
     call = base + request + "?" + parameters
     try:
-        logging.info("Getting new image data from Strikeforce")
+        logging.info("Getting new Strikeforce image data from: " + username)
         response = requests.get(call, headers={"X-User-Email": username,
                                                "X-User-Token": auth_token})
         try:
