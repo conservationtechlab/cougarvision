@@ -18,8 +18,8 @@ import os.path
 import logging
 import requests
 import numpy as np
-from cougarvision_visualize.visualize_output import get_last_file_number
-from cougarvision_visualize.visualize_output import create_folder
+from cougarvision_visualize.visualize_helper import get_last_file_number
+from cougarvision_visualize.visualize_helper import create_folder
 
 
 '''

@@ -23,8 +23,8 @@ from animl.detectMD import detect_MD_batch
 
 from cougarvision_utils.cropping import draw_bounding_box_on_image
 from cougarvision_utils.alert import smtp_setup, send_alert
-from cougarvision_visualize.visualize_output import get_last_file_number
-from cougarvision_visualize.visualize_output import create_folder
+from cougarvision_visualize.visualize_helper import get_last_file_number
+from cougarvision_visualize.visualize_helper import create_folder
 
 
 with open("config/cameratraps.yml", 'r') as stream:
