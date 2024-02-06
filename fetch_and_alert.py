@@ -26,6 +26,7 @@ import logging
 import yaml
 import schedule
 
+
 from cougarvision_utils.detect_img import detect
 from cougarvision_utils.alert import checkin
 from cougarvision_utils.get_images import fetch_image_api
@@ -58,17 +59,30 @@ RUN_SCHEDULER = CONFIG['run_scheduler']
 VISUALIZE_OUTPUT = CONFIG['visualize_output']
 
 
-# Set interval for checking in
-CHECKIN_INTERVAL = CONFIG['checkin_interval']
-
-# load models once
-CLASSIFIER_MODEL = load_classifier(CLASSIFIER)
-DETECTOR_MODEL = megadetector.MegaDetector(DETECTOR)
-
-
 def logger():
     '''Function to define logging file parameters'''
-    logging.basicConfig(filename='cougarvision.log', format='%(levelname)s:%(asctime)s:%(module)s:%(funcName)s: %(message)s', level=logging.DEBUG)
+    msg_intro = "%(levelname)s:%(asctime)s:%(module)s:%(funcName)s:"
+    msg_intro = msg_intro + " %(message)s"
+    logging.basicConfig(filename='cougarvision.log',
+                        format=msg_intro,
+                        level=logging.INFO,
+                        force=True)
+
+
+# Initialize logger now because it will protect against
+# handlers that get created when classifer and detector are intialized
+logger()
+
+
+# Set interval for checking in
+CHECKIN_INTERVAL = CONFIG['checkin_interval']
+print("Loading classifier")
+# load models once
+CLASSIFIER_MODEL = load_classifier(CLASSIFIER)
+print("Finished loading classifier")
+print("Begin loading detector")
+DETECTOR_MODEL = megadetector.MegaDetector(DETECTOR)
+print("Finished loading detector")
 
 
 def fetch_detect_alert():
@@ -87,7 +101,6 @@ def fetch_detect_alert():
 
 def main():
     ''''Runs main program and schedules future runs'''
-    logger()
     fetch_detect_alert()
     if VISUALIZE_OUTPUT is True:
         schedule.every(RUN_SCHEDULER).seconds.do(fetch_detect_alert)
