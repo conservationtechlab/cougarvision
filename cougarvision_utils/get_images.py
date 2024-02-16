@@ -18,35 +18,36 @@ import os.path
 import logging
 import requests
 import numpy as np
-from cougarvision_visualize.visualize_helper import get_last_file_number, create_folder
+from cougarvision_visualize.visualize_helper import get_last_file_number
+from cougarvision_visualize.visualize_helper import create_folder
 
 
 '''
-#request examples
+request examples
 
-#get list of camaras
+get list of camaras
 request <- "cameras"
 parameters <- ""
 
-#recent photo count
+recent photo count
 request <- "photos/recent/count"
 parameters <- ""
 
-#get recent photos across cameras
+get recent photos across cameras
 request <- "photos/recent"
 parameters <- "limit=100"
 
-#get photos from specific camera (will need to loop through pages)
+get photos from specific camera (will need to loop through pages)
 request <- "photos"
 parameters <- "page=3&sort_date=desc&camera_id[]=59681"
 
-#get photos from specific camera filtered by date (will need
-# to loop through pages)
+get photos from specific camera filtered by date (will need
+to loop through pages)
 request <- "photos"
 parameters <- "page=1&sort_date=desc&camera_id[]=
-#60272&date_start=2022-09-01&date_end=2022-10-07"
+60272&date_start=2022-09-01&date_end=2022-10-07"
 
-#get subscriptions
+get subscriptions
 request <- "subscriptions"
 parameters <- ""
 '''
@@ -70,7 +71,7 @@ def request_strikeforce(username, auth_token, base, request, parameters):
     '''
     call = base + request + "?" + parameters
     try:
-        logging.info("Getting new Strikeforce image data from: " + username)
+        logging.debug("Getting new Strikeforce image data from: " + username)
         response = requests.get(call, headers={"X-User-Email": username,
                                                "X-User-Token": auth_token})
         try:
@@ -127,9 +128,11 @@ def fetch_image_api(config):
         if data == 0:
             new_photos = []
             logging.warning('Returning to main loop after failed http request')
+            error_message = "Warning: Failed http request, will retry "
+            error_message = error_message + "from main loop, check connection"
+            print(error_message)
             return new_photos
-        else:
-            photos += data['photos']['data']
+        photos += data['photos']['data']
 
     new_photos = []
     photos = sorted(photos, key=lambda x: x['attributes']['original_datetime'])

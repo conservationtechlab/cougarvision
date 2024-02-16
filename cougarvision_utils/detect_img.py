@@ -98,8 +98,7 @@ def detect(images, config, c_model, d_model):
                 max_df = parse_results.from_classifier(animal_df,
                                                        predictions,
                                                        classes,
-                                                       None,
-                                                       False)
+                                                       None)
                 # Creates a data frame with all relevant data
                 cougars = max_df[max_df['prediction'].isin(targets)]
                 # drops all detections with confidence less than threshold

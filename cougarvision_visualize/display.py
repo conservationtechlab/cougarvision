@@ -6,6 +6,8 @@ on a 3x3 grid on one screen and most recent images on a second 9x9 grid.
     - fetch_and_alert.py must be run with visualize_output: param set to 'True'
     - path_to_unlabeled_output: and path_to_labeled_output: parameters filled
       out in the config file.
+    - the command line argument to run is python3 display.py
+      </full/path/to/yaml/>
     *fetch_and_alert.py will create the folders for you
     if you only include the paths but the folders are not yet created.
 This script assumes 2 monitors and will display a blank screen on either
@@ -14,6 +16,7 @@ for screen 2. Later versions will account for this and still display images,
 but for now if that is an issue you can fill the folder with black images with
 the correct nomenclature: image_1.jpg, image_2.jpg... and it will replace the
 black images as they come in.
+
 '''
 
 
@@ -33,11 +36,11 @@ def get_screen_resolutions():
     return resolutions
 
 
-def get_newest_images(folder_path, num_images):
+def get_newest_images(f_p, num_images):
     '''Function to return the newest x num of images from folder'''
-    files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
+    fil = [f for f in os.listdir(f_p) if os.path.isfile(os.path.join(f_p, f))]
 
-    if not files:
+    if not fil:
         return []
 
     def sort_key_func(file_name):
@@ -46,9 +49,9 @@ def get_newest_images(folder_path, num_images):
         except ValueError:
             return float('-inf')
 
-    files.sort(key=sort_key_func, reverse=True)
-    newest_files = files[:num_images]
-    images = [cv2.imread(os.path.join(folder_path, file)) for file in newest_files]
+    fil.sort(key=sort_key_func, reverse=True)
+    newest_files = fil[:num_images]
+    images = [cv2.imread(os.path.join(f_p, file)) for file in newest_files]
     images = [img for img in images if img is not None]
     return images
 
@@ -59,22 +62,24 @@ def display_images(images, window_name='CougarVision'):
     screen_height = resolutions[0][1]
     screen_width = resolutions[0][0]
 
-    num_images_per_row = 3
-    num_images_per_col = 3
+    num_images_row = 3
+    num_images_col = 3
 
-    max_width_per_image = screen_width // num_images_per_row
-    max_height_per_image = screen_height // num_images_per_col
+    max_w_image = screen_width // num_images_row
+    max_h_image = screen_height // num_images_col
 
     display_img = np.zeros((screen_height, screen_width, 3), np.uint8)
 
     for i, img in enumerate(images):
         if img is not None:
-            x_offset = (i % num_images_per_row) * max_width_per_image
-            y_offset = (i // num_images_per_row) * max_height_per_image
+            x_offset = (i % num_images_row) * max_w_image
+            y_offset = (i // num_images_row) * max_h_image
 
-            resized_image = cv2.resize(img, (max_width_per_image, max_height_per_image))
+            resized_image = cv2.resize(img, (max_w_image, max_h_image))
 
-            display_img[y_offset:y_offset + max_height_per_image, x_offset:x_offset + max_width_per_image] = resized_image
+            y_slice = slice(y_offset, y_offset + max_h_image)
+            x_slice = slice(x_offset, x_offset + max_w_image)
+            display_img[y_slice, x_slice] = resized_image
 
     cv2.imshow(window_name, display_img)
 
@@ -85,22 +90,24 @@ def display_more_images(images, window_2='Newest Image'):
     screen_height = resolutions[1][1]
     screen_width = resolutions[1][0]
 
-    num_images_per_row = 9
-    num_images_per_col = 9
+    num_images_row = 9
+    num_images_col = 9
 
-    max_width_per_image = screen_width // num_images_per_row
-    max_height_per_image = screen_height // num_images_per_col
+    max_w_image = screen_width // num_images_row
+    max_h_image = screen_height // num_images_col
 
     display_img = np.zeros((screen_height, screen_width, 3), np.uint8)
 
     for i, img in enumerate(images):
         if img is not None:
-            x_offset = (i % num_images_per_row) * max_width_per_image
-            y_offset = (i // num_images_per_row) * max_height_per_image
+            x_offset = (i % num_images_row) * max_w_image
+            y_offset = (i // num_images_row) * max_h_image
 
-            resized_image = cv2.resize(img, (max_width_per_image, max_height_per_image))
+            resized_image = cv2.resize(img, (max_w_image, max_h_image))
 
-            display_img[y_offset:y_offset + max_height_per_image, x_offset:x_offset + max_width_per_image] = resized_image
+            y_slice = slice(y_offset, y_offset + max_h_image)
+            x_slice = slice(x_offset, x_offset + max_w_image)
+            display_img[y_slice, x_slice] = resized_image
 
     cv2.imshow(window_2, display_img)
 
