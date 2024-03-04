@@ -17,9 +17,9 @@ import sys
 import logging
 import yaml
 from PIL import Image
-from animl import parse_results, classify, split
+from animl import inference, split
 from sageranger import is_target, attach_image, post_event
-from animl.detectMD import detect_MD_batch
+from animl.detect import detect_MD_batch, parse_MD
 
 from cougarvision_utils.cropping import draw_bounding_box_on_image
 from cougarvision_utils.alert import smtp_setup, send_alert
@@ -73,23 +73,22 @@ def detect(images, config, c_model, d_model):
                                   checkpoint_path=None,
                                   confidence_threshold=confidence,
                                   checkpoint_frequency=checkpoint_f,
-                                  results=None,
                                   quiet=False,
                                   image_size=None)
         end = time.time()
         md_time = end - start
         logging.debug('Time to detect: ' + str(md_time))
         # Parse results
-        data_frame = parse_results.from_MD(results, None, None)
+        data_frame = parse_MD(results, None, None)
         # filter out all non animal detections
         if not data_frame.empty:
-            animal_df = split.getAnimals(data_frame)
-            otherdf = split.getEmpty(data_frame)
+            animal_df = split.get_animals(data_frame)
+            otherdf = split.get_empty(data_frame)
             # run classifier on animal detections if there are any
             if not animal_df.empty:
                 # create generator for images
                 start = time.time()
-                predictions = classify.predict_species(animal_df, c_model,
+                predictions = inference.predict_species(animal_df, c_model,
                                                        batch=4)
                 end = time.time()
                 cls_time = end - start

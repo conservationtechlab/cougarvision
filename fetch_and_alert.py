@@ -31,7 +31,7 @@ from cougarvision_utils.detect_img import detect
 from cougarvision_utils.alert import checkin
 from cougarvision_utils.get_images import fetch_image_api
 # from sageranger.post_monthly import post_monthly_obs
-from animl.classify import load_classifier
+from animl.classifiers import load_model
 from animl import megadetector
 
 
@@ -57,6 +57,7 @@ DEV_EMAILS = CONFIG['dev_emails']
 HOST = 'imap.gmail.com'
 RUN_SCHEDULER = CONFIG['run_scheduler']
 VISUALIZE_OUTPUT = CONFIG['visualize_output']
+LABELS = CONFIG['classes']
 
 
 def logger():
@@ -78,7 +79,7 @@ logger()
 CHECKIN_INTERVAL = CONFIG['checkin_interval']
 print("Loading classifier")
 # load models once
-CLASSIFIER_MODEL = load_classifier(CLASSIFIER)
+CLASSIFIER_MODEL, CLASSES = load_model(CLASSIFIER, LABELS)
 print("Finished loading classifier")
 print("Begin loading detector")
 DETECTOR_MODEL = megadetector.MegaDetector(DETECTOR)
