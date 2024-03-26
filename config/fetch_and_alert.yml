@@ -1,7 +1,8 @@
 #home_dir - path to local cougarvision repo
 home_dir: /home/johnsmith/cougarvision 
 # 1 = email alerts and 2 = earthranger alerts
-use_variation: 2 
+email_alerts: True
+er_alerts: True 
 #detector_model - path to detector model
 detector_model: /home/johnsmith/cougarvision/detector_models/megadetector_v4.1.pb 
 #classifier_model - path to classifier model
@@ -16,7 +17,8 @@ classes: /home/johnsmith/cougarvision/labels/sw_classes.txt
 visualize_output: True
 path_to_unlabeled_output: /path/to/unlabeled/img/folder
 path_to_labeled_output: /path/to/labeled/img/folder
-to_emails: [your@email.com]  
+consumer_emails: [your@email.com]
+dev_emails: [dev@email.com]  
 #threshold confidence score 
 confidence: 0.7
 #cpu threads
