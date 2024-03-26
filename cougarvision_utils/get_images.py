@@ -15,37 +15,39 @@ one currently present.
 import json
 import urllib.request
 import os.path
+import logging
 import requests
 import numpy as np
-import logging
+from cougarvision_visualize.visualize_helper import get_last_file_number
+from cougarvision_visualize.visualize_helper import create_folder
 
 
 '''
-#request examples
+request examples
 
-#get list of camaras
+get list of camaras
 request <- "cameras"
 parameters <- ""
 
-#recent photo count
+recent photo count
 request <- "photos/recent/count"
 parameters <- ""
 
-#get recent photos across cameras
+get recent photos across cameras
 request <- "photos/recent"
 parameters <- "limit=100"
 
-#get photos from specific camera (will need to loop through pages)
+get photos from specific camera (will need to loop through pages)
 request <- "photos"
 parameters <- "page=3&sort_date=desc&camera_id[]=59681"
 
-#get photos from specific camera filtered by date (will need
-# to loop through pages)
+get photos from specific camera filtered by date (will need
+to loop through pages)
 request <- "photos"
 parameters <- "page=1&sort_date=desc&camera_id[]=
-#60272&date_start=2022-09-01&date_end=2022-10-07"
+60272&date_start=2022-09-01&date_end=2022-10-07"
 
-#get subscriptions
+get subscriptions
 request <- "subscriptions"
 parameters <- ""
 '''
@@ -68,11 +70,21 @@ def request_strikeforce(username, auth_token, base, request, parameters):
         strikeforce
     '''
     call = base + request + "?" + parameters
-    response = requests.get(call, headers={"X-User-Email": username,
-                                           "X-User-Token": auth_token})
-    print(response.text)
-    info = json.loads(response.text)
-    return info
+    try:
+        logging.debug("Getting new Strikeforce image data from: " + username)
+        response = requests.get(call, headers={"X-User-Email": username,
+                                               "X-User-Token": auth_token})
+        try:
+            info = json.loads(response.text)
+            return info
+        except json.decoder.JSONDecodeError:
+            logging.warning('An error occurred while decoding JSON')
+            info = 0
+            return info
+    except requests.exceptions.ConnectionError:
+        logging.warning("Connection Error, max retries exceeded")
+        info = 0
+        return info
 
 
 def fetch_image_api(config):
@@ -91,12 +103,13 @@ def fetch_image_api(config):
     accounts = config['username_scraper']
     tokens = config['auth_token']
     path = "./last_id.txt"
-    password = config['password_scraper']
+    visualize_output = config['visualize_output']
+    unlabeled_img = config['path_to_unlabeled_output']
     checkfile = os.path.exists(path)
     if checkfile is False:
         new_file = open("last_id.txt", "x")
         new_file.close()
-        first_id = str(0) # function to get the most recent id from sf)
+        first_id = str(0)  # function to get the most recent id from sf)
         new_file = open('last_id.txt', 'w')
         new_file.writelines(first_id)
         new_file.close()
@@ -112,6 +125,13 @@ def fetch_image_api(config):
     for account, token in zip(accounts, tokens):
         data = request_strikeforce(account, token, base,
                                    "photos/recent", "limit=12")
+        if data == 0:
+            new_photos = []
+            logging.warning('Returning to main loop after failed http request')
+            error_message = "Warning: Failed http request, will retry "
+            error_message = error_message + "from main loop, check connection"
+            print(error_message)
+            return new_photos
         photos += data['photos']['data']
 
     new_photos = []
@@ -121,10 +141,9 @@ def fetch_image_api(config):
             print(info)
             try:
                 camera = camera_names[photos[i]['relationships']
-                                     ['camera']['data']['id']]
+                                      ['camera']['data']['id']]
             except KeyError:
-                logging.warning('Cannot retrieve photo from camera\
-                as there is no asssociated ID in the config file')
+                logging.warning('skipped img: no associated cam ID')
                 continue
             newname = config['save_dir'] + camera
             newname += "_" + info['file_thumb_filename']
@@ -132,6 +151,15 @@ def fetch_image_api(config):
             urllib.request.urlretrieve(info['file_thumb_url'], newname)
             new_photos.append([photos[i]['id'],
                                info['file_thumb_url'], newname])
+
+            if visualize_output is True:
+                file_path = create_folder(unlabeled_img)
+                newname = file_path + 'image'
+                new_file_num = get_last_file_number(file_path)
+                new_file_num = new_file_num + 1
+                new_file_num = str(new_file_num)
+                newname += "_" + new_file_num
+                urllib.request.urlretrieve(info['file_thumb_url'], newname)
 
     new_photos = np.array(new_photos)
     if len(new_photos) > 0:  # update last image

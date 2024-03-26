@@ -13,22 +13,25 @@ from io import BytesIO
 from datetime import datetime as dt
 import re
 import sys
+import logging
 import yaml
 from PIL import Image
-from animl import parse_results, classify, split
+from animl import inference, split
 from sageranger import is_target, attach_image, post_event
-from animl.detectMD import detect_MD_batch
+from animl.detect import detect_MD_batch, parse_MD
 
 from cougarvision_utils.cropping import draw_bounding_box_on_image
 from cougarvision_utils.alert import smtp_setup, send_alert
+from cougarvision_visualize.visualize_helper import get_last_file_number
+from cougarvision_visualize.visualize_helper import create_folder
 
 
 with open("config/cameratraps.yml", 'r') as stream:
-    CAM_CONFIG = yaml.safe_load(stream)
-    sys.path.append(CAM_CONFIG['camera_traps_path'])
+    camera_traps_config = yaml.safe_load(stream)
+    sys.path.append(camera_traps_config['camera_traps_path'])
 
 
-def detect(images, config, c_model, d_model):
+def detect(images, config, c_model, classes, d_model):
     '''
     This function takes in a dataframe of images and runs a detector model,
     classifies the species of interest, and sends alerts either to email or an
@@ -41,12 +44,13 @@ def detect(images, config, c_model, d_model):
     config: the unpacked config values from fetch_and_alert.yml that contains
         necessary parameters the function needs
     '''
+    # use_variation = int(config['use_variation'])
     email_alerts = bool(config['email_alerts'])
     er_alerts = bool(config['er_alerts'])
     log_dir = config['log_dir']
+    class_list = config['classes']
     checkpoint_f = config['checkpoint_frequency']
     confidence = config['confidence']
-    classes = config['classes']
     targets = config['alert_targets']
     username = config['username']
     password = config['password']
@@ -55,6 +59,9 @@ def detect(images, config, c_model, d_model):
     host = 'imap.gmail.com'
     token = config['token']
     authorization = config['authorization']
+    color = config['color']
+    visualize_output = config['visualize_output']
+    labeled_img = config['path_to_labeled_output']
     if len(images) > 0:
         # extract paths from dataframe
         image_paths = images[:, 2]
@@ -64,29 +71,28 @@ def detect(images, config, c_model, d_model):
                                   checkpoint_path=None,
                                   confidence_threshold=confidence,
                                   checkpoint_frequency=checkpoint_f,
-                                  results=None,
                                   quiet=False,
                                   image_size=None)
         # Parse results
-        data_frame = parse_results.from_MD(results, None, None)
+        data_frame = parse_MD(results, None, None)
         # filter out all non animal detections
         if not data_frame.empty:
-            animal_df = split.getAnimals(data_frame)
-            other_df = split.getEmpty(data_frame)
+            animal_df = split.get_animals(data_frame)
+            otherdf = split.get_empty(data_frame)
             # run classifier on animal detections if there are any
             if not animal_df.empty:
                 # create generator for images
-                predictions = classify.predict_species(animal_df, c_model,
-                                                       batch=4)
-                # Parse results
-                max_df = parse_results.from_classifier(animal_df,
-                                                       predictions,
-                                                       classes,
-                                                       None)
-                # Creates a data frame with all relevant data
-                cougars = max_df[max_df['prediction'].isin(targets)]
+                start = time.time()
+                predictions = inference.predict_species(animal_df.reset_index(drop=True), c_model, classes, file_col="file")
+                end = time.time()
+                cls_time = end - start
+                print("Time to classify: ")
+                print(cls_time)
+                logging.debug('Time to classify: ' + str(cls_time))
+                # checks to see if predicted class is in targets
+                cougars = predictions[predictions['prediction'].isin(targets)]
                 # drops all detections with confidence less than threshold
-                cougars = cougars[cougars['conf'] >= confidence]
+                cougars = cougars[cougars['confidence'] >= confidence]
                 # reset dataframe index
                 cougars = cougars.reset_index(drop=True)
                 # create a row in the dataframe containing only the camera name
@@ -96,8 +102,7 @@ def detect(images, config, c_model, d_model):
                 for idx in range(len(cougars.index)):
                     label = cougars.at[idx, 'prediction']
                     # uncomment this line to use conf value for dev email alert
-                    prob = str(cougars.at[idx, 'conf'])
-                    label = cougars.at[idx, 'class']
+                    prob = str(cougars.at[idx, 'confidence'])
                     img = Image.open(cougars.at[idx, 'file'])
                     draw_bounding_box_on_image(img,
                                                cougars.at[idx, 'bbox2'],
@@ -115,6 +120,15 @@ def detect(images, config, c_model, d_model):
                     image_bytes = BytesIO()
                     img.save(image_bytes, format="JPEG")
                     img_byte = image_bytes.getvalue()
+                    if visualize_output is True:
+                        folder_path = create_folder(labeled_img)
+                        last_file_number = get_last_file_number(folder_path)
+                        new_file_number = last_file_number + 1
+                        new_file_name = f"{folder_path}/image_{new_file_number}.jpg"
+
+                        with open(new_file_name, "wb") as folder:
+                            folder.write(img_byte)
+
                     cam_name = cougars.at[idx, 'cam_name']
                     if label in targets and er_alerts is True:
                         is_target(cam_name, token, authorization, label)
@@ -129,7 +143,10 @@ def detect(images, config, c_model, d_model):
                                                 token,
                                                 authorization,
                                                 label)
-                        print(response)
+                        logging.info(response)
+
+                    logging.info('Sending detection email')
+
                     if email_alerts is True:
                         smtp_server = smtp_setup(username, password, host)
                         dev = 0
