@@ -48,7 +48,6 @@ def draw_bounding_box_on_image(image,
                                xmin,
                                ymax,
                                xmax,
-                               color,
                                clss=None,
                                thickness=4,
                                expansion=0,
@@ -82,10 +81,10 @@ def draw_bounding_box_on_image(image,
         coordinates as absolute.
     label_font_size: font size to attempt to load arial.ttf with
     """
-    '''if clss is None:
+    if clss is None:
         color = 'Red'
     else:
-        color = COLORS[int(clss) % len(COLORS)]'''
+        color = COLORS[int(clss) % len(COLORS)]
 
     draw = ImageDraw.Draw(image)
     im_width, im_height = image.size

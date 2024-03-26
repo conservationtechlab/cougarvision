@@ -94,8 +94,10 @@ def fetch_detect_alert():
     images = fetch_image_api(CONFIG)
     print('Finished fetching images')
     print('Starting Detection')
+
     for i in images:
         detect(i, CONFIG, CLASSIFIER_MODEL, CLASSES, DETECTOR_MODEL)
+
     print('Finished Detection')
     print("Sleeping since: " + str(dt.now()))
 
@@ -103,6 +105,7 @@ def fetch_detect_alert():
 def main():
     ''''Runs main program and schedules future runs'''
     fetch_detect_alert()
+
     if VISUALIZE_OUTPUT is True:
         schedule.every(RUN_SCHEDULER).seconds.do(fetch_detect_alert)
     else:
@@ -110,6 +113,7 @@ def main():
     schedule.every(CHECKIN_INTERVAL).hours.do(checkin, DEV_EMAILS,
                                               USERNAME, PASSWORD, HOST)
     # schedule.every(30).days.do(post_monthly_obs, TOKEN, AUTH)
+
 
     while True:
         schedule.run_pending()
