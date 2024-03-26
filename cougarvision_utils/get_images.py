@@ -135,11 +135,10 @@ def fetch_image_api(config):
         photos += data['photos']['data']
 
     new_photos = []
-    photos = sorted(photos, key=lambda x: x['attributes']['original_datetime'])
     for i in range(len(photos)):
         if int(photos[i]['id']) > last_id:
             info = photos[i]['attributes']
-            logging.info(info)
+            print(info)
             try:
                 camera = camera_names[photos[i]['relationships']
                                       ['camera']['data']['id']]
@@ -148,6 +147,7 @@ def fetch_image_api(config):
                 continue
             newname = config['save_dir'] + camera
             newname += "_" + info['file_thumb_filename']
+            print(newname)
             urllib.request.urlretrieve(info['file_thumb_url'], newname)
             new_photos.append([photos[i]['id'],
                                info['file_thumb_url'], newname])
