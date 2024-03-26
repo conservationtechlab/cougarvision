@@ -17,9 +17,9 @@ import sys
 import logging
 import yaml
 from PIL import Image
-from animl import parse_results, classify, split
+from animl import inference, split
 from sageranger import is_target, attach_image, post_event
-from animl.detectMD import detect_MD_batch
+from animl.detect import detect_MD_batch, parse_MD
 
 from cougarvision_utils.cropping import draw_bounding_box_on_image
 from cougarvision_utils.alert import smtp_setup, send_alert
@@ -32,7 +32,7 @@ with open("config/cameratraps.yml", 'r') as stream:
     sys.path.append(camera_traps_config['camera_traps_path'])
 
 
-def detect(images, config, c_model, d_model):
+def detect(images, config, c_model, classes, d_model):
     '''
     This function takes in a dataframe of images and runs a detector model,
     classifies the species of interest, and sends alerts either to email or an
@@ -49,9 +49,9 @@ def detect(images, config, c_model, d_model):
     email_alerts = bool(config['email_alerts'])
     er_alerts = bool(config['er_alerts'])
     log_dir = config['log_dir']
+    class_list = config['classes']
     checkpoint_f = config['checkpoint_frequency']
     confidence = config['confidence']
-    classes = config['classes']
     targets = config['alert_targets']
     username = config['username']
     password = config['password']
@@ -73,36 +73,31 @@ def detect(images, config, c_model, d_model):
                                   checkpoint_path=None,
                                   confidence_threshold=confidence,
                                   checkpoint_frequency=checkpoint_f,
-                                  results=None,
                                   quiet=False,
                                   image_size=None)
         end = time.time()
         md_time = end - start
         logging.debug('Time to detect: ' + str(md_time))
         # Parse results
-        data_frame = parse_results.from_MD(results, None, None)
+        data_frame = parse_MD(results, None, None)
         # filter out all non animal detections
         if not data_frame.empty:
-            animal_df = split.getAnimals(data_frame)
-            otherdf = split.getEmpty(data_frame)
+            animal_df = split.get_animals(data_frame)
+            otherdf = split.get_empty(data_frame)
             # run classifier on animal detections if there are any
             if not animal_df.empty:
                 # create generator for images
                 start = time.time()
-                predictions = classify.predict_species(animal_df, c_model,
-                                                       batch=4)
+                predictions = inference.predict_species(animal_df.reset_index(drop=True), c_model, classes, file_col="file")
                 end = time.time()
                 cls_time = end - start
+                print("Time to classify: ")
+                print(cls_time)
                 logging.debug('Time to classify: ' + str(cls_time))
-                # Parse results
-                max_df = parse_results.from_classifier(animal_df,
-                                                       predictions,
-                                                       classes,
-                                                       None)
-                # Creates a data frame with all relevant data
-                cougars = max_df[max_df['prediction'].isin(targets)]
+                # checks to see if predicted class is in targets
+                cougars = predictions[predictions['prediction'].isin(targets)]
                 # drops all detections with confidence less than threshold
-                cougars = cougars[cougars['conf'] >= confidence]
+                cougars = cougars[cougars['confidence'] >= confidence]
                 # reset dataframe index
                 cougars = cougars.reset_index(drop=True)
                 # create a row in the dataframe containing only the camera name
@@ -112,8 +107,7 @@ def detect(images, config, c_model, d_model):
                 for idx in range(len(cougars.index)):
                     label = cougars.at[idx, 'prediction']
                     # uncomment this line to use conf value for dev email alert
-                    prob = str(cougars.at[idx, 'conf'])
-                    label = cougars.at[idx, 'class']
+                    prob = str(cougars.at[idx, 'confidence'])
                     img = Image.open(cougars.at[idx, 'file'])
                     draw_bounding_box_on_image(img,
                                                cougars.at[idx, 'bbox2'],

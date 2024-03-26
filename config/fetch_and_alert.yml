@@ -3,6 +3,8 @@ home_dir: /home/johnsmith/cougarvision
 #True to send detections to consumer emails
 email_alerts: True
 #True to send detections to earthranger
+# 1 = email alerts and 2 = earthranger alerts
+email_alerts: True
 er_alerts: True 
 #detector_model - path to detector model
 detector_model: /home/johnsmith/cougarvision/detector_models/megadetector_v4.1.pb 
