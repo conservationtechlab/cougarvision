@@ -10,20 +10,8 @@ that it can later be classified. fetch_image_api depends on
 last_id.txt as well, but it creates a new one if there is not
 one currently present.
 
-'''
-
-import json
-import urllib.request
-import os.path
-import os
-import logging
-import requests
-import numpy as np
-from cougarvision_visualize.visualize_helper import get_last_file_number
-
-
-'''
-request examples
+Here are some different strikeforce api commands for future
+reference:
 
 get list of camaras
 request <- "cameras"
@@ -51,6 +39,15 @@ get subscriptions
 request <- "subscriptions"
 parameters <- ""
 '''
+
+import json
+import urllib.request
+import os.path
+import os
+import logging
+import requests
+import numpy as np
+from cougarvision_visualize.visualize_helper import get_last_file_number
 
 
 def request_strikeforce(username, auth_token, base, request, parameters):
