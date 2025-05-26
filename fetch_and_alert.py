@@ -26,11 +26,12 @@ import logging
 import yaml
 import schedule
 
+
 from cougarvision_utils.detect_img import detect
 from cougarvision_utils.alert import checkin
 from cougarvision_utils.get_images import fetch_image_api
-from sageranger.post_monthly import post_monthly_obs
-from animl.classify import load_classifier
+# from sageranger.post_monthly import post_monthly_obs
+from animl.classifiers import load_model
 from animl import megadetector
 
 
@@ -54,19 +55,35 @@ CLASSIFIER = CONFIG['classifier_model']
 DETECTOR = CONFIG['detector_model']
 DEV_EMAILS = CONFIG['dev_emails']
 HOST = 'imap.gmail.com'
+RUN_SCHEDULER = CONFIG['run_scheduler']
+VISUALIZE_OUTPUT = CONFIG['visualize_output']
+LABELS = CONFIG['classes']
+
+
+def logger():
+    '''Function to define logging file parameters'''
+    msg_intro = "%(levelname)s:%(asctime)s:%(module)s:%(funcName)s:"
+    msg_intro = msg_intro + " %(message)s"
+    logging.basicConfig(filename='cougarvision.log',
+                        format=msg_intro,
+                        level=logging.INFO,
+                        force=True)
+
+
+# Initialize logger now because it will protect against
+# handlers that get created when classifer and detector are intialized
+logger()
 
 
 # Set interval for checking in
 CHECKIN_INTERVAL = CONFIG['checkin_interval']
-
+print("Loading classifier")
 # load models once
-CLASSIFIER_MODEL = load_classifier(CLASSIFIER)
+CLASSIFIER_MODEL, CLASSES = load_model(CLASSIFIER, LABELS)
+print("Finished loading classifier")
+print("Begin loading detector")
 DETECTOR_MODEL = megadetector.MegaDetector(DETECTOR)
-
-
-def logger():
-    '''Function for creating log file'''
-    logging.basicConfig(filename='cougarvision.log', level=logging.INFO)
+print("Finished loading detector")
 
 
 def fetch_detect_alert():
@@ -77,19 +94,26 @@ def fetch_detect_alert():
     images = fetch_image_api(CONFIG)
     print('Finished fetching images')
     print('Starting Detection')
-    detect(images, CONFIG, CLASSIFIER_MODEL, DETECTOR_MODEL)
+
+    for i in images:
+        detect(i, CONFIG, CLASSIFIER_MODEL, CLASSES, DETECTOR_MODEL)
+
     print('Finished Detection')
     print("Sleeping since: " + str(dt.now()))
 
 
 def main():
     ''''Runs main program and schedules future runs'''
-    logger()
     fetch_detect_alert()
-    schedule.every(10).minutes.do(fetch_detect_alert)
+
+    if VISUALIZE_OUTPUT is True:
+        schedule.every(RUN_SCHEDULER).seconds.do(fetch_detect_alert)
+    else:
+        schedule.every(RUN_SCHEDULER).minutes.do(fetch_detect_alert)
     schedule.every(CHECKIN_INTERVAL).hours.do(checkin, DEV_EMAILS,
                                               USERNAME, PASSWORD, HOST)
-    schedule.every(30).days.do(post_monthly_obs, TOKEN, AUTH)
+    # schedule.every(30).days.do(post_monthly_obs, TOKEN, AUTH)
+
 
     while True:
         schedule.run_pending()
