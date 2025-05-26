@@ -46,6 +46,9 @@ CONFIG_FILE = ARGS.config
 # Load Configuration Settings from YML file
 with open(CONFIG_FILE, 'r', encoding='utf-8') as stream:
     CONFIG = yaml.safe_load(stream)
+with open("config/cameratraps.yml", 'r') as stream:
+    camera_traps_config = yaml.safe_load(stream)
+    sys.path.append(camera_traps_config['camera_traps_path'])
 # Set Email Variables for fetching
 USERNAME = CONFIG['username']
 PASSWORD = CONFIG['password']

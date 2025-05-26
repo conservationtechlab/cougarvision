@@ -27,11 +27,6 @@ from cougarvision_visualize.visualize_helper import get_last_file_number
 from cougarvision_visualize.visualize_helper import create_folder
 
 
-with open("config/cameratraps.yml", 'r') as stream:
-    camera_traps_config = yaml.safe_load(stream)
-    sys.path.append(camera_traps_config['camera_traps_path'])
-
-
 def detect(images, config, c_model, classes, d_model):
     '''
     This function takes in a dataframe of images and runs a detector model,
