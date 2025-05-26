@@ -41,7 +41,7 @@ auth_token: <must get from web dev tools after strikeforcewireless login>
 save_dir: /home/johnsmith/images/ 
 #dict of camera names and their respective strikeforce wireless ids, these must be retrieved from
 #strikeforce wireless web dev tools in the code and currently the cam names must be 4 chars long 
-camera_names: {'62201': B018, '59760': B016...}  
+camera_names: {'<strikeforceid>': <camera name>, '<strikeforceid>': <camera name>...}  
 #animals that the detector will send alerts for if detected (from class list)
 alert_targets: [cougar, bobcat, skunk, deer, dog, coyote, rabbit, elephant]
 #checkn_interval - time interval between still-alive emails to let us know no errors have crashed
