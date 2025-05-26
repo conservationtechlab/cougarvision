@@ -35,34 +35,6 @@ from animl.classifiers import load_model
 from animl import megadetector
 
 
-# Numpy FutureWarnings from tensorflow import
-warnings.filterwarnings('ignore', category=FutureWarning)
-# Parse arguments
-PARSER = argparse.ArgumentParser(description='Retrieves images from \
-                                 email & web scraper & runs detection')
-PARSER.add_argument('config', type=str, help='Path to config file')
-ARGS = PARSER.parse_args()
-CONFIG_FILE = ARGS.config
-# Load Configuration Settings from YML file
-with open(CONFIG_FILE, 'r', encoding='utf-8') as stream:
-    CONFIG = yaml.safe_load(stream)
-with open("config/cameratraps.yml", 'r') as stream:
-    camera_traps_config = yaml.safe_load(stream)
-    sys.path.append(camera_traps_config['camera_traps_path'])
-# Set Email Variables for fetching
-USERNAME = CONFIG['username']
-PASSWORD = CONFIG['password']
-TOKEN = CONFIG['token']
-AUTH = CONFIG['authorization']
-CLASSIFIER = CONFIG['classifier_model']
-DETECTOR = CONFIG['detector_model']
-DEV_EMAILS = CONFIG['dev_emails']
-HOST = 'imap.gmail.com'
-RUN_SCHEDULER = CONFIG['run_scheduler']
-VISUALIZE_OUTPUT = CONFIG['visualize_output']
-LABELS = CONFIG['classes']
-
-
 def logger():
     '''Function to define logging file parameters'''
     msg_intro = "%(levelname)s:%(asctime)s:%(module)s:%(funcName)s:"
@@ -71,22 +43,6 @@ def logger():
                         format=msg_intro,
                         level=logging.INFO,
                         force=True)
-
-
-# Initialize logger now because it will protect against
-# handlers that get created when classifer and detector are intialized
-logger()
-
-
-# Set interval for checking in
-CHECKIN_INTERVAL = CONFIG['checkin_interval']
-print("Loading classifier")
-# load models once
-CLASSIFIER_MODEL, CLASSES = load_model(CLASSIFIER, LABELS)
-print("Finished loading classifier")
-print("Begin loading detector")
-DETECTOR_MODEL = megadetector.MegaDetector(DETECTOR)
-print("Finished loading detector")
 
 
 def fetch_detect_alert():
@@ -104,7 +60,46 @@ def fetch_detect_alert():
 
 
 def main():
-    ''''Runs main program and schedules future runs'''
+    '''Runs main program and schedules future runs'''
+    logger()
+    # Numpy FutureWarnings from tensorflow import
+    warnings.filterwarnings('ignore', category=FutureWarning)
+    # Parse arguments
+    PARSER = argparse.ArgumentParser(description='Retrieves images from \
+                                     email & web scraper & runs detection')
+    PARSER.add_argument('config', type=str, help='Path to config file')
+    ARGS = PARSER.parse_args()
+    CONFIG_FILE = ARGS.config
+    # Load Configuration Settings from YML file
+    with open(CONFIG_FILE, 'r', encoding='utf-8') as stream:
+        CONFIG = yaml.safe_load(stream)
+    with open("config/cameratraps.yml", 'r') as stream:
+        camera_traps_config = yaml.safe_load(stream)
+        sys.path.append(camera_traps_config['camera_traps_path'])
+    # Set Email Variables for fetching
+    USERNAME = CONFIG['username']
+    PASSWORD = CONFIG['password']
+    TOKEN = CONFIG['token']
+    AUTH = CONFIG['authorization']
+    CLASSIFIER = CONFIG['classifier_model']
+    DETECTOR = CONFIG['detector_model']
+    DEV_EMAILS = CONFIG['dev_emails']
+    HOST = 'imap.gmail.com'
+    RUN_SCHEDULER = CONFIG['run_scheduler']
+    VISUALIZE_OUTPUT = CONFIG['visualize_output']
+    LABELS = CONFIG['classes']
+    # Set interval for checking in
+    CHECKIN_INTERVAL = CONFIG['checkin_interval']
+
+    # Load models once
+    print("Loading classifier")
+    CLASSIFIER_MODEL, CLASSES = load_model(CLASSIFIER, LABELS)
+    print("Finished loading classifier")
+
+    print("Begin loading detector")
+    DETECTOR_MODEL = megadetector.MegaDetector(DETECTOR)
+    print("Finished loading detector")
+
     fetch_detect_alert()
     if VISUALIZE_OUTPUT is True:
         schedule.every(RUN_SCHEDULER).seconds.do(fetch_detect_alert)
