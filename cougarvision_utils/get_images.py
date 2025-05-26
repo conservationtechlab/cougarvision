@@ -15,11 +15,11 @@ one currently present.
 import json
 import urllib.request
 import os.path
+import os
 import logging
 import requests
 import numpy as np
 from cougarvision_visualize.visualize_helper import get_last_file_number
-from cougarvision_visualize.visualize_helper import create_folder
 
 
 '''
@@ -153,9 +153,9 @@ def fetch_image_api(config):
                                info['file_thumb_url'], newname])
 
             if visualize_output is True:
-                file_path = create_folder(unlabeled_img)
-                newname = file_path + 'image'
-                new_file_num = get_last_file_number(file_path)
+                os.makedirs(unlabeled_img, exist_ok=True)
+                newname = unlabeled_img + 'image'
+                new_file_num = get_last_file_number(unlabeled_img)
                 new_file_num = new_file_num + 1
                 new_file_num = str(new_file_num)
                 newname += "_" + new_file_num

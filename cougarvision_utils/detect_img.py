@@ -20,11 +20,11 @@ from PIL import Image
 from animl import inference, split
 from sageranger import is_target, attach_image, post_event
 from animl.detect import detect_MD_batch, parse_MD
+import os
 
 from cougarvision_utils.cropping import draw_bounding_box_on_image
 from cougarvision_utils.alert import smtp_setup, send_alert
 from cougarvision_visualize.visualize_helper import get_last_file_number
-from cougarvision_visualize.visualize_helper import create_folder
 
 
 def detect(images, config, c_model, classes, d_model):
@@ -122,10 +122,10 @@ def detect(images, config, c_model, classes, d_model):
                     img.save(image_bytes, format="JPEG")
                     img_byte = image_bytes.getvalue()
                     if visualize_output is True:
-                        folder_path = create_folder(labeled_img)
-                        last_file_number = get_last_file_number(folder_path)
+                        os.makedirs(labeled_img, exist_ok=True)
+                        last_file_number = get_last_file_number(labeled_img)
                         new_file_number = last_file_number + 1
-                        new_file_name = f"{folder_path}/image_{new_file_number}.jpg"
+                        new_file_name = f"{labeled_img}/image_{new_file_number}.jpg"
 
                         with open(new_file_name, "wb") as folder:
                             folder.write(img_byte)
