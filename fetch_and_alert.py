@@ -25,6 +25,7 @@ from datetime import datetime as dt
 import logging
 import yaml
 import schedule
+import sys
 
 
 from cougarvision_utils.detect_img import detect
@@ -45,7 +46,7 @@ def logger():
                         force=True)
 
 
-def fetch_detect_alert():
+def fetch_detect_alert(CONFIG, CLASSIFIER, CLASSES, DETECTOR):
     '''Functions for fetching images, detection, and sending alerts'''
     # Run the scheduler
     print("Running fetch_and_alert")
@@ -54,7 +55,7 @@ def fetch_detect_alert():
     print('Finished fetching images')
     print('Starting Detection')
     for i in images:
-        detect(i, CONFIG, CLASSIFIER_MODEL, CLASSES, DETECTOR_MODEL)
+        detect(i, CONFIG, CLASSIFIER, CLASSES, DETECTOR)
     print('Finished Detection')
     print("Sleeping since: " + str(dt.now()))
 
@@ -81,8 +82,8 @@ def main():
     PASSWORD = CONFIG['password']
     TOKEN = CONFIG['token']
     AUTH = CONFIG['authorization']
-    CLASSIFIER = CONFIG['classifier_model']
-    DETECTOR = CONFIG['detector_model']
+    CLASSIFIER_MODEL = CONFIG['classifier_model']
+    DETECTOR_MODEL = CONFIG['detector_model']
     DEV_EMAILS = CONFIG['dev_emails']
     HOST = 'imap.gmail.com'
     RUN_SCHEDULER = CONFIG['run_scheduler']
@@ -93,18 +94,18 @@ def main():
 
     # Load models once
     print("Loading classifier")
-    CLASSIFIER_MODEL, CLASSES = load_model(CLASSIFIER, LABELS)
+    CLASSIFIER, CLASSES = load_model(CLASSIFIER_MODEL, LABELS)
     print("Finished loading classifier")
 
     print("Begin loading detector")
-    DETECTOR_MODEL = megadetector.MegaDetector(DETECTOR)
+    DETECTOR = megadetector.MegaDetector(DETECTOR_MODEL)
     print("Finished loading detector")
 
-    fetch_detect_alert()
+    fetch_detect_alert(CONFIG, CLASSIFIER, CLASSES, DETECTOR)
     if VISUALIZE_OUTPUT is True:
-        schedule.every(RUN_SCHEDULER).seconds.do(fetch_detect_alert)
+        schedule.every(RUN_SCHEDULER).seconds.do(fetch_detect_alert(CONFIG, CLASSIFIER, CLASSES, DETECTOR))
     else:
-        schedule.every(RUN_SCHEDULER).minutes.do(fetch_detect_alert)
+        schedule.every(RUN_SCHEDULER).minutes.do(fetch_detect_alert(CONFIG, CLASSIFIER, CLASSES, DETECTOR))
     schedule.every(CHECKIN_INTERVAL).hours.do(checkin, DEV_EMAILS,
                                               USERNAME, PASSWORD, HOST)
     # schedule.every(30).days.do(post_monthly_obs, TOKEN, AUTH)
