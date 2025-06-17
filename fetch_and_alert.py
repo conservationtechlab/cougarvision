@@ -110,6 +110,7 @@ def main():
                                               USERNAME, PASSWORD, HOST)
     # schedule.every(30).days.do(post_monthly_obs, TOKEN, AUTH)
 
+
     while True:
         schedule.run_pending()
         time.sleep(1)
