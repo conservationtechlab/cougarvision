@@ -26,4 +26,4 @@ dependencies:
       - ultralytics>=8.3.95
       - wget>=3.2
       - schedule>=1.2.2
-
+      - sageranger>=1.0.3
