@@ -4,6 +4,8 @@ email_alerts: True
 er_alerts: True
 #detector_model - path to detector model
 detector_model: /home/johnsmith/cougarvision/detector_models/megadetector.pt
+#type of detection model expected ["MDV5", "MDV6", "YOLO", "ONNX"]
+detector_model_type: "<insert model type"
 #classifier_model - path to classifier model
 classifier_model: /home/johnsmith/cougarvision/classifier_models/EfficientNetB5_456_Unfrozen_05_0.26_0.92.h5 
 checkpoint_frequency: -1 
