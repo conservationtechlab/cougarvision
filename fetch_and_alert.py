@@ -61,9 +61,8 @@ MODEL_TYPE = CONFIG['detector_model_type']
 CHECKIN_INTERVAL = CONFIG['checkin_interval']
 
 # load models once
-CLASSIFIER_MODEL = load_classifier(CLASSIFIER, CLASSES)
+CLASSIFIER_MODEL, CLASS_LIST = load_classifier(CLASSIFIER, CLASSES)
 DETECTOR_MODEL = load_detector(DETECTOR, MODEL_TYPE)
-
 
 def logger():
     '''Function for creating log file'''
@@ -78,7 +77,7 @@ def fetch_detect_alert():
     images = fetch_image_api(CONFIG)
     print('Finished fetching images')
     print('Starting Detection')
-    detect(images, CONFIG, CLASSIFIER_MODEL, DETECTOR_MODEL)
+    detect(images, CONFIG, CLASSIFIER_MODEL, DETECTOR_MODEL, CLASS_LIST)
     print('Finished Detection')
     print("Sleeping since: " + str(dt.now()))
 
