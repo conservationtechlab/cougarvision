@@ -53,7 +53,6 @@ def detect(images, config, c_model, d_model, class_list):
     dev_emails = config['dev_emails']
     host = 'imap.gmail.com'
     token = config['token']
-    classes = config['classes']
     authorization = config['authorization']
 
     if len(images) > 0:
