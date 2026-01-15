@@ -15,9 +15,9 @@ import re
 import sys
 import yaml
 from PIL import Image
-from animl import parse_results, classify, split
+from animl import classification, split
 from sageranger import is_target, attach_image, post_event
-from animl.detectMD import detect_MD_batch
+from animl import detection
 
 from cougarvision_utils.cropping import draw_bounding_box_on_image
 from cougarvision_utils.alert import smtp_setup, send_alert
@@ -58,15 +58,17 @@ def detect(images, config, c_model, d_model):
     if len(images) > 0:
         # extract paths from dataframe
         image_paths = images[:, 2]
+        image_path_list = image_paths.tolist()
         # Run Detection
-        results = detect_MD_batch(d_model,
-                                  image_paths,
-                                  checkpoint_path=None,
-                                  confidence_threshold=confidence,
-                                  checkpoint_frequency=checkpoint_f,
-                                  results=None,
-                                  quiet=False,
-                                  image_size=None)
+        results = detection.detect(d_model,
+                                   image_path_list,
+                                   resize_width=1280,
+                                   resize_height=1280,
+                                   confidence_threshold=confidence,
+                                   checkpoint_frequency=checkpoint_f,
+                                   batch_size=4
+                                   )
+        print(results)
         # Parse results
         data_frame = parse_results.from_MD(results, None, None)
         # filter out all non animal detections
@@ -76,8 +78,8 @@ def detect(images, config, c_model, d_model):
             # run classifier on animal detections if there are any
             if not animal_df.empty:
                 # create generator for images
-                predictions = classify.predict_species(animal_df, c_model,
-                                                       batch=4)
+                predictions = classification.classify(c_model, animal_df,
+                                                      batch_size=4)
                 # Parse results
                 max_df = parse_results.from_classifier(animal_df,
                                                        predictions,
