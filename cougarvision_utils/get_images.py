@@ -128,7 +128,7 @@ def fetch_image_api(config):
                 continue
             newname = config['save_dir'] + camera
             newname += "_" + info['file_thumb_filename']
-            print(newname)
+            # native extension from strikeforce is .JPG.jpeg for some reason
             stripped_name = newname.replace(".JPG.jpeg", ".jpg")
             urllib.request.urlretrieve(info['file_thumb_url'], stripped_name)
             new_photos.append([photos[i]['id'],
