@@ -84,10 +84,11 @@ def detect(images, config, c_model, d_model, class_list):
                                                           batch_size=4)
                 # single classification expects a list
                 class_list_for_series = class_list["species"].tolist()
-                preds = classification.single_classification(animals=animal_df,
-                                                             empty=other_df,
-                                                             predictions_raw=predictions_raw,
-                                                             class_list=class_list_for_series)
+                preds = classification.single_classification(animal_df,
+                                                             None,
+                                                             predictions_raw,
+                                                             class_list_for_series
+                                                             )
                 cougars = preds[preds['prediction'].isin(targets)]
                 # drops all detections with confidence less than threshold
                 cougars = cougars[cougars['confidence'] >= confidence]
