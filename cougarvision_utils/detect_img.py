@@ -103,16 +103,16 @@ def detect(images, config, c_model, d_model, class_list):
                     prob = str(cougars.at[idx, 'confidence'])
                     img = Image.open(cougars.at[idx, 'filepath'])
                     draw_bounding_box_on_image(img,
-                                               cougars.at[idx, 'bbox2'],
-                                               cougars.at[idx, 'bbox1'],
+                                               cougars.at[idx, 'bbox_y'],
+                                               cougars.at[idx, 'bbox_x'],
                                                cougars.at[idx,
-                                                          'bbox2'] +
+                                                          'bbox_y'] +
                                                cougars.at[idx,
-                                                          'bbox4'],
+                                                          'bbox_h'],
                                                cougars.at[idx,
-                                                          'bbox1'] +
+                                                          'bbox_x'] +
                                                cougars.at[idx,
-                                                          'bbox3'],
+                                                          'bbox_w'],
                                                expansion=0,
                                                use_normalized_coordinates=True)
                     image_bytes = BytesIO()
