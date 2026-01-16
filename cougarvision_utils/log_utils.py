@@ -1,7 +1,6 @@
 import csv
-import os.path
-
 import yaml
+import logging
 
 with open("config/fetch_and_alert.yml", 'r') as stream:
     config = yaml.safe_load(stream)

@@ -43,11 +43,7 @@ COLORS = [
 ]
 
 
-def draw_bounding_box_on_image(image,
-                               ymin,
-                               xmin,
-                               ymax,
-                               xmax,
+def draw_bounding_box_on_image(detection,
                                clss=None,
                                thickness=4,
                                expansion=0,
@@ -86,13 +82,24 @@ def draw_bounding_box_on_image(image,
     else:
         color = COLORS[int(clss) % len(COLORS)]
 
-    draw = ImageDraw.Draw(image)
-    im_width, im_height = image.size
+    label = detection['prediction']
+     # uncomment this line to use conf value for dev email alert
+    prob = str(detection['conf'])
+    
+    img = Image.open(detection['file'])
+
+    x_min = detection['bbox_x']
+    y_min = detection['bbox_y']
+    x_max = detection['bbox_x'] + detection['bbox_width']
+    y_max = detection['bbox_y'] + detection['bbox_height']
+
+    draw = ImageDraw.Draw(img)
+    im_width, im_height = img.size
     if use_normalized_coordinates:
-        (left, right, top, bottom) = (xmin * im_width, xmax * im_width,
-                                      ymin * im_height, ymax * im_height)
+        (left, right, top, bottom) = (x_min * im_width, x_max * im_width,
+                                      y_min * im_height, y_max * im_height)
     else:
-        (left, right, top, bottom) = (xmin, xmax, ymin, ymax)
+        (left, right, top, bottom) = (x_min, x_max, y_min, y_max)
 
     if expansion > 0:
         left -= expansion
