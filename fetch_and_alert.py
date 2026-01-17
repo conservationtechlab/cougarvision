@@ -30,38 +30,13 @@ from cougarvision_utils.detect_img import detect
 from cougarvision_utils.alert import checkin
 from cougarvision_utils.get_images import fetch_image_api
 from sageranger.post_monthly import post_monthly_obs
-from animl.classify import load_classifier
-from animl import megadetector
+
+import animl
 
 
 # Numpy FutureWarnings from tensorflow import
 warnings.filterwarnings('ignore', category=FutureWarning)
 # Parse arguments
-PARSER = argparse.ArgumentParser(description='Retrieves images from \
-                                 email & web scraper & runs detection')
-PARSER.add_argument('config', type=str, help='Path to config file')
-ARGS = PARSER.parse_args()
-CONFIG_FILE = ARGS.config
-# Load Configuration Settings from YML file
-with open(CONFIG_FILE, 'r', encoding='utf-8') as stream:
-    CONFIG = yaml.safe_load(stream)
-# Set Email Variables for fetching
-USERNAME = CONFIG['username']
-PASSWORD = CONFIG['password']
-TOKEN = CONFIG['token']
-AUTH = CONFIG['authorization']
-CLASSIFIER = CONFIG['classifier_model']
-DETECTOR = CONFIG['detector_model']
-DEV_EMAILS = CONFIG['dev_emails']
-HOST = 'imap.gmail.com'
-
-
-# Set interval for checking in
-CHECKIN_INTERVAL = CONFIG['checkin_interval']
-
-# load models once
-CLASSIFIER_MODEL = load_classifier(CLASSIFIER)
-DETECTOR_MODEL = megadetector.MegaDetector(DETECTOR)
 
 
 def logger():
@@ -69,7 +44,7 @@ def logger():
     logging.basicConfig(filename='cougarvision.log', level=logging.INFO)
 
 
-def fetch_detect_alert():
+def fetch_detect_alert(CONFIG, CLASSIFIER_MODEL, DETECTOR_MODEL):
     '''Functions for fetching images, detection, and sending alerts'''
     # Run the scheduler
     print("Running fetch_and_alert")
@@ -82,14 +57,26 @@ def fetch_detect_alert():
     print("Sleeping since: " + str(dt.now()))
 
 
-def main():
+def main(CONFIG):
     ''''Runs main program and schedules future runs'''
+    # Set Email Variables for fetching
     logger()
-    fetch_detect_alert()
-    schedule.every(10).minutes.do(fetch_detect_alert)
-    schedule.every(CHECKIN_INTERVAL).hours.do(checkin, DEV_EMAILS,
-                                              USERNAME, PASSWORD, HOST)
-    schedule.every(30).days.do(post_monthly_obs, TOKEN, AUTH)
+    
+    # load models once
+    CLASSIFIER_MODEL = animl.load_classifier(CONFIG['classifier_model'])
+    DETECTOR_MODEL = animl.load_detector( CONFIG['detector_model'], model_type='mdv5')
+
+    # run fetch at start
+    fetch_detect_alert(CONFIG, CLASSIFIER_MODEL, DETECTOR_MODEL)
+
+    # Schedule future fetches
+    schedule.every(10).minutes.do(fetch_detect_alert, CONFIG, CLASSIFIER_MODEL, DETECTOR_MODEL)
+    schedule.every(CONFIG['checkin_interval']).hours.do(checkin,
+                                              CONFIG['dev_emails'],
+                                              CONFIG['username'],
+                                              CONFIG['password'],
+                                              'imap.gmail.com')
+    schedule.every(30).days.do(post_monthly_obs, CONFIG['token'], CONFIG['authorization'])
 
     while True:
         schedule.run_pending()
@@ -97,4 +84,13 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description='Retrieves images from \
+                                 email & web scraper & runs detection')
+    parser.add_argument('config', type=str, help='Path to config file')
+    args = parser.parse_args()
+    config_file = args.config
+    # Load Configuration Settings from YML file
+    with open(config_file, 'r', encoding='utf-8') as stream:
+        CONFIG = yaml.safe_load(stream)
+
+    main(CONFIG)
