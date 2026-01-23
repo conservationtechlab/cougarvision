@@ -128,10 +128,11 @@ def fetch_image_api(config):
                 continue
             newname = config['save_dir'] + camera
             newname += "_" + info['file_thumb_filename']
-            print(newname)
-            urllib.request.urlretrieve(info['file_thumb_url'], newname)
+            # native extension from strikeforce is .JPG.jpeg for some reason
+            stripped_name = newname.replace(".JPG.jpeg", ".jpg")
+            urllib.request.urlretrieve(info['file_thumb_url'], stripped_name)
             new_photos.append([photos[i]['id'],
-                               info['file_thumb_url'], newname])
+                               info['file_thumb_url'], stripped_name])
 
     new_photos = np.array(new_photos)
     if len(new_photos) > 0:  # update last image

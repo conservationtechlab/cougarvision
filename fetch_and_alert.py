@@ -30,8 +30,8 @@ from cougarvision_utils.detect_img import detect
 from cougarvision_utils.alert import checkin
 from cougarvision_utils.get_images import fetch_image_api
 from sageranger.post_monthly import post_monthly_obs
-from animl.classify import load_classifier
-from animl import megadetector
+from animl.classification import load_classifier
+from animl.detection import load_detector 
 
 
 # Numpy FutureWarnings from tensorflow import
@@ -54,15 +54,15 @@ CLASSIFIER = CONFIG['classifier_model']
 DETECTOR = CONFIG['detector_model']
 DEV_EMAILS = CONFIG['dev_emails']
 HOST = 'imap.gmail.com'
-
+CLASSES = CONFIG['classes']
+MODEL_TYPE = CONFIG['detector_model_type']
 
 # Set interval for checking in
 CHECKIN_INTERVAL = CONFIG['checkin_interval']
 
 # load models once
-CLASSIFIER_MODEL = load_classifier(CLASSIFIER)
-DETECTOR_MODEL = megadetector.MegaDetector(DETECTOR)
-
+CLASSIFIER_MODEL, CLASS_LIST = load_classifier(CLASSIFIER, CLASSES)
+DETECTOR_MODEL = load_detector(DETECTOR, MODEL_TYPE)
 
 def logger():
     '''Function for creating log file'''
@@ -77,7 +77,7 @@ def fetch_detect_alert():
     images = fetch_image_api(CONFIG)
     print('Finished fetching images')
     print('Starting Detection')
-    detect(images, CONFIG, CLASSIFIER_MODEL, DETECTOR_MODEL)
+    detect(images, CONFIG, CLASSIFIER_MODEL, DETECTOR_MODEL, CLASS_LIST)
     print('Finished Detection')
     print("Sleeping since: " + str(dt.now()))
 

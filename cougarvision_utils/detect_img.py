@@ -15,9 +15,9 @@ import re
 import sys
 import yaml
 from PIL import Image
-from animl import parse_results, classify, split
+from animl import classification, split
 from sageranger import is_target, attach_image, post_event
-from animl.detectMD import detect_MD_batch
+from animl import detection
 
 from cougarvision_utils.cropping import draw_bounding_box_on_image
 from cougarvision_utils.alert import smtp_setup, send_alert
@@ -28,7 +28,7 @@ with open("config/cameratraps.yml", 'r') as stream:
     sys.path.append(CAM_CONFIG['camera_traps_path'])
 
 
-def detect(images, config, c_model, d_model):
+def detect(images, config, c_model, d_model, class_list):
     '''
     This function takes in a dataframe of images and runs a detector model,
     classifies the species of interest, and sends alerts either to email or an
@@ -46,7 +46,6 @@ def detect(images, config, c_model, d_model):
     log_dir = config['log_dir']
     checkpoint_f = config['checkpoint_frequency']
     confidence = config['confidence']
-    classes = config['classes']
     targets = config['alert_targets']
     username = config['username']
     password = config['password']
@@ -55,61 +54,66 @@ def detect(images, config, c_model, d_model):
     host = 'imap.gmail.com'
     token = config['token']
     authorization = config['authorization']
+
     if len(images) > 0:
         # extract paths from dataframe
         image_paths = images[:, 2]
+        # detection.detect expects the image paths in a list
+        image_path_list = image_paths.tolist()
         # Run Detection
-        results = detect_MD_batch(d_model,
-                                  image_paths,
-                                  checkpoint_path=None,
-                                  confidence_threshold=confidence,
-                                  checkpoint_frequency=checkpoint_f,
-                                  results=None,
-                                  quiet=False,
-                                  image_size=None)
+        results = detection.detect(d_model,
+                                   image_path_list,
+                                   resize_width=1280,
+                                   resize_height=1280,
+                                   confidence_threshold=confidence,
+                                   checkpoint_frequency=checkpoint_f,
+                                   batch_size=4
+                                   )
         # Parse results
-        data_frame = parse_results.from_MD(results, None, None)
+        data_frame = detection.parse_detections(results)
+        # single classification function checks for the file extension so we add it
+        data_frame["extension"] = data_frame["filepath"].str.extract(r'(\.[^.]+)$', expand=False).str.lower()
         # filter out all non animal detections
         if not data_frame.empty:
-            animal_df = split.getAnimals(data_frame)
-            other_df = split.getEmpty(data_frame)
+            animal_df = split.get_animals(data_frame)
+            other_df = split.get_empty(data_frame)
             # run classifier on animal detections if there are any
             if not animal_df.empty:
-                # create generator for images
-                predictions = classify.predict_species(animal_df, c_model,
-                                                       batch=4)
-                # Parse results
-                max_df = parse_results.from_classifier(animal_df,
-                                                       predictions,
-                                                       classes,
-                                                       None)
-                # Creates a data frame with all relevant data
-                cougars = max_df[max_df['prediction'].isin(targets)]
+                predictions_raw = classification.classify(c_model,
+                                                          animal_df,
+                                                          batch_size=4)
+                # single classification expects a list
+                class_list_for_series = class_list["species"].tolist()
+                preds = classification.single_classification(animal_df,
+                                                             None,
+                                                             predictions_raw,
+                                                             class_list_for_series
+                                                             )
+                cougars = preds[preds['prediction'].isin(targets)]
                 # drops all detections with confidence less than threshold
-                cougars = cougars[cougars['conf'] >= confidence]
+                cougars = cougars[cougars['confidence'] >= confidence]
                 # reset dataframe index
                 cougars = cougars.reset_index(drop=True)
                 # create a row in the dataframe containing only the camera name
                 # flake8: disable-next
-                cougars['cam_name'] = cougars['file'].apply(lambda x: re.findall(r'[A-Z]\d+', x)[0])  # noqa: E501  # pylint: disable-msg=line-too-long
+                cougars['cam_name'] = cougars['filepath'].apply(lambda x: re.findall(r'[A-Z]\d+', x)[0])  # noqa: E501  # pylint: disable-msg=line-too-long
                 # Sends alert for each cougar detection
                 for idx in range(len(cougars.index)):
                     label = cougars.at[idx, 'prediction']
                     # uncomment this line to use conf value for dev email alert
-                    prob = str(cougars.at[idx, 'conf'])
-                    label = cougars.at[idx, 'class']
-                    img = Image.open(cougars.at[idx, 'file'])
+                    prob = str(cougars.at[idx, 'confidence'])
+                    img = Image.open(cougars.at[idx, 'filepath'])
                     draw_bounding_box_on_image(img,
-                                               cougars.at[idx, 'bbox2'],
-                                               cougars.at[idx, 'bbox1'],
+                                               cougars.at[idx, 'bbox_y'],
+                                               cougars.at[idx, 'bbox_x'],
                                                cougars.at[idx,
-                                                          'bbox2'] +
+                                                          'bbox_y'] +
                                                cougars.at[idx,
-                                                          'bbox4'],
+                                                          'bbox_h'],
                                                cougars.at[idx,
-                                                          'bbox1'] +
+                                                          'bbox_x'] +
                                                cougars.at[idx,
-                                                          'bbox3'],
+                                                          'bbox_w'],
                                                expansion=0,
                                                use_normalized_coordinates=True)
                     image_bytes = BytesIO()
