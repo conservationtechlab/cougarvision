@@ -85,7 +85,7 @@ def detect(images, config, c_model, d_model, class_list):
                 # single classification expects a list
                 class_list_for_series = class_list["species"].tolist()
                 preds = classification.single_classification(animal_df,
-                                                             other_df,
+                                                             None,
                                                              predictions_raw,
                                                              class_list_for_series
                                                              )
