@@ -29,7 +29,7 @@ import schedule
 from cougarvision_utils.detect_img import detect
 from cougarvision_utils.alert import checkin
 from cougarvision_utils.get_images import fetch_image_api
-from sageranger.post_monthly import post_monthly_obs
+#from sageranger.post_monthly import post_monthly_obs
 from animl.classification import load_classifier
 from animl.detection import load_detector 
 
@@ -89,7 +89,7 @@ def main():
     schedule.every(10).minutes.do(fetch_detect_alert)
     schedule.every(CHECKIN_INTERVAL).hours.do(checkin, DEV_EMAILS,
                                               USERNAME, PASSWORD, HOST)
-    schedule.every(30).days.do(post_monthly_obs, TOKEN, AUTH)
+    #schedule.every(30).days.do(post_monthly_obs, TOKEN, AUTH)
 
     while True:
         schedule.run_pending()

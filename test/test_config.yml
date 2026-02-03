@@ -1,0 +1,117 @@
+#home_dir - path to local cougarvision repo
+
+home_dir: /home/kyra/cougarvision 
+
+#True to send detections to consumer emails
+
+email_alerts: True
+
+#True to send detections to earthranger
+
+# 1 = email alerts and 2 = earthranger alerts
+
+er_alerts: False
+
+#detector_model - path to detector model
+
+detector_model: /home/kyra/models/md_v5a.0.0.pt 
+
+#classifier_model - path to classifier model
+
+detector_model_type: "MDV5"
+
+classifier_model: /home/kyra/models/sdzwa_southwest_v3.pt 
+
+checkpoint_frequency: -1 
+
+#log_dir - path to logs (must create this folder first)
+
+log_dir: /home/kyra/cougarvision/test/logs/
+
+#classes - path to the class list for the classifier model
+
+classes: /home/kyra/models/sdzwa_southwest_v3_classes.csv
+#Run version that allows for images cast to two screens? True/False
+
+visualize_output: True
+
+#for visualizing output, folder for cougarvision to put all images
+
+path_to_unlabeled_output: /home/kyra/cougarvision/test/unlabeled
+#for visualizing output, folder for cougarvision detections with bounding boxes
+
+path_to_labeled_output: /home/kyra/cougarvision/test/labeled
+
+#the emails that will receive email alerts, can be multiple emails
+
+consumer_emails: [tswanson@sdzwa.org]
+
+#emails to recieve daily check-in and confidence of detections 
+
+dev_emails: [tswanson@sdzwa.org] 
+
+#threshold confidence score 
+
+confidence: 0.1
+
+#cpu threads
+
+threads: 8
+
+#strike force api url
+
+strikeforce_api: 'https://api.strikeforcewireless.com/api/v2/'
+
+#strikeforce wireless username 
+
+username_scraper: ['wlc_overnight@sdzwa.org']
+
+password_scraper: ['CougarF307!']
+
+auth_token: ['6Snstg7_zHiAcptQw9xS'] #nWzMPu-ytLvatjyAL7kN
+
+#save_dir - path to where the images get stored (must create folder)
+
+save_dir: /home/kyra/cougarvision/test/images/
+
+username: bioreserve.cam@gmail.com
+
+password: bwdlcxasdytfekof
+
+#dict of camera names and their respective strikeforce wireless ids, these must be retrieved from
+
+#strikeforce wireless web dev tools in the code and currently the cam names must be 4 chars long 
+
+camera_names: {'62201': B018, '59681': B013, '59758': B015, '60095': B014, '60272': B017, '85767': B041, '105353': B044, '105355': B045, '105357': B046, '1003059': ONWLC22, '1003060': ONWLC23, '1003062': ONWLC24, '109922': ONWLC26, '113890': ONWLC27, '109918': ONWLC28, '109916': ONWLC29, '109923': ONWLC30, '109924': ONWLC31, '109925': ONWLC32, '109917': ONWLC33, '109915': ONWLC34, '109914': ONWLC35, '109913': ONWLC36, '113891': ONWLC37, '113892': ONWLC38, '113893': ONWLC39, '113895': ONWLC41, '113896': ONWLC42, '113898': ONWLC44, '132191': ONWLC45, '113900': ONWLC46, '113902': ONWLC48, '132190': ONWLC49, '113904': ONWLC50, '113906': ONWLC51, '123835': ONWLC52, '113908': ONWLC53, '113909': ONWLC54, '113910': ONWLC55, '113911': ONWLC56, '113913': ONWLC58, '156810': ONWLC60, '523781': ONWLC61, '1008807': ONWLC62, '1008163': ONWLC63, '1003058': ONWLC64, '1003061': ONWLC66, '1003057': ONWLC68, '1007862': ONWLC69, '1007861': ONWLC70, '1016851': ONWLC71, '1016852': ONWLC72, '1016853': ONWLC73, '1016854': ONWLC74, '1016868': ONWLC75, '1016855': ONWLC76, '1016867': ONWLC77, '1016861': ONWLC78, '1016864': ONWLC80, '1016866': ONWLC81, '988595': ONWLC82}  
+
+#animals that the detector will send alerts for if detected (from class list)
+
+alert_targets: [cougar, bobcat, deer, vehicle, human]
+
+#checkn_interval - time interval between still-alive emails to let us know no errors have crashed
+
+#cougarvision if it's running constantly
+
+checkin_interval: 24
+
+#x-csrf token retreived from earthranger interactive api example requests, must be logged into an
+
+#existing earthranger account with interactive api access
+
+token: [insert token]
+
+#authorization bearer token retreived from same earthranger interactive api example requests 
+
+authorization: Bearer 43qt77645vwub34cqv5y4vb6uvcougarvision
+
+#the time between repeating running fetch_and_alert, if visualize_output = True, it will be in seconds and if it = False it will be in minutes
+
+run_scheduler: 10
+
+#color of the bounding box
+
+color: 'LawnGreen'
+
+#color: 'Orange'
+
+#color: 'Azure'
