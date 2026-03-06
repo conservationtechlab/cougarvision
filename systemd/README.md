@@ -2,6 +2,7 @@ If you want cougarvision to run on reboots automatically,
 edit the below scripts to match your user/paths and run the following:
 
 ```
+sudo chmod +x cougarvision.sh
 sudo cp cougarvision.service /etc/systemd/system/cougarvision.service
 sudo systemctl daemon-reload
 sudo systemctl start cougarvision.service
