@@ -30,8 +30,7 @@ from cougarvision_utils.detect_img import detect
 from cougarvision_utils.alert import checkin
 from cougarvision_utils.get_images import fetch_image_api
 from sageranger.post_monthly import post_monthly_obs
-from animl.classification import load_classifier
-from animl.detection import load_detector 
+from animl.classification import load_classifier, load_detector
 
 
 # Numpy FutureWarnings from tensorflow import
