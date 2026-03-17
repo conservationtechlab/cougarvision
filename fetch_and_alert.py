@@ -63,6 +63,7 @@ CHECKIN_INTERVAL = CONFIG['checkin_interval']
 CLASSIFIER_MODEL, CLASS_LIST = load_classifier(CLASSIFIER, CLASSES)
 DETECTOR_MODEL = load_detector(DETECTOR, MODEL_TYPE)
 
+
 def logger():
     '''Function for creating log file'''
     logging.basicConfig(filename='cougarvision.log', level=logging.INFO)
