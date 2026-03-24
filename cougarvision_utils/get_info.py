@@ -1,6 +1,5 @@
 
 import argparse
-import warnings
 import yaml
 
 from animl.classification import load_classifier
@@ -9,15 +8,9 @@ from animl.detection import load_detector
 class ConfigInfo:
     """ This class is used to define elements from the config file"""
     #class atributes
-    # Numpy FutureWarnings from tensorflow import
-    #warnings.filterwarnings('ignore', category=FutureWarning)
-    # Parse arguments
-    #PARSER = argparse.ArgumentParser(description='Retrieves images from \
-    #                             email & web scraper & runs detection')
-    #PARSER.add_argument('config', type=str, help='Path to config file')
-    #ARGS = PARSER.parse_args()
+
     def __init__(self, config_path: str):
-        #CONFIG_FILE = ARGS.config
+
         with open(config_path, 'r', encoding='utf-8') as stream:
             self.CONFIG = yaml.safe_load(stream)
         
