@@ -105,13 +105,27 @@ def fetch_detect_alert(config):
     print('Finished Detection')
     print("Sleeping since: " + str(dt.now()))
 
+#adding args to main instead of class
+def parse_args():
+    # Numpy FutureWarnings from tensorflow import
+    warnings.filterwarnings('ignore', category=FutureWarning) 
+    PARSER = argparse.ArgumentParser(description='Retrieves images from \
+                                 email & web scraper & runs detection')
+    PARSER.add_argument('config', type=str, help='Path to config file')
+    
+    #return args container
+    return PARSER.parse_args()
 
+
+   
 def main():
     ''''Runs main program and schedules future runs'''
     logger()
-    config = ConfigInfo()
-    #pass config object
-    fetch_detect_alert(config)
+    args = parse_args()
+    config = ConfigInfo(args)
+    #pass arguement config from args container
+    fetch_detect_alert(args.config)
+    
     #lambda keeps fetch and detect callable
     schedule.every(config.INTERVAL).minutes.do(lambda: fetch_detect_alert(config))
     schedule.every(config.CHECKIN_INTERVAL).hours.do(checkin, config.DEV_EMAILS,
