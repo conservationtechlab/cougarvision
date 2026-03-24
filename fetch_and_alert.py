@@ -31,56 +31,68 @@ from cougarvision_utils.alert import checkin
 from cougarvision_utils.get_images import fetch_image_api
 from cougarvision_utils.get_info import ConfigInfo
 
+
 def logger():
     '''Function for creating log file'''
     logging.basicConfig(filename='cougarvision.log', level=logging.INFO)
 
-#added config agruement
+
 def fetch_detect_alert(config):
     '''Functions for fetching images, detection, and sending alerts'''
     # Run the scheduler
     print("Running fetch_and_alert")
     print("Fetching images")
-    #changed CONFIG to config
     images = fetch_image_api(config)
     print('Finished fetching images')
     print('Starting Detection')
-    #changed CONFIG to config and added class
-    #actually dont need to pass these arguements just need config?
-    detect(images, config, config.CLASSIFIER_MODEL, config.DETECTOR_MODEL, config.CLASS_LIST)
+    # actually dont need to pass these arguements just need config?
+    detect(images, config, config.CLASSIFIER_MODEL,
+           config.DETECTOR_MODEL, config.CLASS_LIST)
     print('Finished Detection')
     print("Sleeping since: " + str(dt.now()))
 
-#adding args to main instead of class
+
 def parse_args():
-    ''' This function creates an arguement parser that creates an args container
-    with the arguement 'CONFIG'. It returns the container to access config file 
-    path use args.CONFIG after calling parse_args()
+    ''' This function creates an arguement parser that creates an
+    args container with the arguement 'CONFIG'. It returns the
+    container to access config file path use args.CONFIG after
+    calling parse_args()
     '''
-    # Numpy FutureWarnings from tensorflow import
-    warnings.filterwarnings('ignore', category=FutureWarning)
+
     parser = argparse.ArgumentParser(description='Retrieves images from \
                                     email & web scraper & runs detection')
     parser.add_argument('CONFIG', type=str, help='Path to config file')
-    #return args container
+
+    # return args container
     return parser.parse_args()
 
 
 def main():
     ''''Runs main program and schedules future runs'''
+
+    # Numpy FutureWarnings from tensorflow import
+    warnings.filterwarnings('ignore', category=FutureWarning)
+
     logger()
     args = parse_args()
     config_path = args.CONFIG
     config = ConfigInfo(config_path)
 
-    #pass arguement config from args container
+    # pass arguement config from args container
     fetch_detect_alert(config)
 
-    #lambda keeps fetch and detect callable
-    schedule.every(config.INTERVAL).minutes.do(lambda: fetch_detect_alert(config))
-    schedule.every(config.CHECKIN_INTERVAL).hours.do(checkin, config.DEV_EMAILS,
-                                              config.USERNAME, config.PASSWORD, config.HOST)
-    schedule.every(30).days.do(post_monthly_obs, config.TOKEN, config.AUTH)
+    # lambda keeps fetch and detect callable
+    schedule.every(config.INTERVAL).minutes.do(lambda:
+                                               fetch_detect_alert(config))
+    schedule.every(config.CHECKIN_INTERVAL).hours.do(
+                                                     checkin,
+                                                     config.DEV_EMAILS,
+                                                     config.USERNAME,
+                                                     config.PASSWORD,
+                                                     config.HOST
+                                                     )
+    schedule.every(30).days.do(post_monthly_obs,
+                               config.TOKEN, config.AUTH)
 
     while True:
         schedule.run_pending()
