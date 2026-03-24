@@ -87,14 +87,14 @@ def fetch_image_api(config):
         run through the detector, includes only new photos since last run
     '''
 
-    #replace hardcorded path test
+    # replace hardcorded path
     path = config.id_path
     checkfile = os.path.exists(path)
     if checkfile is False:
-        #can i replace with config.path?
         new_file = open(path, "x")
         new_file.close()
-        first_id = str(0) # function to get the most recent id from sf)
+        first_id = str(0)
+        # function to get the most recent id from sf)
         new_file = open(path, 'w')
         new_file.writelines(first_id)
         new_file.close()
@@ -107,7 +107,7 @@ def fetch_image_api(config):
     id_file.close()
     photos = []
 # 5 second delay between captures, maximum 12 photos between checks
-#using config object
+# using config object
     for account, token in zip(config.accounts, config.auth_token):
         data = request_strikeforce(account, token, config.base,
                                    "photos/recent", "limit=12")
@@ -120,16 +120,14 @@ def fetch_image_api(config):
             info = photos[i]['attributes']
             print(info)
             try:
-                #camera = camera_names[photos[i]['relationships']
-                #                     ['camera']['data']['id']]
+
                 camera = config.camera_names[photos[i]['relationships']
-                                     ['camera']['data']['id']]
+                                             ['camera']['data']['id']]
             except KeyError:
                 logging.warning('Cannot retrieve photo from camera\
                 as there is no asssociated ID in the config file')
                 continue
-            #testing change
-            #newname = config['save_dir'] + camera
+
             newname = config.save_dir + camera
             newname += "_" + info['file_thumb_filename']
             # native extension from strikeforce is .JPG.jpeg for some reason
