@@ -34,7 +34,7 @@ class ConfigInfo:
         self.classifier_model, self.class_list = load_classifier(
                                                 self.classifier,
                                                 self.classes)
-        self.detector = load_detector(self.detector, self.model_type)
+        self.detector_model = load_detector(self.detector, self.model_type)
         # for detect
         self.email_alerts = bool(self.config['email_alerts'])
         self.er_alerts = bool(self.config['er_alerts'])

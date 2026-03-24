@@ -109,7 +109,7 @@ def fetch_image_api(config):
 # 5 second delay between captures, maximum 12 photos between checks
 #using config object
     for account, token in zip(config.accounts, config.auth_token):
-        data = request_strikeforce(account, token, config.BASE,
+        data = request_strikeforce(account, token, config.base,
                                    "photos/recent", "limit=12")
         photos += data['photos']['data']
 

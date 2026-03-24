@@ -22,10 +22,10 @@ from animl import detection
 from cougarvision_utils.cropping import draw_bounding_box_on_image
 from cougarvision_utils.alert import smtp_setup, send_alert
 
-
-with open("config/cameratraps.yml", 'r') as stream:
-    CAM_CONFIG = yaml.safe_load(stream)
-    sys.path.append(CAM_CONFIG['camera_traps_path'])
+#found error dont need this ?
+#ith open("config/cameratraps.yml", 'r') as stream:
+#    CAM_CONFIG = yaml.safe_load(stream)
+#    sys.path.append(CAM_CONFIG['camera_traps_path'])
 
 
 def detect(images, config, c_model, d_model, class_list):
@@ -41,20 +41,9 @@ def detect(images, config, c_model, d_model, class_list):
     config: the unpacked config values from fetch_and_alert.yml that contains
         necessary parameters the function needs
     '''
-    #email_alerts = bool(config['email_alerts'])
-    #er_alerts = bool(config['er_alerts'])
-    #log_dir = config['log_dir']
-    #checkpoint_f = config['checkpoint_frequency']
-    #confidence = config['confidence']
-    #targets = config['alert_targets']
-    #username = config['username']
-    #password = config['password']
-    #consumer_emails = config['consumer_emails']
-    #dev_emails = config['dev_emails']
-    #host = 'imap.gmail.com'
-    #token = config['token']
-    #authorization = config['authorization']
-
+    #this works to replace the above commented code but not sure why is is added to path ?
+    sys.path.append(config.traps_path)
+   
     if len(images) > 0:
         # extract paths from dataframe
         image_paths = images[:, 2]
@@ -65,8 +54,8 @@ def detect(images, config, c_model, d_model, class_list):
                                    image_path_list,
                                    resize_width=1280,
                                    resize_height=1280,
-                                   confidence_threshold=config.CONFIDENCE,
-                                   checkpoint_frequency=config.CHECKPOINT_F,
+                                   confidence_threshold=config.confidence,
+                                   checkpoint_frequency=config.checkpoint_f,
                                    batch_size=4
                                    )
         # Parse results
@@ -89,9 +78,9 @@ def detect(images, config, c_model, d_model, class_list):
                                                              predictions_raw,
                                                              class_list_for_series
                                                              )
-                cougars = preds[preds['prediction'].isin(config.TARGETS)]
+                cougars = preds[preds['prediction'].isin(config.targets)]
                 # drops all detections with confidence less than threshold
-                cougars = cougars[cougars['confidence'] >= config.CONFIDENCE]
+                cougars = cougars[cougars['confidence'] >= config.confidence]
                 # reset dataframe index
                 cougars = cougars.reset_index(drop=True)
                 # create a row in the dataframe containing only the camera name
@@ -120,28 +109,28 @@ def detect(images, config, c_model, d_model, class_list):
                     img.save(image_bytes, format="JPEG")
                     img_byte = image_bytes.getvalue()
                     cam_name = cougars.at[idx, 'cam_name']
-                    if label in config.TARGETS and config.ER_ALERTS is True:
-                        is_target(cam_name, config.TOKEN, config.AUTH, label)
+                    if label in config.targets and config.er_alerts is True:
+                        is_target(cam_name, config.token, config.auth, label)
                     # Email or Earthranger alerts as dictated in the config yml
-                    if config.ER_ALERTS is True:
+                    if config.er_alerts is True:
                         event_id = post_event(label,
                                               cam_name,
-                                              config.TOKEN,
-                                              config.AUTH)
+                                              config.token,
+                                              config.auth)
                         response = attach_image(event_id,
                                                 img_byte,
-                                                config.TOKEN,
-                                                config.AUTH,
+                                                config.token,
+                                                config.auth,
                                                 label)
                         print(response)
-                    if config.EMAIL_ALERTS is True:
-                        smtp_server = smtp_setup(config.USERNAME, config.PASSWORD, config.HOST)
+                    if config.email_alerts is True:
+                        smtp_server = smtp_setup(config.username, config.password, config.host)
                         dev = 0
                         send_alert(label, image_bytes, smtp_server,
-                                   config.USERNAME, config.CONSUMER_EMAILS, dev, prob)
+                                   config.username, config.consumer_emails, dev, prob)
                         dev = 1
                         send_alert(label, image_bytes, smtp_server,
-                                   config.USERNAME, config.DEV_EMAILS, dev, prob)
+                                   config.username, config.dev_emails, dev, prob)
                 # Write Dataframe to csv
                 date = "%m-%d-%Y_%H:%M:%S"
                 cougars.to_csv(f'{config.LOG_DIR}dataframe_{dt.now().strftime(date)}')
