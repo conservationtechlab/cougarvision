@@ -3,7 +3,6 @@ ConfigInfo is a class that holds attributes from the configuration
 file (fetch_and_cougar.yml). It expects a configuration file path
 to be provided when initalizing a configInfo object.
 '''
-# import argparse
 import yaml
 
 from animl.classification import load_classifier
@@ -12,8 +11,6 @@ from animl.detection import load_detector
 
 class ConfigInfo:
     """ This class is used to define elements from the config file"""
-    # class atributes
-
     def __init__(self, config_path: str):
 
         with open(config_path, 'r', encoding='utf-8') as stream:
