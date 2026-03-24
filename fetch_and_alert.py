@@ -45,9 +45,7 @@ def fetch_detect_alert(config):
     images = fetch_image_api(config)
     print('Finished fetching images')
     print('Starting Detection')
-    # actually dont need to pass these arguements just need config?
-    detect(images, config, config.CLASSIFIER_MODEL,
-           config.DETECTOR_MODEL, config.CLASS_LIST)
+    detect(images, config)
     print('Finished Detection')
     print("Sleeping since: " + str(dt.now()))
 
@@ -82,17 +80,17 @@ def main():
     fetch_detect_alert(config)
 
     # lambda keeps fetch and detect callable
-    schedule.every(config.INTERVAL).minutes.do(lambda:
+    schedule.every(config.interval).minutes.do(lambda:
                                                fetch_detect_alert(config))
-    schedule.every(config.CHECKIN_INTERVAL).hours.do(
+    schedule.every(config.checkin_interval).hours.do(
                                                      checkin,
-                                                     config.DEV_EMAILS,
-                                                     config.USERNAME,
-                                                     config.PASSWORD,
-                                                     config.HOST
+                                                     config.dev_emails,
+                                                     config.username,
+                                                     config.password,
+                                                     config.host
                                                      )
     schedule.every(30).days.do(post_monthly_obs,
-                               config.TOKEN, config.AUTH)
+                               config.token, config.auth)
 
     while True:
         schedule.run_pending()
