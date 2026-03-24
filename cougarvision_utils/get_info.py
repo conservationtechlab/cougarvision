@@ -10,48 +10,50 @@ class ConfigInfo:
     """ This class is used to define elements from the config file"""
     #class atributes
     # Numpy FutureWarnings from tensorflow import
-    warnings.filterwarnings('ignore', category=FutureWarning)
+    #warnings.filterwarnings('ignore', category=FutureWarning)
     # Parse arguments
-    PARSER = argparse.ArgumentParser(description='Retrieves images from \
-                                 email & web scraper & runs detection')
-    PARSER.add_argument('config', type=str, help='Path to config file')
-    ARGS = PARSER.parse_args()
-    CONFIG_FILE = ARGS.config
-    with open(CONFIG_FILE, 'r', encoding='utf-8') as stream:
-        CONFIG = yaml.safe_load(stream)
+    #PARSER = argparse.ArgumentParser(description='Retrieves images from \
+    #                             email & web scraper & runs detection')
+    #PARSER.add_argument('config', type=str, help='Path to config file')
+    #ARGS = PARSER.parse_args()
+    def __init__(self, config_path: str):
+        #CONFIG_FILE = ARGS.config
+        with open(config_path, 'r', encoding='utf-8') as stream:
+            self.CONFIG = yaml.safe_load(stream)
         
-    USERNAME = CONFIG['username']
-    PASSWORD = CONFIG['password']
-    TOKEN = CONFIG['token']
-    AUTH = CONFIG['authorization']
-    CLASSIFIER = CONFIG['classifier_model']
-    DETECTOR = CONFIG['detector_model']
-    DEV_EMAILS = CONFIG['dev_emails']
-    HOST = 'imap.gmail.com'
-    CLASSES = CONFIG['classes']
-    MODEL_TYPE = CONFIG['detector_model_type']
-    CHECKIN_INTERVAL = CONFIG['checkin_interval']
-    INTERVAL = CONFIG['run_scheduler']
-    CLASSIFIER_MODEL, CLASS_LIST = load_classifier(CLASSIFIER, CLASSES)
-    DETECTOR_MODEL = load_detector(DETECTOR, MODEL_TYPE)
-    #for detect
-    EMAIL_ALERTS = bool(CONFIG['email_alerts'])
-    ER_ALERTS = bool(CONFIG['er_alerts'])
-    LOG_DIR = CONFIG['log_dir']
-    CHECKPOINT_F= CONFIG['checkpoint_frequency']
-    CONFIDENCE = CONFIG['confidence']
-    TARGETS = CONFIG['alert_targets']
-    CONSUMER_EMAILS= CONFIG['consumer_emails']
-    TOKEN = CONFIG['token']
-    #for fetch image api
-    SAVE_DIR = CONFIG['save_dir'] 
-    CAMERA_NAMES = dict(CONFIG['camera_names'])
-    BASE = CONFIG['strikeforce_api']
-    ACCOUNTS = CONFIG['username_scraper']
-    AUTH_TOKEN = CONFIG['auth_token']
-    PATH = "./last_id.txt"
-    PASSWORD_SCRAPER = CONFIG['password_scraper']
+        self.USERNAME = self.CONFIG['username']
+        self.PASSWORD = self.CONFIG['password']
+        self.TOKEN = self.CONFIG['token']
+        self.AUTH = self.CONFIG['authorization']
+        self.CLASSIFIER = self.CONFIG['classifier_model']
+        self.DETECTOR = self.CONFIG['detector_model']
+        self.DEV_EMAILS = self.CONFIG['dev_emails']
+        self.HOST = self.CONFIG['host']
+        self.CLASSES = self.CONFIG['classes']
+        self.MODEL_TYPE = self.CONFIG['detector_model_type']
+        self.CHECKIN_INTERVAL = self.CONFIG['checkin_interval']
+        self.INTERVAL = self.CONFIG['run_scheduler']
+        self.CLASSIFIER_MODEL, self.CLASS_LIST = load_classifier(self.CLASSIFIER, self.CLASSES)
+        self.DETECTOR_MODEL = load_detector(self.DETECTOR, self.MODEL_TYPE)
+        #for detect
+        self.EMAIL_ALERTS = bool(self.CONFIG['email_alerts'])
+        self.ER_ALERTS = bool(self.CONFIG['er_alerts'])
+        self.LOG_DIR = self.CONFIG['log_dir']
+        self.CHECKPOINT_F= self.CONFIG['checkpoint_frequency']
+        self.CONFIDENCE = self.CONFIG['confidence']
+        self.TARGETS = self.CONFIG['alert_targets']
+        self.CONSUMER_EMAILS= self.CONFIG['consumer_emails']
+        self.TOKEN = self.CONFIG['token']
+        #for fetch image api
+        self.SAVE_DIR = self.CONFIG['save_dir'] 
+        self.CAMERA_NAMES = dict(self.CONFIG['camera_names'])
+        self.BASE = self.CONFIG['strikeforce_api']
+        self.ACCOUNTS = self.CONFIG['username_scraper']
+        self.AUTH_TOKEN = self.CONFIG['auth_token']
+        self.PATH = self.CONFIG['path']
+        self.PASSWORD_SCRAPER = self.CONFIG['password_scraper']
 
-    def _init_(self):
-        #do nothing 
-        print("")
+
+
+
+
