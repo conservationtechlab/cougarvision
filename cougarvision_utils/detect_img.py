@@ -13,19 +13,13 @@ from io import BytesIO
 from datetime import datetime as dt
 import re
 import sys
-import yaml
 from PIL import Image
 from animl import classification, split
-from sageranger import is_target, attach_image, post_event
 from animl import detection
+from sageranger import is_target, attach_image, post_event
 
 from cougarvision_utils.cropping import draw_bounding_box_on_image
 from cougarvision_utils.alert import smtp_setup, send_alert
-
-#found error dont need this ?
-#ith open("config/cameratraps.yml", 'r') as stream:
-#    CAM_CONFIG = yaml.safe_load(stream)
-#    sys.path.append(CAM_CONFIG['camera_traps_path'])
 
 
 def detect(images, config):
@@ -41,9 +35,10 @@ def detect(images, config):
     config: the unpacked config values from fetch_and_alert.yml that contains
         necessary parameters the function needs
     '''
-    #this works to replace the above commented code but not sure why is is added to path ?
+    # add path to camera traps repository instead using
+    # cougar traps yaml
     sys.path.append(config.traps_path)
-   
+
     if len(images) > 0:
         # extract paths from dataframe
         image_paths = images[:, 2]
@@ -60,8 +55,11 @@ def detect(images, config):
                                    )
         # Parse results
         data_frame = detection.parse_detections(results)
-        # single classification function checks for the file extension so we add it
-        data_frame["extension"] = data_frame["filepath"].str.extract(r'(\.[^.]+)$', expand=False).str.lower()
+        # single classification function checks for the file
+        # extension so we add it
+        data_frame["extension"] = data_frame["filepath"].str.extract(
+                                            r'(\.[^.]+)$',
+                                            expand=False).str.lower()
         # filter out all non animal detections
         if not data_frame.empty:
             animal_df = split.get_animals(data_frame)
@@ -70,7 +68,8 @@ def detect(images, config):
             if not animal_df.empty:
                 predictions_raw = classification.classify(config.classifer_model,
                                                           animal_df,
-                                                          batch_size=4)
+                                                          batch_size=4
+                                                          )
                 # single classification expects a list
                 class_list_for_series = config.class_list["species"].tolist()
                 preds = classification.single_classification(animal_df,
@@ -124,13 +123,19 @@ def detect(images, config):
                                                 label)
                         print(response)
                     if config.email_alerts is True:
-                        smtp_server = smtp_setup(config.username, config.password, config.host)
+                        smtp_server = smtp_setup(config.username,
+                                                 config.password,
+                                                 config.host
+                                                 )
                         dev = 0
                         send_alert(label, image_bytes, smtp_server,
-                                   config.username, config.consumer_emails, dev, prob)
+                                   config.username, config.consumer_emails,
+                                   dev, prob
+                                   )
                         dev = 1
                         send_alert(label, image_bytes, smtp_server,
-                                   config.username, config.dev_emails, dev, prob)
+                                   config.username, config.dev_emails,
+                                   dev, prob)
                 # Write Dataframe to csv
                 date = "%m-%d-%Y_%H:%M:%S"
                 cougars.to_csv(f'{config.LOG_DIR}dataframe_{dt.now().strftime(date)}')
