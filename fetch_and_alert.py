@@ -23,67 +23,13 @@ import time
 import warnings
 from datetime import datetime as dt
 import logging
-import yaml
 import schedule
 
 from sageranger.post_monthly import post_monthly_obs
-from animl.classification import load_classifier
-from animl.detection import load_detector 
 from cougarvision_utils.detect_img import detect
 from cougarvision_utils.alert import checkin
 from cougarvision_utils.get_images import fetch_image_api
 from cougarvision_utils.get_info import ConfigInfo
-
-#class ConfigInfo:
- #   """ This class is used to define elements from the config file"""
-    #class atributes
-    # Numpy FutureWarnings from tensorflow import
-#    warnings.filterwarnings('ignore', category=FutureWarning)
-    # Parse arguments
-#    PARSER = argparse.ArgumentParser(description='Retrieves images from \
-#                                 email & web scraper & runs detection')
-#    PARSER.add_argument('config', type=str, help='Path to config file')
-#    ARGS = PARSER.parse_args()
-#    CONFIG_FILE = ARGS.config
-#    with open(CONFIG_FILE, 'r', encoding='utf-8') as stream:
-#        CONFIG = yaml.safe_load(stream)
-        
-#    USERNAME = CONFIG['username']
-#    PASSWORD = CONFIG['password']
-#    TOKEN = CONFIG['token']
-#    AUTH = CONFIG['authorization']
-#    CLASSIFIER = CONFIG['classifier_model']
-#   DETECTOR = CONFIG['detector_model']
-#    DEV_EMAILS = CONFIG['dev_emails']
-#    HOST = 'imap.gmail.com'
-#    CLASSES = CONFIG['classes']
-#    MODEL_TYPE = CONFIG['detector_model_type']
-#    CHECKIN_INTERVAL = CONFIG['checkin_interval']
-#    INTERVAL = CONFIG['run_scheduler']
-#    CLASSIFIER_MODEL, CLASS_LIST = load_classifier(CLASSIFIER, CLASSES)
-#    DETECTOR_MODEL = load_detector(DETECTOR, MODEL_TYPE)
-    #for detect
-#    EMAIL_ALERTS = bool(CONFIG['email_alerts'])
-#    ER_ALERTS = bool(CONFIG['er_alerts'])
-#    LOG_DIR = CONFIG['log_dir']
-#    CHECKPOINT_F= CONFIG['checkpoint_frequency']
-#    CONFIDENCE = CONFIG['confidence']
-#    TARGETS = CONFIG['alert_targets']
-#    CONSUMER_EMAILS= CONFIG['consumer_emails']
-#    TOKEN = CONFIG['token']
-    #for fetch image api
-#    SAVE_DIR = CONFIG['save_dir'] 
-#    CAMERA_NAMES = dict(CONFIG['camera_names'])
-#    BASE = CONFIG['strikeforce_api']
-#    ACCOUNTS = CONFIG['username_scraper']
-#    AUTH_TOKEN = CONFIG['auth_token']
-#    PATH = "./last_id.txt"
-#    PASSWORD_SCRAPER = CONFIG['password_scraper']
-
-#    def _init_(self):
-        #do nothing 
-#        print("")
-
 
 def logger():
     '''Function for creating log file'''
@@ -107,25 +53,29 @@ def fetch_detect_alert(config):
 
 #adding args to main instead of class
 def parse_args():
+    ''' This function creates an arguement parser that creates an args container
+    with the arguement 'CONFIG'. It returns the container to access config file 
+    path use args.CONFIG after calling parse_args()
+    '''
     # Numpy FutureWarnings from tensorflow import
-    warnings.filterwarnings('ignore', category=FutureWarning) 
-    PARSER = argparse.ArgumentParser(description='Retrieves images from \
-                                 email & web scraper & runs detection')
-    PARSER.add_argument('config', type=str, help='Path to config file')
-    
+    warnings.filterwarnings('ignore', category=FutureWarning)
+    parser = argparse.ArgumentParser(description='Retrieves images from \
+                                    email & web scraper & runs detection')
+    parser.add_argument('CONFIG', type=str, help='Path to config file')
     #return args container
-    return PARSER.parse_args()
+    return parser.parse_args()
 
 
-   
 def main():
     ''''Runs main program and schedules future runs'''
     logger()
     args = parse_args()
-    config = ConfigInfo(args)
+    config_path = args.CONFIG
+    config = ConfigInfo(config_path)
+
     #pass arguement config from args container
-    fetch_detect_alert(args.config)
-    
+    fetch_detect_alert(config)
+
     #lambda keeps fetch and detect callable
     schedule.every(config.INTERVAL).minutes.do(lambda: fetch_detect_alert(config))
     schedule.every(config.CHECKIN_INTERVAL).hours.do(checkin, config.DEV_EMAILS,
