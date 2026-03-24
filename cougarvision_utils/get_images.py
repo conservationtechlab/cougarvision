@@ -86,22 +86,19 @@ def fetch_image_api(config):
     Returns: a nested array of information regarding each photo that is to be
         run through the detector, includes only new photos since last run
     '''
-    #camera_names = dict(config['camera_names'])
-    #base = config['strikeforce_api']
-    #accounts = config['username_scraper']
-    #tokens = config['auth_token']
-    #path = "./last_id.txt"
-    #password = config['password_scraper']
-    checkfile = os.path.exists("./last_id.txt")
+
+    #replace hardcorded path test
+    path = config.id_path
+    checkfile = os.path.exists(path)
     if checkfile is False:
         #can i replace with config.path?
-        new_file = open("last_id.txt", "x")
+        new_file = open(path, "x")
         new_file.close()
         first_id = str(0) # function to get the most recent id from sf)
-        new_file = open('last_id.txt', 'w')
+        new_file = open(path, 'w')
         new_file.writelines(first_id)
         new_file.close()
-    id_file = open('last_id.txt', 'r')
+    id_file = open(path, 'r')
     last_id = id_file.readlines()
     id_file.close()
     for line in last_id:
@@ -111,7 +108,7 @@ def fetch_image_api(config):
     photos = []
 # 5 second delay between captures, maximum 12 photos between checks
 #using config object
-    for account, token in zip(config.ACCOUNTS, config.AUTH_TOKEN):
+    for account, token in zip(config.accounts, config.auth_token):
         data = request_strikeforce(account, token, config.BASE,
                                    "photos/recent", "limit=12")
         photos += data['photos']['data']
@@ -125,7 +122,7 @@ def fetch_image_api(config):
             try:
                 #camera = camera_names[photos[i]['relationships']
                 #                     ['camera']['data']['id']]
-                camera = config.CAMERA_NAMES[photos[i]['relationships']
+                camera = config.camera_names[photos[i]['relationships']
                                      ['camera']['data']['id']]
             except KeyError:
                 logging.warning('Cannot retrieve photo from camera\
@@ -133,7 +130,7 @@ def fetch_image_api(config):
                 continue
             #testing change
             #newname = config['save_dir'] + camera
-            newname = config.SAVE_DIR + camera
+            newname = config.save_dir + camera
             newname += "_" + info['file_thumb_filename']
             # native extension from strikeforce is .JPG.jpeg for some reason
             stripped_name = newname.replace(".JPG.jpeg", ".jpg")
@@ -145,7 +142,7 @@ def fetch_image_api(config):
     if len(new_photos) > 0:  # update last image
         new_last = max(new_photos[:, 0])
         new_id = str(new_last)
-        thefile = open('last_id.txt', 'w')
+        thefile = open(path, 'w')
         thefile.writelines(new_id)
         thefile.close()
     return new_photos
