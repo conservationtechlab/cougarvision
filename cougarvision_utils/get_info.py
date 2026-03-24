@@ -9,9 +9,10 @@ import yaml
 from animl.classification import load_classifier
 from animl.detection import load_detector
 
+
 class ConfigInfo:
     """ This class is used to define elements from the config file"""
-    #class atributes
+    # class atributes
 
     def __init__(self, config_path: str):
 
@@ -24,15 +25,17 @@ class ConfigInfo:
         self.auth = self.config['authorization']
         self.classifier = self.config['classifier_model']
         self.detector = self.config['detector_model']
-        self.dev_emails= self.config['dev_emails']
+        self.dev_emails = self.config['dev_emails']
         self.host = self.config['host']
         self.classes = self.config['classes']
-        self.model_type= self.config['detector_model_type']
+        self.model_type = self.config['detector_model_type']
         self.checkin_interval = self.config['checkin_interval']
         self.interval = self.config['run_scheduler']
-        self.classifier_model, self.class_list= load_classifier(self.classifier, self.classes)
+        self.classifier_model, self.class_list = load_classifier(
+                                                self.classifier,
+                                                self.classes)
         self.detector = load_detector(self.detector, self.model_type)
-        #for detect
+        # for detect
         self.email_alerts = bool(self.config['email_alerts'])
         self.er_alerts = bool(self.config['er_alerts'])
         self.log_dir = self.config['log_dir']
@@ -40,7 +43,7 @@ class ConfigInfo:
         self.confidence = self.config['confidence']
         self.targets = self.config['alert_targets']
         self.consumer_emails = self.config['consumer_emails']
-        #for fetch image api
+        # for fetch image api
         self.save_dir = self.config['save_dir']
         self.camera_names = dict(self.config['camera_names'])
         self.base = self.config['strikeforce_api']
