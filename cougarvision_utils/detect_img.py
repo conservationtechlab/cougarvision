@@ -28,7 +28,7 @@ from cougarvision_utils.alert import smtp_setup, send_alert
 #    sys.path.append(CAM_CONFIG['camera_traps_path'])
 
 
-def detect(images, config, c_model, d_model, class_list):
+def detect(images, config):
     '''
     This function takes in a dataframe of images and runs a detector model,
     classifies the species of interest, and sends alerts either to email or an
@@ -50,7 +50,7 @@ def detect(images, config, c_model, d_model, class_list):
         # detection.detect expects the image paths in a list
         image_path_list = image_paths.tolist()
         # Run Detection
-        results = detection.detect(d_model,
+        results = detection.detect(config.detector_model,
                                    image_path_list,
                                    resize_width=1280,
                                    resize_height=1280,
@@ -68,11 +68,11 @@ def detect(images, config, c_model, d_model, class_list):
             other_df = split.get_empty(data_frame)
             # run classifier on animal detections if there are any
             if not animal_df.empty:
-                predictions_raw = classification.classify(c_model,
+                predictions_raw = classification.classify(config.classifer_model,
                                                           animal_df,
                                                           batch_size=4)
                 # single classification expects a list
-                class_list_for_series = class_list["species"].tolist()
+                class_list_for_series = config.class_list["species"].tolist()
                 preds = classification.single_classification(animal_df,
                                                              None,
                                                              predictions_raw,
