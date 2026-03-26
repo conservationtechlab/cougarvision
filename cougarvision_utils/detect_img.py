@@ -66,7 +66,8 @@ def detect(images, config):
             other_df = split.get_empty(data_frame)
             # run classifier on animal detections if there are any
             if not animal_df.empty:
-                predictions_raw = classification.classify(config.classifer_model,
+                predictions_raw = classification.classify(config.
+                                                          classifer_model,
                                                           animal_df,
                                                           batch_size=4
                                                           )
