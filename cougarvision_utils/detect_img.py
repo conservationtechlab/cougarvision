@@ -22,7 +22,8 @@ from cougarvision_utils.cropping import draw_bounding_box_on_image
 from cougarvision_utils.alert import smtp_setup, send_alert
 
 
-def detect(images, config):
+def detect(images, config):  # pylint: disable=too-many-locals
+
     '''
     This function takes in a dataframe of images and runs a detector model,
     classifies the species of interest, and sends alerts either to email or an
@@ -35,6 +36,7 @@ def detect(images, config):
     config: the unpacked config values from fetch_and_alert.yml that contains
         necessary parameters the function needs
     '''
+
     # add path to camera traps repository instead using
     # cougar traps yaml
     sys.path.append(config.traps_path)
@@ -67,16 +69,16 @@ def detect(images, config):
             # run classifier on animal detections if there are any
             if not animal_df.empty:
                 predictions_raw = classification.classify(config.
-                                                          classifer_model,
+                                                          classifier_model,
                                                           animal_df,
                                                           batch_size=4
                                                           )
                 # single classification expects a list
-                class_list_for_series = config.class_list["species"].tolist()
+                class_list_series = config.class_list["species"].tolist()
                 preds = classification.single_classification(animal_df,
                                                              None,
                                                              predictions_raw,
-                                                             class_list_for_series
+                                                             class_list_series
                                                              )
                 cougars = preds[preds['prediction'].isin(config.targets)]
                 # drops all detections with confidence less than threshold
@@ -138,5 +140,9 @@ def detect(images, config):
                                    config.username, config.dev_emails,
                                    dev, prob)
                 # Write Dataframe to csv
-                date = "%m-%d-%Y_%H:%M:%S"
-                cougars.to_csv(f'{config.LOG_DIR}dataframe_{dt.now().strftime(date)}')
+                # date = "%m-%d-%Y_%H:%M:%S"
+               # cougars.to_csv(f'{config.log_dir}dataframe_{dt.now().strftime(date)}')
+
+                current_date = dt.now()
+                formatted_dt = current_date.strftime("%m-%d-%Y_%H:%M:%S")
+                cougars.to_csv(f'{config.log_dir}dataframe_{formatted_dt}')
