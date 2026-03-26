@@ -13,16 +13,16 @@ one currently present.
 '''
 
 import json
+import time
 import urllib.request
-import os.path
+# import os.path
+import logging
 import requests
 import numpy as np
-import logging
 
-
+# pylint: disable=pointless-string-statement
 '''
 #request examples
-
 #get list of camaras
 request <- "cameras"
 parameters <- ""
@@ -68,14 +68,22 @@ def request_strikeforce(username, auth_token, base, request, parameters):
         strikeforce
     '''
     call = base + request + "?" + parameters
-    response = requests.get(call, headers={"X-User-Email": username,
-                                           "X-User-Token": auth_token})
+    try:
+        response = requests.get(call, headers={"X-User-Email": username,
+                                           "X-User-Token": auth_token},
+                                             timeout=10)
+    except requests.exceptions.Timeout:
+        print("Request timed out. Waiting 10 seconds then trying again.")
+        time.sleep(10)
+        response = requests.get(call, headers={"X-User-Email": username,
+                                           "X-User-Token": auth_token},
+                                             timeout=10)#?
     print(response.text)
     info = json.loads(response.text)
     return info
 
 
-def fetch_image_api(config):
+def fetch_image_api(config):# pylint: disable=too-many-locals
     '''
     Takes in config values and returns info about each new photo
     on strikeforce since the last run of the program
@@ -87,24 +95,20 @@ def fetch_image_api(config):
         run through the detector, includes only new photos since last run
     '''
 
-    #id_path is the path to the id text file
+    # id_path is the path to the id text file
     path = config.id_path
-    checkfile = os.path.exists(path)
-    if checkfile is False:
-        new_file = open(path, "x")
-        new_file.close()
-        first_id = str(0)
-        # function to get the most recent id from sf)
-        new_file = open(path, 'w')
-        new_file.writelines(first_id)
-        new_file.close()
-    id_file = open(path, 'r')
-    last_id = id_file.readlines()
-    id_file.close()
-    for line in last_id:
-        line.strip()
-    last_id = int(line)
-    id_file.close()
+    # try creating file throw exception if it
+    # does not exist
+    try:
+        with open(path,"x", encoding= "utf-8") as f:
+            f.write(str(0)) # write first ID from sf
+    except FileExistsError:
+        print(path," already exists, exlusive creation aborted.")
+
+    # read id from the .txt file
+    with open (path, "r", encoding= "utf-8") as f:
+        last_id = int(f.read().strip())
+
     photos = []
 # 5 second delay between captures, maximum 12 photos between checks
 # using config object
@@ -114,14 +118,15 @@ def fetch_image_api(config):
         photos += data['photos']['data']
 
     new_photos = []
+    for i, photo in enumerate(photos):
+        if int(photo['id']) > last_id:
+            info = photo['attributes']
 
-    for i in range(len(photos)):
-        if int(photos[i]['id']) > last_id:
-            info = photos[i]['attributes']
-            print(info)
+            print(i,info)
+
             try:
 
-                camera = config.camera_names[photos[i]['relationships']
+                camera = config.camera_names[photo['relationships']
                                              ['camera']['data']['id']]
             except KeyError:
                 logging.warning('Cannot retrieve photo from camera\
@@ -133,14 +138,36 @@ def fetch_image_api(config):
             # native extension from strikeforce is .JPG.jpeg for some reason
             stripped_name = newname.replace(".JPG.jpeg", ".jpg")
             urllib.request.urlretrieve(info['file_thumb_url'], stripped_name)
-            new_photos.append([photos[i]['id'],
+            new_photos.append([photo['id'],
                                info['file_thumb_url'], stripped_name])
+
+   # for i in range(len(photos)):
+   #     if int(photos[i]['id']) > last_id:
+   #         info = photos[i]['attributes']
+   #         print(info)
+   #         try:
+
+   #             camera = config.camera_names[photos[i]['relationships']
+   #                                          ['camera']['data']['id']]
+   #         except KeyError:
+   #             logging.warning('Cannot retrieve photo from camera\
+   #             as there is no asssociated ID in the config file')
+   #             continue
+
+   #         newname = config.save_dir + camera
+   #         newname += "_" + info['file_thumb_filename']
+            # native extension from strikeforce is .JPG.jpeg for some reason
+   #         stripped_name = newname.replace(".JPG.jpeg", ".jpg")
+   #         urllib.request.urlretrieve(info['file_thumb_url'], stripped_name)
+   #         new_photos.append([photos[i]['id'],
+   #                            info['file_thumb_url'], stripped_name])
 
     new_photos = np.array(new_photos)
     if len(new_photos) > 0:  # update last image
         new_last = max(new_photos[:, 0])
         new_id = str(new_last)
-        thefile = open(path, 'w')
-        thefile.writelines(new_id)
-        thefile.close()
+        # write new id to .txt file
+        with open(path, "w", encoding= "utf-8") as f:
+            f.writelines(new_id)
+
     return new_photos
