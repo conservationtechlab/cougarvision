@@ -53,7 +53,7 @@ def fetch_detect_alert(config):
 def parse_args():
     ''' This function creates an arguement parser that creates an
     args container with the arguement 'CONFIG'. It returns the
-    container to access config file path use args.CONFIG after
+    container. To access config file path use args.CONFIG after
     calling parse_args()
     '''
 
@@ -76,7 +76,7 @@ def main():
     config_path = args.CONFIG
     config = ConfigInfo(config_path)
 
-    # pass arguement config from args container
+    # pass ConfigInfo object
     fetch_detect_alert(config)
 
     # lambda keeps fetch and detect callable
