@@ -87,7 +87,7 @@ def fetch_image_api(config):
         run through the detector, includes only new photos since last run
     '''
 
-    # replace hardcorded path
+    #id_path is the path to the id text file
     path = config.id_path
     checkfile = os.path.exists(path)
     if checkfile is False:

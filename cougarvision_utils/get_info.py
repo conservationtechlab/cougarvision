@@ -1,7 +1,9 @@
-'''
-ConfigInfo is a class that holds attributes from the configuration
-file (fetch_and_cougar.yml). It expects a configuration file path
-to be provided when initalizing a configInfo object.
+''' Get Info
+get_info holds the ConfigInfo class that holds attribute values
+from the configuration file (fetch_and_cougar.yml). It expects 
+a configuration file path to be provided when initalizing a 
+configInfo object. Fetch_and_alert, get_images, and detect_img
+rely on these attribute values.
 '''
 import yaml
 
@@ -10,7 +12,11 @@ from animl.detection import load_detector
 
 
 class ConfigInfo:
-    """ This class is used to define elements from the config file"""
+    ''' This class is used to define elements from the config file
+        when initalizing an object of this class it expects the path
+        to the config file. Each attributte must be found in the config
+        file.
+    '''
     def __init__(self, config_path: str):
 
         with open(config_path, 'r', encoding='utf-8') as stream:
@@ -32,7 +38,7 @@ class ConfigInfo:
                                                 self.classifier,
                                                 self.classes)
         self.detector_model = load_detector(self.detector, self.model_type)
-        # for detect
+        # used in detect
         self.email_alerts = bool(self.config['email_alerts'])
         self.er_alerts = bool(self.config['er_alerts'])
         self.log_dir = self.config['log_dir']
@@ -40,7 +46,7 @@ class ConfigInfo:
         self.confidence = self.config['confidence']
         self.targets = self.config['alert_targets']
         self.consumer_emails = self.config['consumer_emails']
-        # for fetch image api
+        # used in fetch image api
         self.save_dir = self.config['save_dir']
         self.camera_names = dict(self.config['camera_names'])
         self.base = self.config['strikeforce_api']
