@@ -65,7 +65,7 @@ def detect(images, config):  # pylint: disable=too-many-locals
         # filter out all non animal detections
         if not data_frame.empty:
             animal_df = split.get_animals(data_frame)
-            other_df = split.get_empty(data_frame)
+            # other_df = split.get_empty(data_frame)
             # run classifier on animal detections if there are any
             if not animal_df.empty:
                 predictions_raw = classification.classify(config.
@@ -139,10 +139,8 @@ def detect(images, config):  # pylint: disable=too-many-locals
                         send_alert(label, image_bytes, smtp_server,
                                    config.username, config.dev_emails,
                                    dev, prob)
+                
                 # Write Dataframe to csv
-                # date = "%m-%d-%Y_%H:%M:%S"
-               # cougars.to_csv(f'{config.log_dir}dataframe_{dt.now().strftime(date)}')
-
                 current_date = dt.now()
                 formatted_dt = current_date.strftime("%m-%d-%Y_%H:%M:%S")
                 cougars.to_csv(f'{config.log_dir}dataframe_{formatted_dt}')
