@@ -68,24 +68,26 @@ def request_strikeforce(username, auth_token, base, request, parameters):
     '''
     call = base + request + "?" + parameters
 
-    # Try request twice and catch timeout exceptions
-    try:
-        response = requests.get(call, headers={"X-User-Email": username,
-                                               "X-User-Token": auth_token},
-                                timeout=10)
-    except requests.exceptions.Timeout:
-        print("Request timed out. Waiting 10 seconds then trying again.")
-        time.sleep(10)
+    # if there is no internet connection try 5 times before raising exception
+    max_retries = 5
+    for attempt in range(max_retries):
+
         try:
             response = requests.get(call, headers={"X-User-Email": username,
                                                    "X-User-Token": auth_token},
                                     timeout=10)
-        except requests.exceptions.Timeout:
-            print("Request timed out for a second time.")
+            print(response.text)
+            info = json.loads(response.text)
+            return info
 
-    print(response.text)
-    info = json.loads(response.text)
-    return info
+        except requests.exceptions.ConnectionError as e:
+            print(f'Connection Error {attempt + 1}: {e}')
+            time.sleep(15) # wait 15 seconds
+        except requests.exceptions.Timeout as e:
+            print(f'Timeout Error {attempt + 1}: {e}')
+            time.sleep(15) # wait 15 seconds 
+
+    raise Exception("Failed to connect after multiple attempts.")
 
 
 def fetch_image_api(config):  # pylint: disable=too-many-locals
