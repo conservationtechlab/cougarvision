@@ -67,19 +67,19 @@ def request_strikeforce(username, auth_token, base, request, parameters):
         strikeforce
     '''
     call = base + request + "?" + parameters
-    
+
     # Try request twice and catch timeout exceptions
     try:
         response = requests.get(call, headers={"X-User-Email": username,
-                                           "X-User-Token": auth_token},
-                                             timeout=10)
+                                               "X-User-Token": auth_token},
+                                timeout=10)
     except requests.exceptions.Timeout:
         print("Request timed out. Waiting 10 seconds then trying again.")
         time.sleep(10)
         try:
             response = requests.get(call, headers={"X-User-Email": username,
-                                            "X-User-Token": auth_token},
-                                             timeout=10)
+                                                   "X-User-Token": auth_token},
+                                    timeout=10)
         except requests.exceptions.Timeout:
             print("Request timed out for a second time.")
 
@@ -88,7 +88,7 @@ def request_strikeforce(username, auth_token, base, request, parameters):
     return info
 
 
-def fetch_image_api(config):# pylint: disable=too-many-locals
+def fetch_image_api(config):  # pylint: disable=too-many-locals
     '''
     Takes in config values and returns info about each new photo
     on strikeforce since the last run of the program
@@ -105,13 +105,13 @@ def fetch_image_api(config):# pylint: disable=too-many-locals
     # try creating file throw exception if it
     # does not exist
     try:
-        with open(path,"x", encoding= "utf-8") as f:
-            f.write(str(0)) # write first ID from sf
+        with open(path, "x", encoding="utf-8") as f:
+            f.write(str(0))  # write first ID from sf
     except FileExistsError:
-        print(path," already exists, exlusive creation aborted.")
+        print(path, " already exists, exlusive creation aborted.")
 
     # read id from the .txt file
-    with open (path, "r", encoding= "utf-8") as f:
+    with open(path, "r", encoding="utf-8") as f:
         last_id = int(f.read().strip())
 
     photos = []
@@ -151,7 +151,7 @@ def fetch_image_api(config):# pylint: disable=too-many-locals
         new_last = max(new_photos[:, 0])
         new_id = str(new_last)
         # write new id to .txt file
-        with open(path, "w", encoding= "utf-8") as f:
+        with open(path, "w", encoding="utf-8") as f:
             f.writelines(new_id)
 
     return new_photos

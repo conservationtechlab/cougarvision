@@ -139,7 +139,7 @@ def detect(images, config):  # pylint: disable=too-many-locals
                         send_alert(label, image_bytes, smtp_server,
                                    config.username, config.dev_emails,
                                    dev, prob)
-                
+
                 # Write Dataframe to csv
                 current_date = dt.now()
                 formatted_dt = current_date.strftime("%m-%d-%Y_%H:%M:%S")

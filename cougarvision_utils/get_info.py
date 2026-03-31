@@ -1,7 +1,7 @@
 ''' Get Info
 get_info holds the ConfigInfo class that holds attribute values
-from the configuration file (fetch_and_cougar.yml). It expects 
-a configuration file path to be provided when initalizing a 
+from the configuration file (fetch_and_cougar.yml). It expects
+a configuration file path to be provided when initalizing a
 configInfo object. Fetch_and_alert, get_images, and detect_img
 rely on these attribute values.
 '''
