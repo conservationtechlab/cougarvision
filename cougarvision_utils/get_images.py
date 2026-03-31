@@ -15,7 +15,6 @@ one currently present.
 import json
 import time
 import urllib.request
-# import os.path
 import logging
 import requests
 import numpy as np
@@ -68,6 +67,8 @@ def request_strikeforce(username, auth_token, base, request, parameters):
         strikeforce
     '''
     call = base + request + "?" + parameters
+    
+    # Try request twice and catch timeout exceptions
     try:
         response = requests.get(call, headers={"X-User-Email": username,
                                            "X-User-Token": auth_token},
@@ -75,9 +76,13 @@ def request_strikeforce(username, auth_token, base, request, parameters):
     except requests.exceptions.Timeout:
         print("Request timed out. Waiting 10 seconds then trying again.")
         time.sleep(10)
-        response = requests.get(call, headers={"X-User-Email": username,
-                                           "X-User-Token": auth_token},
-                                             timeout=10)#?
+        try:
+            response = requests.get(call, headers={"X-User-Email": username,
+                                            "X-User-Token": auth_token},
+                                             timeout=10)
+        except requests.exceptions.Timeout:
+            print("Request timed out for a second time.")
+
     print(response.text)
     info = json.loads(response.text)
     return info
@@ -118,11 +123,11 @@ def fetch_image_api(config):# pylint: disable=too-many-locals
         photos += data['photos']['data']
 
     new_photos = []
-    for i, photo in enumerate(photos):
+    for _, photo in enumerate(photos):
         if int(photo['id']) > last_id:
             info = photo['attributes']
 
-            print(i,info)
+            print(info)
 
             try:
 
@@ -140,27 +145,6 @@ def fetch_image_api(config):# pylint: disable=too-many-locals
             urllib.request.urlretrieve(info['file_thumb_url'], stripped_name)
             new_photos.append([photo['id'],
                                info['file_thumb_url'], stripped_name])
-
-   # for i in range(len(photos)):
-   #     if int(photos[i]['id']) > last_id:
-   #         info = photos[i]['attributes']
-   #         print(info)
-   #         try:
-
-   #             camera = config.camera_names[photos[i]['relationships']
-   #                                          ['camera']['data']['id']]
-   #         except KeyError:
-   #             logging.warning('Cannot retrieve photo from camera\
-   #             as there is no asssociated ID in the config file')
-   #             continue
-
-   #         newname = config.save_dir + camera
-   #         newname += "_" + info['file_thumb_filename']
-            # native extension from strikeforce is .JPG.jpeg for some reason
-   #         stripped_name = newname.replace(".JPG.jpeg", ".jpg")
-   #         urllib.request.urlretrieve(info['file_thumb_url'], stripped_name)
-   #         new_photos.append([photos[i]['id'],
-   #                            info['file_thumb_url'], stripped_name])
 
     new_photos = np.array(new_photos)
     if len(new_photos) > 0:  # update last image
