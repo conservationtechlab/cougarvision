@@ -12,7 +12,6 @@ that must be imported from animl.
 from io import BytesIO
 from datetime import datetime as dt
 import re
-import sys
 from PIL import Image
 from animl import classification, split
 from animl import detection
