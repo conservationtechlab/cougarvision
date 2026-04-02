@@ -65,7 +65,7 @@ class ConfigInfo:
 
 
     def __post_init__(self):
-        """This method handles the extra logic  of the derived field
+        """This method handles the extra logic of the derived field
         values after the default init function."""
 
         self.classifier_model, self.class_list = load_classifier(

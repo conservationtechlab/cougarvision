@@ -1,4 +1,4 @@
-'''Get Images
+"""Get Images
 
 This module defines multiple functions including
 request_strikeforce and fetch_image_api, fetch_and_alert.py
@@ -10,7 +10,7 @@ that it can later be classified. fetch_image_api depends on
 last_id.txt as well, but it creates a new one if there is not
 one currently present.
 
-'''
+"""
 
 import json
 import time
@@ -20,7 +20,7 @@ import requests
 import numpy as np
 
 # pylint: disable=pointless-string-statement
-'''
+"""
 #request examples
 #get list of camaras
 request <- "cameras"
@@ -47,25 +47,31 @@ parameters <- "page=1&sort_date=desc&camera_id[]=
 #get subscriptions
 request <- "subscriptions"
 parameters <- ""
-'''
+"""
 
 
 def request_strikeforce(username, auth_token, base, request, parameters):
-    '''
+    """
     Takes in auth values and api call parameters and returns the data about
     the specified images from strikeforce.
 
     Args:
-    username: string strikeforce username
-    base: the main strikeforce api link
-    auth_token: api token for strikeforce
-    request: the strikeforce api specific request type
-    parameters: specifications for strikeforce about what exact info is
-            wanted from whatever api call is made
+        username: String strikeforce username.
+        base: The main strikeforce api link.
+        auth_token: Api token for strikeforce.
+        request: The strikeforce api specific request type.
+        parameters: Specifications for strikeforce about what exact info is
+        wanted from the api call that is made.
 
-    Returns: a json object with the retrieved info of new images from
+    Raises:
+        Exception: A broad exception raised when connection to internet or api
+        request fails.
+
+    Returns:
+        new_photos: A json object with the retrieved info of new images from
         strikeforce
-    '''
+    """
+
     call = base + request + "?" + parameters
 
     # if there is no internet connection try 5 times before raising exception
@@ -98,7 +104,7 @@ def request_strikeforce(username, auth_token, base, request, parameters):
 
 
 def fetch_image_api(config):  # pylint: disable=too-many-locals
-    '''
+    """
     Takes in config values and returns info about each new photo
     on strikeforce since the last run of the program
 
@@ -107,7 +113,7 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
 
     Returns: a nested array of information regarding each photo that is to be
         run through the detector, includes only new photos since last run
-    '''
+    """
 
     # id_path is the path to the id text file
     path = config.id_path

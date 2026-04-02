@@ -1,4 +1,4 @@
-'''Detect Img
+"""Detect Img
 
 This script defines the function responsible for classifying
 images based on a trained classifier and sending alerts to either
@@ -7,7 +7,7 @@ email or Earthranger as specified by the fetch_and_alert.yml config file.
 The defined function depends on local modules cropping.py, alert.py,
 post_event_er.py, and attach_image_er.py as well as some functions
 that must be imported from animl.
-'''
+"""
 
 from io import BytesIO
 from datetime import datetime as dt
@@ -22,8 +22,7 @@ from cougarvision_utils.alert import smtp_setup, send_alert
 
 
 def detect(images, config):  # pylint: disable=too-many-locals
-
-    '''
+    """
     This function takes in a dataframe of images and runs a detector model,
     classifies the species of interest, and sends alerts either to email or an
     interface called Earthranger
@@ -34,7 +33,7 @@ def detect(images, config):  # pylint: disable=too-many-locals
         ['strikeforce id']['thumbnail url']['local file path']
     config: the unpacked config values from fetch_and_alert.yml that contains
         necessary parameters the function needs
-    '''
+    """
 
     if len(images) > 0:
         # extract paths from dataframe
