@@ -82,7 +82,8 @@ def detect(images, config):  # pylint: disable=too-many-locals
                 cougars = cougars.reset_index(drop=True)
                 # create a row in the dataframe containing only the camera name
                 # flake8: disable-next
-                cougars['cam_name'] = cougars['filepath'].apply(lambda x: re.findall(r'[A-Z]\d+', x)[0])  # noqa: E501  # pylint: disable-msg=line-too-long
+                cougars['cam_name'] = cougars['filepath'].apply(
+                    lambda x: re.findall(r'[A-Z]\d+', x)[0])
                 # Sends alert for each cougar detection
                 for idx in range(len(cougars.index)):
                     label = cougars.at[idx, 'prediction']
