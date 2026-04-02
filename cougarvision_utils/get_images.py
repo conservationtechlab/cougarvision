@@ -81,12 +81,15 @@ def request_strikeforce(username, auth_token, base, request, parameters):
             return info
 
         except requests.exceptions.ConnectionError as e:
+            logging.warning(f'Failed to connect to internet attempt: {attempt + 1} error: {e}.')
             print(f'Connection Error {attempt + 1}: {e}')
             time.sleep(15) # wait 15 seconds
         except requests.exceptions.Timeout as e:
+            logging.warning(f'Failed to connect to StrikeForce website attempt: {attempt + 1} error {e}.')
             print(f'Timeout Error {attempt + 1}: {e}')
             time.sleep(15) # wait 15 seconds 
 
+    logging.error("Failed to connect after multiple attempts.")
     raise Exception("Failed to connect after multiple attempts.")
 
 
