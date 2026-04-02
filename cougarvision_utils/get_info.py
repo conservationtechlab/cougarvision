@@ -50,7 +50,6 @@ class ConfigInfo:
     auth_token: str
     id_path: str
     password_scraper: str
-    traps_path: str
 
     # runtime fields not apart of inital constructor
     classifier_model: Any = field(init=False)
@@ -108,6 +107,5 @@ class ConfigInfo:
             auth_token=config['auth_token'],
             id_path=config['id_path'],
             password_scraper=config['password_scraper'],
-            traps_path=config['camera_traps_path']
 
         )
