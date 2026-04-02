@@ -39,6 +39,8 @@ alert_targets: [cougar, bobcat, skunk, deer, dog, coyote]
 #checkn_interval - time interval between still-alive emails to let us know no errors have crashed
 #cougarvision if it's running constantly
 checkin_interval: 24
+#the time between repeating running fetch_and_alert, if visualize_output = True, it will be in seconds and if it = False it will be in minutes
+run_scheduler: 1
 #email to send still-alive email to
 admin: admin@email.com 
 #x-csrf token retreived from earthranger interactive api example requests, must be logged into an
@@ -46,3 +48,14 @@ admin: admin@email.com
 token: '<insert token>'
 #authorization bearer token retreived from same earthranger interactive api example requests 
 authorization: 'Bearer <insert authorization>'
+#color of the bounding box
+color: 'LawnGreen'
+#color: 'Orange'
+#color: 'Azure'
+#host email here
+#host email here
+host: 'imap.gmail.com'
+#path to last photo id 
+id_path: './last_id.txt'
+#camera traps path
+camera_traps_path: '/home/ctl/CameraTraps'
