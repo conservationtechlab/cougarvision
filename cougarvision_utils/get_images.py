@@ -75,7 +75,7 @@ def request_strikeforce(username, auth_token, base, request, parameters):
         try:
             response = requests.get(call, headers={"X-User-Email": username,
                                                    "X-User-Token": auth_token},
-                                    timeout=10)
+                                    timeout=20)
             print(response.text)
             info = json.loads(response.text)
             return info
