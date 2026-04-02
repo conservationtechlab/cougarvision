@@ -39,7 +39,6 @@ def detect(images, config):  # pylint: disable=too-many-locals
 
     # add path to camera traps repository instead using
     # cougar traps yaml
-    sys.path.append(config.traps_path)
 
     if len(images) > 0:
         # extract paths from dataframe
