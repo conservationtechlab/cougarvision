@@ -57,5 +57,3 @@ color: 'LawnGreen'
 host: 'imap.gmail.com'
 #path to last photo id 
 id_path: './last_id.txt'
-#camera traps path
-camera_traps_path: '/home/ctl/CameraTraps'
