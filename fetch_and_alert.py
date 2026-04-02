@@ -1,4 +1,4 @@
-'''Fetch and Alert
+"""Fetch and Alert
 
 This script allows users to retrieve thumbnail images uploaded
 from cellular camera traps, classify them by species, and send
@@ -15,7 +15,7 @@ their needs by ensuring the file paths, usernames and passwords, camera
 dictionary, and image classifiers are correct. The .yml file is also
 where one can choose whether they would like email alerts or to send
 the classified images to Earthranger.
-'''
+"""
 
 # Import local utilities
 import argparse
@@ -33,12 +33,12 @@ from cougarvision_utils.get_info import ConfigInfo
 
 
 def logger():
-    '''Function for creating log file'''
+    """Function for creating log file"""
     logging.basicConfig(filename='cougarvision.log', level=logging.INFO)
 
 
 def fetch_detect_alert(config):
-    '''Functions for fetching images, detection, and sending alerts'''
+    """Function for fetching images, detection, and sending alerts"""
     # Run the scheduler
     print("Running fetch_and_alert")
     print("Fetching images")
@@ -51,22 +51,22 @@ def fetch_detect_alert(config):
 
 
 def parse_args():
-    ''' This function creates an arguement parser that creates an
-    args container with the arguement 'CONFIG'. It returns the
-    container. To access config file path use args.CONFIG after
-    calling parse_args()
-    '''
-
+    """ This function creates an arguement parser that creates an
+    args container with the arguement 'CONFIG'. 
+    
+    Returns:
+        Argsparse: An instance of argsparse with the arguement
+        'CONFIG'.
+    """
     parser = argparse.ArgumentParser(description='Retrieves images from \
                                     email & web scraper & runs detection')
     parser.add_argument('CONFIG', type=str, help='Path to config file')
 
-    # return args container
     return parser.parse_args()
 
 
 def main():
-    ''''Runs main program and schedules future runs'''
+    """Runs main program and schedules future runs."""
 
     # Numpy FutureWarnings from tensorflow import
     warnings.filterwarnings('ignore', category=FutureWarning)
@@ -76,7 +76,7 @@ def main():
     config_path = args.CONFIG
     config = ConfigInfo.from_yaml(config_path)
 
-    # pass ConfigInfo object
+    # pass ConfigInfo data class object
     fetch_detect_alert(config)
 
     # lambda keeps fetch and detect callable
