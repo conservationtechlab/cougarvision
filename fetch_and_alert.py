@@ -74,7 +74,7 @@ def main():
     logger()
     args = parse_args()
     config_path = args.CONFIG
-    config = ConfigInfo(config_path)
+    config = ConfigInfo.from_yaml(config_path)
 
     # pass ConfigInfo object
     fetch_detect_alert(config)
