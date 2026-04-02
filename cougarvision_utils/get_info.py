@@ -1,10 +1,11 @@
-''' Get Info
-get_info holds the ConfigInfo data class that holds attribute values
-from the configuration file (fetch_and_cougar.yml). It expects
-a configuration file path to be provided when using the class
-method. Fetch_and_alert, get_images, and detect_img
-rely on these attribute values.
-'''
+""" Get Info
+
+Get_info holds the ConfigInfo data class that holds attribute values
+from the configuration file.It expects a configuration file path to be
+provided when using the class method. Fetch_and_alert, get_images, 
+and detect_img rely on these attribute values.
+"""
+
 from dataclasses import dataclass, field
 from typing import Any
 import yaml
@@ -15,14 +16,20 @@ from animl.detection import load_detector
 
 @dataclass
 class ConfigInfo:
-    ''' This dataclass is used to define values from the
-    config yml. Dataclasses automatically create an _init_
-    function but here we use a class method and post_init
-    function to separate parsing the yaml and loading the
-    models. To use this data class create a configinfo object
-    using the class method:
-    <name> = ConfigInfo.from_yaml(config_path)
-    '''
+    """ This dataclass is used to define values from the
+    config yml. 
+
+        Dataclasses automatically create an _init_ function but 
+    here we use a class method and post_init function to separate 
+    parsing the yaml and loading the models. 
+    
+    Example:
+        To create a ConfigInfo dataclass object use the from_yaml
+        function.
+
+        config = ConfigInfo.from_yaml(config_path)
+
+    """
     # assign fields
     username: str
     password: str
@@ -56,9 +63,11 @@ class ConfigInfo:
     class_list: list = field(init=False)
     detector_model: object = field(init=False)
 
-    # dervied values defined after initalization
-    # handles extra logic after __init__
+
     def __post_init__(self):
+        """This method handles the extra logic  of the derived field
+        values after the default init function."""
+
         self.classifier_model, self.class_list = load_classifier(
             self.classifier, self.classes
         )
@@ -68,13 +77,17 @@ class ConfigInfo:
 
     @classmethod
     def from_yaml(cls, config_path: str) -> "ConfigInfo":
-        '''
-        This class method handles the loading and parsing of
-        the config file. It recieves itself as an arguement (cls)
-        and returns itself as a class instance with modified
-        values. It also uses a forward reference to defer
-        evaluation.
-        '''
+        """This class method handles the loading and parsing of
+        the config file.
+         
+        Args:
+            cls: The class itself, cls is used instead of self.
+            config_path: A string value representing the path 
+            to the configuration file.
+        Returns:
+             cls: Class instance with modified field values.
+        """
+
         with open(config_path, 'r', encoding='utf-8') as f:
             config = yaml.safe_load(f)
 
