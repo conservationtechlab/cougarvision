@@ -51,12 +51,14 @@ def fetch_detect_alert(config):
 
 
 def parse_args():
-    """ This function creates an arguement parser that creates an
+    """Creates parser for config yaml.
+
+    This function creates an arguement parser that creates an
     args container with the arguement 'CONFIG'. 
     
     Returns:
-        Argsparse: An instance of argsparse with the arguement
-        'CONFIG'.
+        argsparse.Namespace: An object containing all parsed arguement
+            values as attributes (e.g., args.CONFIG).
     """
     parser = argparse.ArgumentParser(description='Retrieves images from \
                                     email & web scraper & runs detection')
