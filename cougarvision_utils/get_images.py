@@ -71,11 +71,6 @@ def request_strikeforce(username, auth_token, base, request, parameters):
     Raises:
         Exception: A broad exception raised when connection to internet or api
             request fails.
-
-    Returns:
-        ndarray: A multi-dimensional array with the retrieved info of new images
-          from strikeforce. Info for each photo is in the format of 
-          ['photo id']['strikeforce url']['file path'].
     """
     call = base + request + "?" + parameters
 
@@ -119,9 +114,10 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
             string values from fetch_and_alert.yml
 
     Returns: 
-        Array: A nested array of information regarding each photo 
-            that is to be run through the detector, includes only
-            new photos since last run.
+        ndarray: A multi-dimensional array with the retrieved info
+          of new images from strikeforce, includes only new photo 
+          since last run. Info for each photo is in the format of 
+          ['photo id']['strikeforce url']['file path'].
     """
     # id_path is the path to the id text file
     path = config.id_path
