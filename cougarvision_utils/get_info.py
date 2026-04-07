@@ -1,7 +1,7 @@
 """ Get Info
 
 Get_info holds the ConfigInfo data class that holds attribute values
-from the configuration file.It expects a configuration file path to be
+from the configuration file. It expects a configuration file path to be
 provided when using the class method. Fetch_and_alert, get_images, 
 and detect_img rely on these attribute values.
 """
@@ -16,10 +16,9 @@ from animl.detection import load_detector
 
 @dataclass
 class ConfigInfo:
-    """ This dataclass is used to define values from the
-    config yml. 
+    """Defines values from the config yaml. 
 
-        Dataclasses automatically create an _init_ function but 
+    Dataclasses automatically create an _init_ function but 
     here we use a class method and post_init function to separate 
     parsing the yaml and loading the models. 
     
@@ -27,7 +26,7 @@ class ConfigInfo:
         To create a ConfigInfo dataclass object use the from_yaml
         function.
 
-        config = ConfigInfo.from_yaml(config_path)
+             config = ConfigInfo.from_yaml(config_path)
 
     """
     # assign fields
@@ -65,8 +64,11 @@ class ConfigInfo:
 
 
     def __post_init__(self):
-        """This method handles the extra logic of the derived field
-        values after the default init function."""
+        """Loads classifer and detector models.
+
+        This method handles the extra logic of the derived field
+        values after the default init function.
+        """
 
         self.classifier_model, self.class_list = load_classifier(
             self.classifier, self.classes
@@ -77,15 +79,13 @@ class ConfigInfo:
 
     @classmethod
     def from_yaml(cls, config_path: str) -> "ConfigInfo":
-        """This class method handles the loading and parsing of
-        the config file.
-         
+        """Loads and parses config file.
+
         Args:
-            cls: The class itself, cls is used instead of self.
-            config_path: A string value representing the path 
-            to the configuration file.
+            config_path (str): The path to the configuration 
+                file.
         Returns:
-             cls: Class instance with modified field values.
+             ConfigInfo: updated instance of itself.
         """
 
         with open(config_path, 'r', encoding='utf-8') as f:
