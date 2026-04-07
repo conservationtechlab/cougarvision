@@ -10,6 +10,10 @@ that it can later be classified. fetch_image_api depends on
 last_id.txt as well, but it creates a new one if there is not
 one currently present.
 
+Examples:
+    API request example of get list of cameras::
+        request <- "cameras"
+        parameters <- ""
 """
 
 import json
