@@ -2,7 +2,7 @@
 
 Get_info holds the ConfigInfo data class that holds attribute values
 from the configuration file. It expects a configuration file path to be
-provided when using the class method. Fetch_and_alert, get_images, 
+provided when using the class method. Fetch_and_alert, get_images,
 and detect_img rely on these attribute values.
 """
 
@@ -16,12 +16,12 @@ from animl.detection import load_detector
 
 @dataclass
 class ConfigInfo:
-    """Defines values from the config yaml. 
+    """Defines values from the config yaml.
 
-    Dataclasses automatically create an _init_ function but 
-    here we use a class method and post_init function to separate 
-    parsing the yaml and loading the models. 
-    
+    Dataclasses automatically create an _init_ function but
+    here we use a class method and post_init function to separate
+    parsing the yaml and loading the models.
+
     Example:
         To create a ConfigInfo dataclass object use the from_yaml
         function.
@@ -62,7 +62,6 @@ class ConfigInfo:
     class_list: list = field(init=False)
     detector_model: object = field(init=False)
 
-
     def __post_init__(self):
         """Loads classifer and detector models.
 
@@ -82,7 +81,7 @@ class ConfigInfo:
         """Loads and parses config file.
 
         Args:
-            config_path (str): The path to the configuration 
+            config_path (str): The path to the configuration
                 file.
         Returns:
              ConfigInfo: updated instance of itself.
