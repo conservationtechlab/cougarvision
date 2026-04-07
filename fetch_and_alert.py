@@ -91,7 +91,7 @@ def main():
     fetch_detect_alert(config)
 
     # lambda keeps fetch and detect callable
-    schedule.every(config.interval).minutes.do(lambda:
+    schedule.every(config.run_scheduler).minutes.do(lambda:
                                                fetch_detect_alert(config))
     schedule.every(config.checkin_interval).hours.do(
                                                      checkin,
