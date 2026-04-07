@@ -56,8 +56,8 @@ parameters <- ""
 
 def request_strikeforce(username, auth_token, base, request, parameters):
     """Strikeforce API call request.
-    
-    Takes in auth values and api call parameters and returns the data 
+
+    Takes in auth values and api call parameters and returns the data
     about the specified images from strikeforce.
 
     Args:
@@ -65,7 +65,7 @@ def request_strikeforce(username, auth_token, base, request, parameters):
         base (str): The main strikeforce api link.
         auth_token (str): Api token for strikeforce.
         request (str): The strikeforce api specific request type.
-        parameters(str): Specifications for strikeforce about what exact 
+        parameters(str): Specifications for strikeforce about what exact
             info is wanted from the api call that is made.
 
     Raises:
@@ -93,14 +93,16 @@ def request_strikeforce(username, auth_token, base, request, parameters):
             print(f'Connection Error {attempt + 1}: {e}')
             time.sleep(15)  # wait 15 seconds
         except requests.exceptions.Timeout as e:
-            logging.warning("Failed to connect to StrikeForce attempt: %s error %s",
+            logging.warning("Failed to connect to"
+                            " StrikeForce attempt: %s error %s",
                             {attempt + 1},
                             {e})
             print(f'Timeout Error {attempt + 1}: {e}')
             time.sleep(15)  # wait 15 seconds
 
     logging.error("Failed to connect after multiple attempts.")
-    raise Exception("Failed to connect after multiple attempts.") # pylint says too broad 
+    raise Exception("Failed to connect"
+                    "after multiple attempts.")  # pylint says too broad
 
 
 def fetch_image_api(config):  # pylint: disable=too-many-locals
@@ -110,13 +112,13 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
     on strikeforce since the last run of the program.
 
     Args:
-        config (ConfigInfo): unpacked config 
+        config (ConfigInfo): unpacked config
             string values from fetch_and_alert.yml
 
-    Returns: 
+    Returns:
         ndarray: A multi-dimensional array with the retrieved info
-          of new images from strikeforce, includes only new photo 
-          since last run. Info for each photo is in the format of 
+          of new images from strikeforce, includes only new photo
+          since last run. Info for each photo is in the format of
           ['photo id']['strikeforce url']['file path'].
     """
     # id_path is the path to the id text file
