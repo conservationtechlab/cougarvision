@@ -24,6 +24,7 @@ import warnings
 from datetime import datetime as dt
 import logging
 import schedule
+import yaml
 
 from sageranger.post_monthly import post_monthly_obs
 from cougarvision_utils.detect_img import detect
@@ -73,10 +74,18 @@ def main():
     # Numpy FutureWarnings from tensorflow import
     warnings.filterwarnings('ignore', category=FutureWarning)
 
+
+
     logger()
     args = parse_args()
     config_path = args.CONFIG
-    config = ConfigInfo.from_yaml(config_path)
+
+
+    with open(config_path, 'r', encoding='utf-8') as f:
+        config_dict= yaml.safe_load(f)
+
+    config = ConfigInfo(**config_dict)
+    #config = ConfigInfo.from_yaml(config_path)
 
     # pass ConfigInfo data class object
     fetch_detect_alert(config)
@@ -92,7 +101,7 @@ def main():
                                                      config.host
                                                      )
     schedule.every(30).days.do(post_monthly_obs,
-                               config.token, config.auth)
+                               config.token, config.authorization)
 
     while True:
         schedule.run_pending()
