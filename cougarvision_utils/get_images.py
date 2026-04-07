@@ -51,27 +51,27 @@ parameters <- ""
 
 
 def request_strikeforce(username, auth_token, base, request, parameters):
-    """
-    Takes in auth values and api call parameters and returns the data about
-    the specified images from strikeforce.
+    """Strikeforce API call request.
+    
+    Takes in auth values and api call parameters and returns the data 
+    about the specified images from strikeforce.
 
     Args:
-        username: String strikeforce username.
-        base: The main strikeforce api link.
-        auth_token: Api token for strikeforce.
-        request: The strikeforce api specific request type.
-        parameters: Specifications for strikeforce about what exact info is
-        wanted from the api call that is made.
+        username (str): String strikeforce username.
+        base (str): The main strikeforce api link.
+        auth_token (str): Api token for strikeforce.
+        request (str): The strikeforce api specific request type.
+        parameters(str): Specifications for strikeforce about what exact 
+            info is wanted from the api call that is made.
 
     Raises:
         Exception: A broad exception raised when connection to internet or api
-        request fails.
+            request fails.
 
     Returns:
-        new_photos: A json object with the retrieved info of new images from
-        strikeforce
+        ndarray: An array with the retrieved info of new images from
+            strikeforce.
     """
-
     call = base + request + "?" + parameters
 
     # if there is no internet connection try 5 times before raising exception
@@ -104,17 +104,20 @@ def request_strikeforce(username, auth_token, base, request, parameters):
 
 
 def fetch_image_api(config):  # pylint: disable=too-many-locals
-    """
+    """Retrives new photo information.
+
     Takes in config values and returns info about each new photo
-    on strikeforce since the last run of the program
+    on strikeforce since the last run of the program.
 
     Args:
-    config: unpacked config string values from fetch_and_alert.yml
+        config (ConfigInfo): unpacked config 
+            string values from fetch_and_alert.yml
 
-    Returns: a nested array of information regarding each photo that is to be
-        run through the detector, includes only new photos since last run
+    Returns: 
+        Array: A nested array of information regarding each photo 
+            that is to be run through the detector, includes only
+            new photos since last run.
     """
-
     # id_path is the path to the id text file
     path = config.id_path
     # try creating file throw exception if it
