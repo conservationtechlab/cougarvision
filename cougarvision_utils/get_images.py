@@ -73,8 +73,9 @@ def request_strikeforce(username, auth_token, base, request, parameters):
             request fails.
 
     Returns:
-        ndarray: An array with the retrieved info of new images from
-            strikeforce.
+        ndarray: A multi-dimensional array with the retrieved info of new images
+          from strikeforce. Info for each photo is in the format of 
+          ['photo id']['strikeforce url']['file path'].
     """
     call = base + request + "?" + parameters
 
