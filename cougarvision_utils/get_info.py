@@ -59,7 +59,7 @@ class ConfigInfo:
     # for direct mapping need all attributes in yaml
     home_dir: str
     visualize_output: bool
-    path_to_unlabed_output: str
+    path_to_unlabeled_output: str
     threads: int
     token: str
     color: str
@@ -67,9 +67,9 @@ class ConfigInfo:
 
 
     # runtime fields not apart of inital constructor
-    classifier_model: Any = field(init=False)
+    classifier_model_load: Any = field(init=False)
     class_list: list = field(init=False)
-    detector_model: object = field(init=False)
+    detector_model_load: object = field(init=False)
 
     def __post_init__(self):
         """Loads classifer and detector models.
@@ -78,10 +78,10 @@ class ConfigInfo:
         values after the default init function.
         """
 
-        self.classifier_model, self.class_list = load_classifier(
-            self.classifier, self.classes
+        self.classifier_model_load, self.class_list = load_classifier(
+            self.classifier_model, self.classes
         )
-        self.detector_model = load_detector(
+        self.detector_model_load = load_detector(
             self.detector_model, self.detector_model_type
         )
 """

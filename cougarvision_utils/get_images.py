@@ -134,8 +134,8 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
     photos = []
 # 5 second delay between captures, maximum 12 photos between checks
 # using config object
-    for account, token in zip(config.accounts, config.auth_token):
-        data = request_strikeforce(account, token, config.base,
+    for account, token in zip(config.username_scraper, config.auth_token):
+        data = request_strikeforce(account, token, config.strikeforce_api,
                                    "photos/recent", "limit=12")
         photos += data['photos']['data']
 

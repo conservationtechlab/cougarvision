@@ -42,7 +42,7 @@ def detect(images, config):  # pylint: disable=too-many-locals
         # detection.detect expects the image paths in a list
         image_path_list = image_paths.tolist()
         # Run Detection
-        results = detection.detect(config.detector_model,
+        results = detection.detect(config.detector_model_load,
                                    image_path_list,
                                    resize_width=1280,
                                    resize_height=1280,
@@ -64,7 +64,7 @@ def detect(images, config):  # pylint: disable=too-many-locals
             # run classifier on animal detections if there are any
             if not animal_df.empty:
                 predictions_raw = classification.classify(config.
-                                                          classifier_model,
+                                                          classifier_model_load,
                                                           animal_df,
                                                           batch_size=4
                                                           )
