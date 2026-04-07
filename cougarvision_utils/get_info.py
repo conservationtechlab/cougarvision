@@ -33,29 +33,38 @@ class ConfigInfo:
     username: str
     password: str
     token: str
-    auth: str
-    classifier: str
-    detector: str
+    authorization: str
+    classifier_model: str
+    detector_model: str
     dev_emails: list
     host: str
-    classes: list
-    model_type: str
+    classes: str
+    detector_model_type: str
     checkin_interval: int
-    interval: int
+    run_scheduler: int
     email_alerts: bool
     er_alerts: bool
     log_dir: str
-    checkpoint_f: int
+    checkpoint_frequency: int
     confidence: float
-    targets: list
+    alert_targets: list
     consumer_emails: list
     save_dir: str
     camera_names: dict
-    base: str
-    accounts: str
+    strikeforce_api: str
+    username_scraper: str
     auth_token: str
     id_path: str
     password_scraper: str
+    # for direct mapping need all attributes in yaml
+    home_dir: str
+    visualize_output: bool
+    path_to_unlabed_output: str
+    threads: int
+    token: str
+    color: str
+
+
 
     # runtime fields not apart of inital constructor
     classifier_model: Any = field(init=False)
@@ -73,19 +82,19 @@ class ConfigInfo:
             self.classifier, self.classes
         )
         self.detector_model = load_detector(
-            self.detector, self.model_type
+            self.detector_model, self.detector_model_type
         )
-
+"""
     @classmethod
     def from_yaml(cls, config_path: str) -> "ConfigInfo":
-        """Loads and parses config file.
+        Loads and parses config file.
 
         Args:
             config_path (str): The path to the configuration
                 file.
         Returns:
              ConfigInfo: updated instance of itself.
-        """
+        
 
         with open(config_path, 'r', encoding='utf-8') as f:
             config = yaml.safe_load(f)
@@ -121,3 +130,4 @@ class ConfigInfo:
             password_scraper=config['password_scraper'],
 
         )
+"""
