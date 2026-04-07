@@ -54,8 +54,8 @@ def parse_args():
     """Creates parser for config yaml.
 
     This function creates an arguement parser that creates an
-    args container with the arguement 'CONFIG'. 
-    
+    args container with the arguement 'CONFIG'.
+
     Returns:
         argsparse.Namespace: An object containing all parsed arguement
             values as attributes (e.g., args.CONFIG).
