@@ -22,17 +22,18 @@ from cougarvision_utils.alert import smtp_setup, send_alert
 
 
 def detect(images, config):  # pylint: disable=too-many-locals
-    """
+    """The function detects alert_targets.
+
     This function takes in a dataframe of images and runs a detector model,
-    classifies the species of interest, and sends alerts either to email or an
-    interface called Earthranger
+    classifies the species of interest defined in the config yaml, and sends 
+    alerts either to email or an interface called Earthranger.
 
     Args:
-    images: a nested array of information regarding each photo that is to be
-        run through the detector and is formatted
-        ['strikeforce id']['thumbnail url']['local file path']
-    config: the unpacked config values from fetch_and_alert.yml that contains
-        necessary parameters the function needs
+        images(array): a nested array of information regarding each photo that
+          is to be run through the detector and is 
+          formatted ['strikeforce id']['thumbnail url']['local file path']
+        config (ConfigInfo): the unpacked config values from fetch_and_alert.yml 
+          that contains necessary parameters the function needs
     """
 
     if len(images) > 0:
