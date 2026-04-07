@@ -47,7 +47,7 @@ def detect(images, config):  # pylint: disable=too-many-locals
                                    resize_width=1280,
                                    resize_height=1280,
                                    confidence_threshold=config.confidence,
-                                   checkpoint_frequency=config.checkpoint_f,
+                                   checkpoint_frequency=config.checkpoint_frequency,
                                    batch_size=4
                                    )
         # Parse results
@@ -75,7 +75,7 @@ def detect(images, config):  # pylint: disable=too-many-locals
                                                              predictions_raw,
                                                              class_list_series
                                                              )
-                cougars = preds[preds['prediction'].isin(config.targets)]
+                cougars = preds[preds['prediction'].isin(config.alert_targets)]
                 # drops all detections with confidence less than threshold
                 cougars = cougars[cougars['confidence'] >= config.confidence]
                 # reset dataframe index
@@ -107,18 +107,18 @@ def detect(images, config):  # pylint: disable=too-many-locals
                     img.save(image_bytes, format="JPEG")
                     img_byte = image_bytes.getvalue()
                     cam_name = cougars.at[idx, 'cam_name']
-                    if label in config.targets and config.er_alerts is True:
-                        is_target(cam_name, config.token, config.auth, label)
+                    if label in config.alert_targets and config.er_alerts is True:
+                        is_target(cam_name, config.token, config.authorization, label)
                     # Email or Earthranger alerts as dictated in the config yml
                     if config.er_alerts is True:
                         event_id = post_event(label,
                                               cam_name,
                                               config.token,
-                                              config.auth)
+                                              config.authorization)
                         response = attach_image(event_id,
                                                 img_byte,
                                                 config.token,
-                                                config.auth,
+                                                config.authorization,
                                                 label)
                         print(response)
                     if config.email_alerts is True:
