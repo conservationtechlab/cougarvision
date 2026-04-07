@@ -97,7 +97,7 @@ def request_strikeforce(username, auth_token, base, request, parameters):
             time.sleep(15)  # wait 15 seconds
 
     logging.error("Failed to connect after multiple attempts.")
-    raise Exception("Failed to connect"
+    raise RuntimeError("Failed to connect"
                     "after multiple attempts.")  # pylint says too broad
 
 
