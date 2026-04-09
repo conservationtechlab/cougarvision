@@ -93,7 +93,7 @@ def main():
     fetch_detect_alert(config)
 
     # lambda keeps fetch and detect callable
-    if config.vizualize_ouput is True:
+    if config.visualize_output is True:
         schedule.every(config.run_scheduler).seconds.do(lambda:
                                                         fetch_detect_alert(config))
     else:
