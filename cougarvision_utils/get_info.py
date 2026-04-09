@@ -3,7 +3,7 @@
 Get_info holds the ConfigInfo data class that holds attribute values
 from the configuration file. Direct mapping is handled in fetch and alert
 but fields defined in this class will be the values mapped.The field values
-must match exactly to the configuration file. Fetch_and_alert, get_images, 
+must match exactly to the configuration file. Fetch_and_alert, get_images,
 and detect_img rely on these attribute values.
 """
 
@@ -50,7 +50,6 @@ class ConfigInfo:
     auth_token: str
     id_path: str
     password_scraper: str
-
 
     # runtime fields not apart of inital constructor
     classifier_model_load: Any = field(init=False)
