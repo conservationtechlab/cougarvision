@@ -53,6 +53,7 @@ class ConfigInfo:
     password_scraper: str
     visualize_output: str
     path_to_unlabeled_output: str
+    path_to_labeled_output: str
 
     # runtime fields not apart of inital constructor
     classifier_model_load: Any = field(init=False)

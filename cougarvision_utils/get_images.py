@@ -139,7 +139,7 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
 # using config object
     for account, token in zip(config.username_scraper, config.auth_token):
         data = request_strikeforce(account, token, config.strikeforce_api,
-                                   "photos/recent", "limit=50")
+                                   "photos/recent", "limit=12")
         photos += data['photos']['data']
 
     new_photos = []
@@ -165,7 +165,7 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
                                info['file_thumb_url'], stripped_name])
             
             # not sure what unlabeled output should be
-            unlabeled_img = "unlabeled_output"
+            unlabeled_img = config.path_to_unlabeled_output
             if config.visualize_output is True:
                 os.makedirs(unlabeled_img, exist_ok=True)
                 newname = unlabeled_img + 'image'

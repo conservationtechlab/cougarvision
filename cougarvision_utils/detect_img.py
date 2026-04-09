@@ -114,7 +114,7 @@ def detect(images, config):  # pylint: disable=too-many-locals
                     img_byte = image_bytes.getvalue()
 
                     # not sure if labeled_img is meant to point at Images
-                    labeled_img = "labeled_output"
+                    labeled_img = config.path_to_labeled_output
                     if config.visualize_output is True:
                         os.makedirs(labeled_img, exist_ok=True)
                         last_file_number = get_last_file_number(labeled_img)
