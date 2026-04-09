@@ -25,15 +25,16 @@ def detect(images, config):  # pylint: disable=too-many-locals
     """The function detects alert_targets.
 
     This function takes in a dataframe of images and runs a detector model,
-    classifies the species of interest defined in the config yaml, and sends 
+    classifies the species of interest defined in the config yaml, and sends
     alerts either to email or an interface called Earthranger.
 
     Args:
         images(array): a nested array of information regarding each photo that
-          is to be run through the detector and is 
-          formatted ['strikeforce id']['thumbnail url']['local file path']
-        config (ConfigInfo): the unpacked config values from fetch_and_alert.yml 
-          that contains necessary parameters the function needs
+          is to be run through the detector and is formatted
+          ['strikeforce id']['thumbnail url']['local file path']
+        config (ConfigInfo): the unpacked config values from
+            fetch_and_alert.yml that contains necessary parameters
+            the function needs.
     """
 
     if len(images) > 0:
@@ -42,12 +43,15 @@ def detect(images, config):  # pylint: disable=too-many-locals
         # detection.detect expects the image paths in a list
         image_path_list = image_paths.tolist()
         # Run Detection
+        # confidendce and checkpoint frequency
+        conf = config.confidence
+        ch_f = config.checkpoint_frequency
         results = detection.detect(config.detector_model_load,
                                    image_path_list,
                                    resize_width=1280,
                                    resize_height=1280,
-                                   confidence_threshold=config.confidence,
-                                   checkpoint_frequency=config.checkpoint_frequency,
+                                   confidence_threshold=conf,
+                                   checkpoint_frequency=ch_f,
                                    batch_size=4
                                    )
         # Parse results
@@ -63,8 +67,8 @@ def detect(images, config):  # pylint: disable=too-many-locals
             # other_df = split.get_empty(data_frame)
             # run classifier on animal detections if there are any
             if not animal_df.empty:
-                predictions_raw = classification.classify(config.
-                                                          classifier_model_load,
+                classifer_model = config.classifier_model_load
+                predictions_raw = classification.classify(classifer_model,
                                                           animal_df,
                                                           batch_size=4
                                                           )
@@ -107,8 +111,10 @@ def detect(images, config):  # pylint: disable=too-many-locals
                     img.save(image_bytes, format="JPEG")
                     img_byte = image_bytes.getvalue()
                     cam_name = cougars.at[idx, 'cam_name']
-                    if label in config.alert_targets and config.er_alerts is True:
-                        is_target(cam_name, config.token, config.authorization, label)
+                    er_alerts = config.er_alerts
+                    if label in config.alert_targets and er_alerts is True:
+                        is_target(cam_name, config.token,
+                                  config.authorization, label)
                     # Email or Earthranger alerts as dictated in the config yml
                     if config.er_alerts is True:
                         event_id = post_event(label,
