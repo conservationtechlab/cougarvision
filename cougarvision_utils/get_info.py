@@ -24,6 +24,7 @@ class ConfigInfo:
 
     """
     # assign fields
+    # pylint: disable=too-many-instance-attributes
     username: str
     password: str
     token: str
