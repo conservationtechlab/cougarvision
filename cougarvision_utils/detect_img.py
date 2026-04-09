@@ -12,6 +12,7 @@ that must be imported from animl.
 from io import BytesIO
 from datetime import datetime as dt
 import re
+import os
 from PIL import Image
 from animl import classification, split
 from animl import detection
@@ -111,7 +112,10 @@ def detect(images, config):  # pylint: disable=too-many-locals
                     image_bytes = BytesIO()
                     img.save(image_bytes, format="JPEG")
                     img_byte = image_bytes.getvalue()
-                    if visualize_output is True:
+
+                    # not sure if labeled_img is meant to point at Images
+                    labeled_img = "labeled_output"
+                    if config.visualize_output is True:
                         os.makedirs(labeled_img, exist_ok=True)
                         last_file_number = get_last_file_number(labeled_img)
                         new_file_number = last_file_number + 1
