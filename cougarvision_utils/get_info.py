@@ -1,14 +1,14 @@
 """ Get Info
 
 Get_info holds the ConfigInfo data class that holds attribute values
-from the configuration file. It expects a configuration file path to be
-provided when using the class method. Fetch_and_alert, get_images,
+from the configuration file. Direct mapping is handled in fetch and alert
+but fields defined in this class will be the values mapped.The field values
+must match exactly to the configuration file. Fetch_and_alert, get_images, 
 and detect_img rely on these attribute values.
 """
 
 from dataclasses import dataclass, field
 from typing import Any
-import yaml
 
 from animl.classification import load_classifier
 from animl.detection import load_detector
@@ -19,14 +19,8 @@ class ConfigInfo:
     """Defines values from the config yaml.
 
     Dataclasses automatically create an _init_ function but
-    here we use a class method and post_init function to separate
+    here we also use a post_init function to separate
     parsing the yaml and loading the models.
-
-    Example:
-        To create a ConfigInfo dataclass object use the from_yaml
-        function.
-
-             config = ConfigInfo.from_yaml(config_path)
 
     """
     # assign fields
@@ -56,14 +50,6 @@ class ConfigInfo:
     auth_token: str
     id_path: str
     password_scraper: str
-    # for direct mapping need all attributes in yaml
-    home_dir: str
-    visualize_output: bool
-    path_to_unlabeled_output: str
-    threads: int
-    token: str
-    color: str
-
 
 
     # runtime fields not apart of inital constructor
@@ -84,50 +70,3 @@ class ConfigInfo:
         self.detector_model_load = load_detector(
             self.detector_model, self.detector_model_type
         )
-"""
-    @classmethod
-    def from_yaml(cls, config_path: str) -> "ConfigInfo":
-        Loads and parses config file.
-
-        Args:
-            config_path (str): The path to the configuration
-                file.
-        Returns:
-             ConfigInfo: updated instance of itself.
-        
-
-        with open(config_path, 'r', encoding='utf-8') as f:
-            config = yaml.safe_load(f)
-
-        return cls(
-            username=config['username'],
-            password=config['password'],
-            token=config['token'],
-            auth=config['authorization'],
-            classifier=config['classifier_model'],
-            detector=config['detector_model'],
-            dev_emails=config['dev_emails'],
-            host=config['host'],
-            classes=config['classes'],
-            model_type=config['detector_model_type'],
-            checkin_interval=config['checkin_interval'],
-            interval=config['run_scheduler'],
-            # used in detect
-            email_alerts=bool(config['email_alerts']),
-            er_alerts=bool(config['er_alerts']),
-            log_dir=config['log_dir'],
-            checkpoint_f=config['checkpoint_frequency'],
-            confidence=config['confidence'],
-            targets=config['alert_targets'],
-            consumer_emails=config['consumer_emails'],
-            # used in fetch image api
-            save_dir=config['save_dir'],
-            camera_names=dict(config['camera_names']),
-            base=config['strikeforce_api'],
-            accounts=config['username_scraper'],
-            auth_token=config['auth_token'],
-            id_path=config['id_path'],
-            password_scraper=config['password_scraper'],
-
-        )
-"""
