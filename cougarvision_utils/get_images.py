@@ -82,18 +82,18 @@ def request_strikeforce(username, auth_token, base, request, parameters):
             info = json.loads(response.text)
             return info
 
-        except requests.exceptions.ConnectionError as e:
+        except requests.exceptions.ConnectionError as excpt:
             logging.warning("Failed to connect attempt: %s error %s",
                             {attempt + 1},
-                            {e})
-            print(f'Connection Error {attempt + 1}: {e}')
+                            {excpt})
+            print(f'Connection Error {attempt + 1}: {excpt}')
             time.sleep(15)  # wait 15 seconds
-        except requests.exceptions.Timeout as e:
+        except requests.exceptions.Timeout as excpt:
             logging.warning("Failed to connect to"
                             " StrikeForce attempt: %s error %s",
                             {attempt + 1},
-                            {e})
-            print(f'Timeout Error {attempt + 1}: {e}')
+                            {excpt})
+            print(f'Timeout Error {attempt + 1}: {excpt}')
             time.sleep(15)  # wait 15 seconds
 
     logging.error("Failed to connect after multiple attempts.")
@@ -123,14 +123,14 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
     # try creating file throw exception if it
     # does not exist
     try:
-        with open(path, "x", encoding="utf-8") as f:
-            f.write(str(0))  # write first ID from sf
+        with open(path, "x", encoding="utf-8") as file:
+            file.write(str(0))  # write first ID from sf
     except FileExistsError:
         print(path, " already exists, exlusive creation aborted.")
 
     # read id from the .txt file
-    with open(path, "r", encoding="utf-8") as f:
-        last_id = int(f.read().strip())
+    with open(path, "r", encoding="utf-8") as file:
+        last_id = int(file.read().strip())
 
     photos = []
 # 5 second delay between captures, maximum 12 photos between checks
@@ -169,7 +169,7 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
         new_last = max(new_photos[:, 0])
         new_id = str(new_last)
         # write new id to .txt file
-        with open(path, "w", encoding="utf-8") as f:
-            f.writelines(new_id)
+        with open(path, "w", encoding="utf-8") as file:
+            file.writelines(new_id)
 
     return new_photos
