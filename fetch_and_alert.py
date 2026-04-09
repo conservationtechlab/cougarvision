@@ -1,4 +1,4 @@
-'''Fetch and Alert
+"""Fetch and Alert
 
 This script allows users to retrieve thumbnail images uploaded
 from cellular camera traps, classify them by species, and send
@@ -15,7 +15,7 @@ their needs by ensuring the file paths, usernames and passwords, camera
 dictionary, and image classifiers are correct. The .yml file is also
 where one can choose whether they would like email alerts or to send
 the classified images to Earthranger.
-'''
+"""
 
 # Import local utilities
 import argparse
@@ -23,73 +23,86 @@ import time
 import warnings
 from datetime import datetime as dt
 import logging
-import yaml
+from dataclasses import fields
 import schedule
+import yaml
 
+from sageranger.post_monthly import post_monthly_obs
 from cougarvision_utils.detect_img import detect
 from cougarvision_utils.alert import checkin
 from cougarvision_utils.get_images import fetch_image_api
-from sageranger.post_monthly import post_monthly_obs
-from animl.classification import load_classifier
-from animl.detection import load_detector 
+from cougarvision_utils.get_info import ConfigInfo
 
-
-# Numpy FutureWarnings from tensorflow import
-warnings.filterwarnings('ignore', category=FutureWarning)
-# Parse arguments
-PARSER = argparse.ArgumentParser(description='Retrieves images from \
-                                 email & web scraper & runs detection')
-PARSER.add_argument('config', type=str, help='Path to config file')
-ARGS = PARSER.parse_args()
-CONFIG_FILE = ARGS.config
-# Load Configuration Settings from YML file
-with open(CONFIG_FILE, 'r', encoding='utf-8') as stream:
-    CONFIG = yaml.safe_load(stream)
-# Set Email Variables for fetching
-USERNAME = CONFIG['username']
-PASSWORD = CONFIG['password']
-TOKEN = CONFIG['token']
-AUTH = CONFIG['authorization']
-CLASSIFIER = CONFIG['classifier_model']
-DETECTOR = CONFIG['detector_model']
-DEV_EMAILS = CONFIG['dev_emails']
-HOST = 'imap.gmail.com'
-CLASSES = CONFIG['classes']
-MODEL_TYPE = CONFIG['detector_model_type']
-
-# Set interval for checking in
-CHECKIN_INTERVAL = CONFIG['checkin_interval']
-
-# load models once
-CLASSIFIER_MODEL, CLASS_LIST = load_classifier(CLASSIFIER, CLASSES)
-DETECTOR_MODEL = load_detector(DETECTOR, MODEL_TYPE)
 
 def logger():
-    '''Function for creating log file'''
+    """Function for creating log file"""
     logging.basicConfig(filename='cougarvision.log', level=logging.INFO)
 
 
-def fetch_detect_alert():
-    '''Functions for fetching images, detection, and sending alerts'''
+def fetch_detect_alert(config):
+    """Function for fetching images, detection, and sending alerts"""
     # Run the scheduler
     print("Running fetch_and_alert")
     print("Fetching images")
-    images = fetch_image_api(CONFIG)
+    images = fetch_image_api(config)
     print('Finished fetching images')
     print('Starting Detection')
-    detect(images, CONFIG, CLASSIFIER_MODEL, DETECTOR_MODEL, CLASS_LIST)
+    detect(images, config)
     print('Finished Detection')
     print("Sleeping since: " + str(dt.now()))
 
 
+def parse_args():
+    """Creates parser for config yaml.
+
+    This function creates an arguement parser that creates an
+    args container with the arguement 'CONFIG'.
+
+    Returns:
+        argsparse.Namespace: An object containing all parsed arguement
+            values as attributes (e.g., args.CONFIG).
+    """
+    parser = argparse.ArgumentParser(description='Retrieves images from \
+                                    email & web scraper & runs detection')
+    parser.add_argument('CONFIG', type=str, help='Path to config file')
+
+    return parser.parse_args()
+
+
 def main():
-    ''''Runs main program and schedules future runs'''
+    """Runs main program and schedules future runs."""
+
+    # Numpy FutureWarnings from tensorflow import
+    warnings.filterwarnings('ignore', category=FutureWarning)
+
     logger()
-    fetch_detect_alert()
-    schedule.every(10).minutes.do(fetch_detect_alert)
-    schedule.every(CHECKIN_INTERVAL).hours.do(checkin, DEV_EMAILS,
-                                              USERNAME, PASSWORD, HOST)
-    schedule.every(30).days.do(post_monthly_obs, TOKEN, AUTH)
+    args = parse_args()
+    config_path = args.CONFIG
+
+    with open(config_path, 'r', encoding='utf-8') as file:
+        config_dict = yaml.safe_load(file)
+
+    # for direct mapping only use fields in ConfigInfo
+    valid_keys = {f.name for f in fields(ConfigInfo)}
+    filtered_keys = {k: v for k, v in config_dict.items() if k in valid_keys}
+
+    config = ConfigInfo(**filtered_keys)
+
+    # pass ConfigInfo dataclass object
+    fetch_detect_alert(config)
+
+    # lambda keeps fetch and detect callable
+    schedule.every(config.run_scheduler).minutes.do(lambda:
+                                                    fetch_detect_alert(config))
+    schedule.every(config.checkin_interval).hours.do(
+                                                     checkin,
+                                                     config.dev_emails,
+                                                     config.username,
+                                                     config.password,
+                                                     config.host
+                                                     )
+    schedule.every(30).days.do(post_monthly_obs,
+                               config.token, config.authorization)
 
     while True:
         schedule.run_pending()
