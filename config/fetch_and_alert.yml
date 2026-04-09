@@ -7,7 +7,9 @@ email_alerts: True
 email_alerts: True
 er_alerts: True 
 #detector_model - path to detector model
-detector_model: /home/johnsmith/cougarvision/detector_models/megadetector_v4.1.pb 
+detector_model: /home/johnsmith/cougarvision/detector_models/megadetector.pt
+#type of detection model expected ["MDV5", "MDV6", "YOLO", "ONNX"]
+detector_model_type: "<insert model type>"
 #classifier_model - path to classifier model
 classifier_model: /home/johnsmith/cougarvision/classifier_models/EfficientNetB5_456_Unfrozen_05_0.26_0.92.h5 
 checkpoint_frequency: -1 
@@ -47,14 +49,21 @@ alert_targets: [cougar, bobcat, skunk, deer, dog, coyote, rabbit, elephant]
 #checkn_interval - time interval between still-alive emails to let us know no errors have crashed
 #cougarvision if it's running constantly
 checkin_interval: 24
+#the time between repeating running fetch_and_alert, if visualize_output = True, it will be in seconds and if it = False it will be in minutes
+run_scheduler: 1
+#email to send still-alive email to
+admin: admin@email.com 
 #x-csrf token retreived from earthranger interactive api example requests, must be logged into an
 #existing earthranger account with interactive api access
-token: [insert token]
+token: '<insert token>'
 #authorization bearer token retreived from same earthranger interactive api example requests 
-authorization: Bearer [insert authorization]
-#the time between repeating running fetch_and_alert, if visualize_output = True, it will be in seconds and if it = False it will be in minutes
-run_scheduler: 10
+authorization: 'Bearer <insert authorization>'
 #color of the bounding box
 color: 'LawnGreen'
 #color: 'Orange'
 #color: 'Azure'
+#host email here
+#host email here
+host: 'imap.gmail.com'
+#path to last photo id 
+id_path: './last_id.txt'

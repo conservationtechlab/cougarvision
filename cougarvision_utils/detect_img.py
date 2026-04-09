@@ -1,4 +1,4 @@
-'''Detect Img
+"""Detect Img
 
 This script defines the function responsible for classifying
 images based on a trained classifier and sending alerts to either
@@ -7,109 +7,105 @@ email or Earthranger as specified by the fetch_and_alert.yml config file.
 The defined function depends on local modules cropping.py, alert.py,
 post_event_er.py, and attach_image_er.py as well as some functions
 that must be imported from animl.
-'''
+"""
 
 from io import BytesIO
 from datetime import datetime as dt
 import re
-import sys
-import logging
-import yaml
 from PIL import Image
-from animl import inference, split
+from animl import classification, split
+from animl import detection
 from sageranger import is_target, attach_image, post_event
-from animl.detect import detect_MD_batch, parse_MD
-import os
 
 from cougarvision_utils.cropping import draw_bounding_box_on_image
 from cougarvision_utils.alert import smtp_setup, send_alert
 from cougarvision_visualize.visualize_helper import get_last_file_number
 
 
-def detect(images, config, c_model, classes, d_model):
-    '''
+def detect(images, config):  # pylint: disable=too-many-locals
+    """The function detects alert_targets.
+
     This function takes in a dataframe of images and runs a detector model,
-    classifies the species of interest, and sends alerts either to email or an
-    interface called Earthranger
+    classifies the species of interest defined in the config yaml, and sends
+    alerts either to email or an interface called Earthranger.
 
     Args:
-    images: a nested array of information regarding each photo that is to be
-        run through the detector and is formatted
-        ['strikeforce id']['thumbnail url']['local file path']
-    config: the unpacked config values from fetch_and_alert.yml that contains
-        necessary parameters the function needs
-    '''
-    # use_variation = int(config['use_variation'])
-    email_alerts = bool(config['email_alerts'])
-    er_alerts = bool(config['er_alerts'])
-    log_dir = config['log_dir']
-    class_list = config['classes']
-    checkpoint_f = config['checkpoint_frequency']
-    confidence = config['confidence']
-    targets = config['alert_targets']
-    username = config['username']
-    password = config['password']
-    consumer_emails = config['consumer_emails']
-    dev_emails = config['dev_emails']
-    host = 'imap.gmail.com'
-    token = config['token']
-    authorization = config['authorization']
-    color = config['color']
-    visualize_output = config['visualize_output']
-    labeled_img = config['path_to_labeled_output']
+        images(array): a nested array of information regarding each photo that
+          is to be run through the detector and is formatted
+          ['strikeforce id']['thumbnail url']['local file path']
+        config (ConfigInfo): the unpacked config values from
+            fetch_and_alert.yml that contains necessary parameters
+            the function needs.
+    """
+
     if len(images) > 0:
         # extract paths from dataframe
         image_paths = images[:, 2]
+        # detection.detect expects the image paths in a list
+        image_path_list = image_paths.tolist()
         # Run Detection
-        results = detect_MD_batch(d_model,
-                                  image_paths,
-                                  checkpoint_path=None,
-                                  confidence_threshold=confidence,
-                                  checkpoint_frequency=checkpoint_f,
-                                  quiet=False,
-                                  image_size=None)
+        # confidendce and checkpoint frequency
+        conf = config.confidence
+        ch_f = config.checkpoint_frequency
+        results = detection.detect(config.detector_model_load,
+                                   image_path_list,
+                                   resize_width=1280,
+                                   resize_height=1280,
+                                   confidence_threshold=conf,
+                                   checkpoint_frequency=ch_f,
+                                   batch_size=4
+                                   )
         # Parse results
-        data_frame = parse_MD(results, None, None)
+        data_frame = detection.parse_detections(results)
+        # single classification function checks for the file
+        # extension so we add it
+        data_frame["extension"] = data_frame["filepath"].str.extract(
+                                            r'(\.[^.]+)$',
+                                            expand=False).str.lower()
         # filter out all non animal detections
         if not data_frame.empty:
             animal_df = split.get_animals(data_frame)
-            otherdf = split.get_empty(data_frame)
+            # other_df = split.get_empty(data_frame)
             # run classifier on animal detections if there are any
             if not animal_df.empty:
-                # create generator for images
-                start = time.time()
-                predictions = inference.predict_species(animal_df.reset_index(drop=True), c_model, classes, file_col="file")
-                end = time.time()
-                cls_time = end - start
-                print("Time to classify: ")
-                print(cls_time)
-                logging.debug('Time to classify: ' + str(cls_time))
-                # checks to see if predicted class is in targets
-                cougars = predictions[predictions['prediction'].isin(targets)]
+                classifer_model = config.classifier_model_load
+                predictions_raw = classification.classify(classifer_model,
+                                                          animal_df,
+                                                          batch_size=4
+                                                          )
+                # single classification expects a list
+                class_list_series = config.class_list["species"].tolist()
+                preds = classification.single_classification(animal_df,
+                                                             None,
+                                                             predictions_raw,
+                                                             class_list_series
+                                                             )
+                cougars = preds[preds['prediction'].isin(config.alert_targets)]
                 # drops all detections with confidence less than threshold
-                cougars = cougars[cougars['confidence'] >= confidence]
+                cougars = cougars[cougars['confidence'] >= config.confidence]
                 # reset dataframe index
                 cougars = cougars.reset_index(drop=True)
                 # create a row in the dataframe containing only the camera name
                 # flake8: disable-next
-                cougars['cam_name'] = cougars['file'].apply(lambda x: re.findall(r'[A-Z]\d+', x)[0])  # noqa: E501  # pylint: disable-msg=line-too-long
+                cougars['cam_name'] = cougars['filepath'].apply(
+                    lambda x: re.findall(r'[A-Z]\d+', x)[0])
                 # Sends alert for each cougar detection
                 for idx in range(len(cougars.index)):
                     label = cougars.at[idx, 'prediction']
                     # uncomment this line to use conf value for dev email alert
                     prob = str(cougars.at[idx, 'confidence'])
-                    img = Image.open(cougars.at[idx, 'file'])
+                    img = Image.open(cougars.at[idx, 'filepath'])
                     draw_bounding_box_on_image(img,
-                                               cougars.at[idx, 'bbox2'],
-                                               cougars.at[idx, 'bbox1'],
+                                               cougars.at[idx, 'bbox_y'],
+                                               cougars.at[idx, 'bbox_x'],
                                                cougars.at[idx,
-                                                          'bbox2'] +
+                                                          'bbox_y'] +
                                                cougars.at[idx,
-                                                          'bbox4'],
+                                                          'bbox_h'],
                                                cougars.at[idx,
-                                                          'bbox1'] +
+                                                          'bbox_x'] +
                                                cougars.at[idx,
-                                                          'bbox3'],
+                                                          'bbox_w'],
                                                expansion=0,
                                                use_normalized_coordinates=True)
                     image_bytes = BytesIO()
@@ -125,31 +121,38 @@ def detect(images, config, c_model, classes, d_model):
                             folder.write(img_byte)
 
                     cam_name = cougars.at[idx, 'cam_name']
-                    if label in targets and er_alerts is True:
-                        is_target(cam_name, token, authorization, label)
+                    er_alerts = config.er_alerts
+                    if label in config.alert_targets and er_alerts is True:
+                        is_target(cam_name, config.token,
+                                  config.authorization, label)
                     # Email or Earthranger alerts as dictated in the config yml
-                    if er_alerts is True:
+                    if config.er_alerts is True:
                         event_id = post_event(label,
                                               cam_name,
-                                              token,
-                                              authorization)
+                                              config.token,
+                                              config.authorization)
                         response = attach_image(event_id,
                                                 img_byte,
-                                                token,
-                                                authorization,
+                                                config.token,
+                                                config.authorization,
                                                 label)
-                        logging.info(response)
-
-                    logging.info('Sending detection email')
-
-                    if email_alerts is True:
-                        smtp_server = smtp_setup(username, password, host)
+                        print(response)
+                    if config.email_alerts is True:
+                        smtp_server = smtp_setup(config.username,
+                                                 config.password,
+                                                 config.host
+                                                 )
                         dev = 0
                         send_alert(label, image_bytes, smtp_server,
-                                   username, consumer_emails, dev, prob)
+                                   config.username, config.consumer_emails,
+                                   dev, prob
+                                   )
                         dev = 1
                         send_alert(label, image_bytes, smtp_server,
-                                   username, dev_emails, dev, prob)
+                                   config.username, config.dev_emails,
+                                   dev, prob)
+
                 # Write Dataframe to csv
-                date = "%m-%d-%Y_%H:%M:%S"
-                cougars.to_csv(f'{log_dir}dataframe_{dt.now().strftime(date)}')
+                current_date = dt.now()
+                formatted_dt = current_date.strftime("%m-%d-%Y_%H:%M:%S")
+                cougars.to_csv(f'{config.log_dir}dataframe_{formatted_dt}')
