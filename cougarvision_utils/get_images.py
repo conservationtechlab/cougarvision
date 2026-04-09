@@ -97,8 +97,9 @@ def request_strikeforce(username, auth_token, base, request, parameters):
             time.sleep(15)  # wait 15 seconds
 
     logging.error("Failed to connect after multiple attempts.")
+    # broad error
     raise RuntimeError("Failed to connect"
-                    "after multiple attempts.")  # pylint says too broad
+                       "after multiple attempts.")
 
 
 def fetch_image_api(config):  # pylint: disable=too-many-locals
