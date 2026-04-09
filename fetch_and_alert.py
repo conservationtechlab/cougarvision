@@ -79,8 +79,8 @@ def main():
     args = parse_args()
     config_path = args.CONFIG
 
-    with open(config_path, 'r', encoding='utf-8') as f:
-        config_dict = yaml.safe_load(f)
+    with open(config_path, 'r', encoding='utf-8') as file:
+        config_dict = yaml.safe_load(file)
 
     # for direct mapping only use fields in ConfigInfo
     valid_keys = {f.name for f in fields(ConfigInfo)}
