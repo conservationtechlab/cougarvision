@@ -155,7 +155,7 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
                 logging.warning('Cannot retrieve photo from camera\
                 as there is no asssociated ID in the config file')
                 continue
-            newname = config['save_dir'] + camera
+            newname = config.save_dir + camera
             newname += "_" + str(info['id']) 
             newname += "_" + info['file_thumb_filename']
             # native extension from strikeforce is .JPG.jpeg for some reason
