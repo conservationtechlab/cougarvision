@@ -23,9 +23,9 @@ import time
 import warnings
 from datetime import datetime as dt
 import logging
+from dataclasses import fields
 import schedule
 import yaml
-from dataclasses import fields
 
 from sageranger.post_monthly import post_monthly_obs
 from cougarvision_utils.detect_img import detect
@@ -75,28 +75,25 @@ def main():
     # Numpy FutureWarnings from tensorflow import
     warnings.filterwarnings('ignore', category=FutureWarning)
 
-
-
     logger()
     args = parse_args()
     config_path = args.CONFIG
 
-
     with open(config_path, 'r', encoding='utf-8') as f:
-        config_dict= yaml.safe_load(f)
+        config_dict = yaml.safe_load(f)
 
     # for direct mapping only use fields in ConfigInfo
     valid_keys = {f.name for f in fields(ConfigInfo)}
     filtered_keys = {k: v for k, v in config_dict.items() if k in valid_keys}
 
     config = ConfigInfo(**filtered_keys)
-   
+
     # pass ConfigInfo dataclass object
     fetch_detect_alert(config)
 
     # lambda keeps fetch and detect callable
     schedule.every(config.run_scheduler).minutes.do(lambda:
-                                               fetch_detect_alert(config))
+                                                    fetch_detect_alert(config))
     schedule.every(config.checkin_interval).hours.do(
                                                      checkin,
                                                      config.dev_emails,
