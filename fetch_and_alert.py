@@ -25,6 +25,7 @@ from datetime import datetime as dt
 import logging
 import schedule
 import yaml
+from dataclasses import fields
 
 from sageranger.post_monthly import post_monthly_obs
 from cougarvision_utils.detect_img import detect
@@ -84,10 +85,13 @@ def main():
     with open(config_path, 'r', encoding='utf-8') as f:
         config_dict= yaml.safe_load(f)
 
-    config = ConfigInfo(**config_dict)
-    #config = ConfigInfo.from_yaml(config_path)
+    # for direct mapping only use fields in ConfigInfo
+    valid_keys = {f.name for f in fields(ConfigInfo)}
+    filtered_keys = {k: v for k, v in config_dict.items() if k in valid_keys}
 
-    # pass ConfigInfo data class object
+    config = ConfigInfo(**filtered_keys)
+   
+    # pass ConfigInfo dataclass object
     fetch_detect_alert(config)
 
     # lambda keeps fetch and detect callable
