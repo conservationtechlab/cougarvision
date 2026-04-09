@@ -139,7 +139,7 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
 # using config object
     for account, token in zip(config.username_scraper, config.auth_token):
         data = request_strikeforce(account, token, config.strikeforce_api,
-                                   "photos/recent", "limit=12")
+                                   "photos/recent", "limit=50")
         photos += data['photos']['data']
 
     new_photos = []
@@ -163,15 +163,20 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
             urllib.request.urlretrieve(info['file_thumb_url'], stripped_name)
             new_photos.append([photo['id'],
                                info['file_thumb_url'], stripped_name])
-
-            if visualize_output is True:
+            
+            # not sure what unlabeled output should be
+            unlabeled_img = "unlabeled_output"
+            if config.visualize_output is True:
                 os.makedirs(unlabeled_img, exist_ok=True)
                 newname = unlabeled_img + 'image'
                 new_file_num = get_last_file_number(unlabeled_img)
                 new_file_num = new_file_num + 1
-                new_file_num = str(new_file_num)
-                newname += "_" + new_file_num
+               # new_file_num = str(new_file_num)
+                newname = os.path.join(unlabeled_img, f"image_{new_file_num}.jpg")
+               # newname += "_" + new_file_num
                 urllib.request.urlretrieve(info['file_thumb_url'], newname)
+           
+
 
     new_photos = np.array(new_photos)
     if len(new_photos) > 0:  # update last image
