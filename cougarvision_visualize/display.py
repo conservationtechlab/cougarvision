@@ -32,8 +32,8 @@ from screeninfo import get_monitors
 def get_screen_resolutions():
     """Function to get the screen resolutions for both monitors.
 
-    Returns: 
-        list: list of tuples that represent the width and height of 
+    Returns:
+        list: list of tuples that represent the width and height of
             each monitor.
     """
     monitors = get_monitors()
@@ -43,7 +43,7 @@ def get_screen_resolutions():
 
 def get_newest_images(f_p, num_images):
     """Function to return the newest x num of images from folder.
-    
+
     Args:
         f_P (string): Path to folder of images.
         num_images (int): desired amount of images from folder.
@@ -55,8 +55,8 @@ def get_newest_images(f_p, num_images):
 
     if not fil:
         return []
-    
-    # logic only needed locally 
+
+    # logic only needed locally
     def sort_key_func(file_name):
         try:
             return int(os.path.splitext(file_name.split('_')[1])[0])
@@ -72,7 +72,7 @@ def get_newest_images(f_p, num_images):
 
 def display_images(images, window_name='CougarVision'):
     """Function to display labeled 9 recent images in 3x3 grid.
-    
+
     Args:
         images (list): List of images from labeled images folder.
         window_name ('obj':'str', optional): Title of the window
@@ -106,7 +106,7 @@ def display_images(images, window_name='CougarVision'):
 
 def display_more_images(images, window_2='Newest Image'):
     """Function to display the 81 unlabeled images on 2nd monitor 9x9
-    
+
     Args:
         images (list): list of images from unlabeled images folder.
         window_2 ('obj':'str', optional): Title of window 2.
@@ -136,6 +136,7 @@ def display_more_images(images, window_2='Newest Image'):
 
     cv2.imshow(window_2, display_img)
 
+
 def parse_args():
     """Creates parser for config yaml.
 
@@ -146,47 +147,48 @@ def parse_args():
         argsparse.Namespace: An object containing all parsed arguement
             values as attributes (e.g., args.config).
     """
-     
+
     parser = argparse.ArgumentParser(description='Retrieves images from \
                                      email & web scraper & runs detection')
     parser.add_argument('config', type=str, help='Path to config file')
     return parser.parse_args()
 
-def main ():
+
+def main():
     """Runs main program."""
 
-    WINDOW_NAME = 'CougarVision'
-    WINDOW_2 = "Newest Image"
+    window_name = 'CougarVision'
+    window_2 = "Newest Image"
 
-    RESOLUTIONS = get_screen_resolutions()
+    resolutions = get_screen_resolutions()
 
-    cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
-    cv2.namedWindow(WINDOW_2, cv2.WINDOW_NORMAL)
+    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+    cv2.namedWindow(window_2, cv2.WINDOW_NORMAL)
 
-    cv2.moveWindow(WINDOW_NAME, 0, 0)
-    cv2.moveWindow(WINDOW_2, RESOLUTIONS[0][0], 0)
+    cv2.moveWindow(window_name, 0, 0)
+    cv2.moveWindow(window_2, resolutions[0][0], 0)
 
-    cv2.setWindowProperty(WINDOW_NAME, cv2.WND_PROP_FULLSCREEN,
+    cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN,
                           cv2.WINDOW_FULLSCREEN)
-    cv2.setWindowProperty(WINDOW_2, cv2.WND_PROP_FULLSCREEN,
+    cv2.setWindowProperty(window_2, cv2.WND_PROP_FULLSCREEN,
                           cv2.WINDOW_FULLSCREEN)
 
     args = parse_args()
-    CONFIG_FILE = args.config
+    config_file = args.config
 
-    with open(CONFIG_FILE, 'r', encoding='utf-8') as stream:
-        CONFIG = yaml.safe_load(stream)
-    LABELED = CONFIG['path_to_labeled_output']
-    UNLABELED = CONFIG['path_to_unlabeled_output']
+    with open(config_file, 'r', encoding='utf-8') as stream:
+        config = yaml.safe_load(stream)
+    labeled = config['path_to_labeled_output']
+    unlabeled = config['path_to_unlabeled_output']
 
     while True:
-        NEW_IMG = get_newest_images(LABELED, 9)
-        if len(NEW_IMG) >= 9:
-            display_images(NEW_IMG, WINDOW_NAME)
+        new_img = get_newest_images(labeled, 9)
+        if len(new_img) >= 9:
+            display_images(new_img, window_name)
 
-        NEWER_IMG = get_newest_images(UNLABELED, 81)
-        if len(NEWER_IMG) >= 81:
-            display_more_images(NEWER_IMG, WINDOW_2)
+        newer_img = get_newest_images(unlabeled, 81)
+        if len(new_img) >= 81:
+            display_more_images(newer_img, window_2)
 
         time.sleep(1)
 
@@ -197,4 +199,4 @@ def main ():
 
 
 if __name__ == "__main__":
-   main()
+    main()
