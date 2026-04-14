@@ -71,10 +71,12 @@ def get_newest_images(f_p, num_images):
 
 
 def display_images(window, images, size, window_name='CougarVision'):
-    """Function to display labeled 9 recent images in 3x3 grid.
+    """Function to display x amount of recent images in size x size grid.
 
     Args:
+        window (tuple): tuple of monitor height and width.
         images (list): List of images from labeled images folder.
+        size (int): Desired size of grid.
         window_name ('obj':'str', optional): Title of the window
 
     """
@@ -161,6 +163,10 @@ def setup_windows(resolutions):
     Args:
         resolutions (list): List of tuples that has width
             and height of monoitors.
+    Returns:
+        tuple: tuple of (str, str, bool) where the str values
+            represent window titles and bool represents if 
+            there is a second monitor,
     """
     window_name = 'CougarVision'
     window_2 = "Newest Image"
@@ -189,6 +195,7 @@ def setup_windows(resolutions):
 
 def main():
     """Runs main program."""
+    
     resolutions = get_screen_resolutions()
     window_name, window_2, second_monitor = setup_windows(resolutions)
 
