@@ -33,7 +33,7 @@ def get_screen_resolutions():
     """Function to get the screen resolutions for both monitors.
 
     Returns: 
-        List: list of tuples that represent the width and height of 
+        list: list of tuples that represent the width and height of 
             each monitor.
     """
     monitors = get_monitors()
@@ -45,17 +45,18 @@ def get_newest_images(f_p, num_images):
     """Function to return the newest x num of images from folder.
     
     Args:
-        f_P (string): Path to labeled images.
+        f_P (string): Path to folder of images.
         num_images (int): desired amount of images from folder.
 
     Returns:
-        list: list of valid images from labeled images folder.
+        list: list of valid images from the image folder path.
     """
     fil = [f for f in os.listdir(f_p) if os.path.isfile(os.path.join(f_p, f))]
 
     if not fil:
         return []
-
+    
+    # logic only needed locally 
     def sort_key_func(file_name):
         try:
             return int(os.path.splitext(file_name.split('_')[1])[0])
@@ -74,7 +75,7 @@ def display_images(images, window_name='CougarVision'):
     
     Args:
         images (list): List of images from labeled images folder.
-        window_name (string): Title of the window
+        window_name ('obj':'str', optional): Title of the window
 
     """
     resolutions = get_screen_resolutions()
@@ -108,7 +109,7 @@ def display_more_images(images, window_2='Newest Image'):
     
     Args:
         images (list): list of images from unlabeled images folder.
-        window_2 (sting): Tittle of window 2.
+        window_2 ('obj':'str', optional): Title of window 2.
     """
     resolutions = get_screen_resolutions()
     screen_height = resolutions[1][1]
@@ -135,10 +136,25 @@ def display_more_images(images, window_2='Newest Image'):
 
     cv2.imshow(window_2, display_img)
 
+def parse_args():
+    """Creates parser for config yaml.
 
+    This function creates an arguement parser that creates an
+    args container with the arguement 'CONFIG'.
 
-# could clean this up have main call a func with this info
-if __name__ == "__main__":
+    Returns:
+        argsparse.Namespace: An object containing all parsed arguement
+            values as attributes (e.g., args.config).
+    """
+     
+    parser = argparse.ArgumentParser(description='Retrieves images from \
+                                     email & web scraper & runs detection')
+    parser.add_argument('config', type=str, help='Path to config file')
+    return parser.parse_args()
+
+def main ():
+    """Runs main program."""
+
     WINDOW_NAME = 'CougarVision'
     WINDOW_2 = "Newest Image"
 
@@ -155,11 +171,8 @@ if __name__ == "__main__":
     cv2.setWindowProperty(WINDOW_2, cv2.WND_PROP_FULLSCREEN,
                           cv2.WINDOW_FULLSCREEN)
 
-    PARSER = argparse.ArgumentParser(description='Retrieves images from \
-                                     email & web scraper & runs detection')
-    PARSER.add_argument('config', type=str, help='Path to config file')
-    ARGS = PARSER.parse_args()
-    CONFIG_FILE = ARGS.config
+    args = parse_args()
+    CONFIG_FILE = args.config
 
     with open(CONFIG_FILE, 'r', encoding='utf-8') as stream:
         CONFIG = yaml.safe_load(stream)
@@ -181,3 +194,7 @@ if __name__ == "__main__":
             break
 
     cv2.destroyAllWindows()
+
+
+if __name__ == "__main__":
+   main()
