@@ -1,4 +1,4 @@
-'''CougarVision Visualize Output
+"""CougarVision Visualize Output
 This script is intended to be run alongside fetch_and_alert.py in a second
 terminal or tmux terminal. It displays the most recent classified detections
 on a 3x3 grid on one screen and most recent images on a second 9x9 grid.
@@ -17,7 +17,7 @@ but for now if that is an issue you can fill the folder with black images with
 the correct nomenclature: image_1.jpg, image_2.jpg... and it will replace the
 black images as they come in.
 
-'''
+"""
 
 
 import os
@@ -30,14 +30,27 @@ from screeninfo import get_monitors
 
 
 def get_screen_resolutions():
-    '''Function to get the screen resolutions for both monitors'''
+    """Function to get the screen resolutions for both monitors.
+
+    Returns: 
+        List: list of tuples that represent the width and height of 
+            each monitor.
+    """
     monitors = get_monitors()
     resolutions = [(monitor.width, monitor.height) for monitor in monitors]
     return resolutions
 
 
 def get_newest_images(f_p, num_images):
-    '''Function to return the newest x num of images from folder'''
+    """Function to return the newest x num of images from folder.
+    
+    Args:
+        f_P (string): Path to labeled images.
+        num_images (int): desired amount of images from folder.
+
+    Returns:
+        list: list of valid images from labeled images folder.
+    """
     fil = [f for f in os.listdir(f_p) if os.path.isfile(os.path.join(f_p, f))]
 
     if not fil:
@@ -57,7 +70,13 @@ def get_newest_images(f_p, num_images):
 
 
 def display_images(images, window_name='CougarVision'):
-    '''Function to display labeled 9 recent images in 3x3 grid'''
+    """Function to display labeled 9 recent images in 3x3 grid.
+    
+    Args:
+        images (list): List of images from labeled images folder.
+        window_name (string): Title of the window
+
+    """
     resolutions = get_screen_resolutions()
     screen_height = resolutions[0][1]
     screen_width = resolutions[0][0]
@@ -85,7 +104,12 @@ def display_images(images, window_name='CougarVision'):
 
 
 def display_more_images(images, window_2='Newest Image'):
-    '''Function to display the 81 unlabeled images on 2nd monitor 9x9'''
+    """Function to display the 81 unlabeled images on 2nd monitor 9x9
+    
+    Args:
+        images (list): list of images from unlabeled images folder.
+        window_2 (sting): Tittle of window 2.
+    """
     resolutions = get_screen_resolutions()
     screen_height = resolutions[1][1]
     screen_width = resolutions[1][0]
@@ -112,6 +136,8 @@ def display_more_images(images, window_2='Newest Image'):
     cv2.imshow(window_2, display_img)
 
 
+
+# could clean this up have main call a func with this info
 if __name__ == "__main__":
     WINDOW_NAME = 'CougarVision'
     WINDOW_2 = "Newest Image"
