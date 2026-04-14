@@ -106,23 +106,6 @@ def display_images(window, images, size, window_name='CougarVision'):
     cv2.imshow(window_name, display_img)
 
 
-def parse_args():
-    """Creates parser for config yaml.
-
-    This function creates an arguement parser that creates an
-    args container with the arguement 'CONFIG'.
-
-    Returns:
-        argsparse.Namespace: An object containing all parsed arguement
-            values as attributes (e.g., args.config).
-    """
-
-    parser = argparse.ArgumentParser(description='Retrieves images from \
-                                     email & web scraper & runs detection')
-    parser.add_argument('config', type=str, help='Path to config file')
-    return parser.parse_args()
-
-
 def setup_windows(resolutions):
     """Defines windows and places them on correct monitors.
 
@@ -164,7 +147,7 @@ def main_display():
 
     resolutions = get_screen_resolutions()
     window_1, window_2, second_monitor = setup_windows(resolutions)
-    
+
     config = get_config_info(display_info)
 
     while True:
