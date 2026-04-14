@@ -78,9 +78,9 @@ def display_images(window, images, size, window_name='CougarVision'):
         window_name ('obj':'str', optional): Title of the window
 
     """
-    #resolutions = get_screen_resolutions()
-    #screen_height = resolutions[0][1]
-    #screen_width = resolutions[0][0]
+    # resolutions = get_screen_resolutions()
+    # screen_height = resolutions[0][1]
+    # screen_width = resolutions[0][0]
     screen_width, screen_height = window
     num_images_row = size
     num_images_col = size
@@ -159,7 +159,7 @@ def setup_windows(resolutions):
     """Defines windows and places them on correct monitors.
 
     Args:
-        resolutions (list): List of tuples that has width 
+        resolutions (list): List of tuples that has width
             and height of monoitors.
     """
     window_name = 'CougarVision'
@@ -205,12 +205,12 @@ def main():
         # if no images exist maybe grab from image folder + one screen
         new_img = get_newest_images(labeled, 9)
         if len(new_img) >= 9:
-            display_images(resolutions[0],new_img, 3, window_name)
-        if second_monitor :
+            display_images(resolutions[0], new_img, 3, window_name)
+        if second_monitor:
             newer_img = get_newest_images(unlabeled, 81)
             if len(newer_img) >= 81:
-                #display_more_images(resolutions, newer_img, window_2)
-                display_images(resolutions[1],newer_img, 9, window_2)
+                # display_more_images(resolutions, newer_img, window_2)
+                display_images(resolutions[1], newer_img, 9, window_2)
 
         time.sleep(1)
 
