@@ -70,7 +70,7 @@ def get_newest_images(f_p, num_images):
     return images
 
 
-def display_images(images, window_name='CougarVision'):
+def display_images(window, images, size, window_name='CougarVision'):
     """Function to display labeled 9 recent images in 3x3 grid.
 
     Args:
@@ -78,12 +78,12 @@ def display_images(images, window_name='CougarVision'):
         window_name ('obj':'str', optional): Title of the window
 
     """
-    resolutions = get_screen_resolutions()
-    screen_height = resolutions[0][1]
-    screen_width = resolutions[0][0]
-
-    num_images_row = 3
-    num_images_col = 3
+    #resolutions = get_screen_resolutions()
+    #screen_height = resolutions[0][1]
+    #screen_width = resolutions[0][0]
+    screen_width, screen_height = window
+    num_images_row = size
+    num_images_col = size
 
     max_w_image = screen_width // num_images_row
     max_h_image = screen_height // num_images_col
@@ -104,19 +104,20 @@ def display_images(images, window_name='CougarVision'):
     cv2.imshow(window_name, display_img)
 
 
-def display_more_images(images, window_2='Newest Image'):
+def display_more_images(window, images, size, window_2='Newest Image'):
     """Function to display the 81 unlabeled images on 2nd monitor 9x9
 
     Args:
         images (list): list of images from unlabeled images folder.
         window_2 ('obj':'str', optional): Title of window 2.
     """
-    resolutions = get_screen_resolutions()
-    screen_height = resolutions[1][1]
-    screen_width = resolutions[1][0]
+    # resolutions = get_screen_resolutions()
+    # screen_height = resolutions[1][1]
+    # screen_width = resolutions[1][0]
+    screen_width, screen_height = window
 
-    num_images_row = 9
-    num_images_col = 9
+    num_images_row = size
+    num_images_col = size
 
     max_w_image = screen_width // num_images_row
     max_h_image = screen_height // num_images_col
@@ -154,13 +155,10 @@ def parse_args():
     return parser.parse_args()
 
 
-def main():
-    """Runs main program."""
-
+def setup_windows(resolutions):
     window_name = 'CougarVision'
     window_2 = "Newest Image"
 
-    resolutions = get_screen_resolutions()
     second_monitor = len(resolutions) > 1
     
     # define first window on first monitor
@@ -174,11 +172,19 @@ def main():
 
     # full screen 
     cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN,
-                         cv2.WINDOW_FULLSCREEN)
+                          cv2.WINDOW_FULLSCREEN)
     
     if second_monitor:
         cv2.setWindowProperty(window_2, cv2.WND_PROP_FULLSCREEN,
                               cv2.WINDOW_FULLSCREEN)
+
+    return window_name, window_2, second_monitor
+
+
+def main():
+    """Runs main program."""
+    resolutions = get_screen_resolutions()
+    window_name, window_2, second_monitor = setup_windows(resolutions)
 
     args = parse_args()
     config_file = args.config
@@ -190,13 +196,15 @@ def main():
     unlabeled = config['path_to_unlabeled_output']
 
     while True:
+        # if no images exist maybe grab from image folder + one screen 
         new_img = get_newest_images(labeled, 9)
         if len(new_img) >= 9:
-            display_images(new_img, window_name)
+            display_images(resolutions[0],new_img, 3, window_name)
         if second_monitor :
             newer_img = get_newest_images(unlabeled, 81)
             if len(newer_img) >= 81:
-                display_more_images(newer_img, window_2)
+                #display_more_images(resolutions, newer_img, window_2)
+                display_images(resolutions[1],newer_img, 9, window_2)
 
         time.sleep(1)
 
