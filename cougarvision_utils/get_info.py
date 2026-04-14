@@ -73,3 +73,10 @@ class ConfigInfo:
         self.detector_model_load = load_detector(
             self.detector_model, self.detector_model_type
         )
+
+
+@dataclass
+class display_info:
+     path_to_unlabeled_output: str
+     path_to_labeled_output: str
+     save_dir: str
