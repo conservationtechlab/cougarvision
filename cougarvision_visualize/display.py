@@ -22,9 +22,7 @@ black images as they come in.
 
 import os
 import time
-import argparse
 import numpy as np
-import yaml
 import cv2
 from dataclasses import fields
 from cougarvision_utils.get_info import display_info
