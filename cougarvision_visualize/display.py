@@ -26,6 +26,9 @@ import argparse
 import numpy as np
 import yaml
 import cv2
+from dataclasses import fields
+from cougarvision_utils.get_info import display_info
+from fetch_and_alert import get_config_info
 from screeninfo import get_monitors
 
 
@@ -41,7 +44,7 @@ def get_screen_resolutions():
     return resolutions
 
 
-def get_newest_images(f_p, num_images):
+def get_recent_images(f_p, num_images):
     """Function to return the newest x num of images from folder.
 
     Args:
@@ -80,9 +83,6 @@ def display_images(window, images, size, window_name='CougarVision'):
         window_name ('obj':'str', optional): Title of the window
 
     """
-    # resolutions = get_screen_resolutions()
-    # screen_height = resolutions[0][1]
-    # screen_width = resolutions[0][0]
     screen_width, screen_height = window
     num_images_row = size
     num_images_col = size
@@ -134,14 +134,14 @@ def setup_windows(resolutions):
             represent window titles and bool represents if 
             there is a second monitor,
     """
-    window_name = 'CougarVision'
+    window_1 = 'CougarVision'
     window_2 = "Newest Image"
 
     second_monitor = len(resolutions) > 1
 
     # define first window on first monitor
-    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-    cv2.moveWindow(window_name, 0, 0)
+    cv2.namedWindow(window_1, cv2.WINDOW_NORMAL)
+    cv2.moveWindow(window_1, 0, 0)
 
     # if second monitor exists
     if second_monitor:
@@ -149,40 +149,30 @@ def setup_windows(resolutions):
         cv2.moveWindow(window_2, resolutions[0][0], 0)
 
     # full screen
-    cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN,
+    cv2.setWindowProperty(window_1, cv2.WND_PROP_FULLSCREEN,
                           cv2.WINDOW_FULLSCREEN)
 
     if second_monitor:
         cv2.setWindowProperty(window_2, cv2.WND_PROP_FULLSCREEN,
                               cv2.WINDOW_FULLSCREEN)
 
-    return window_name, window_2, second_monitor
+    return window_1, window_2, second_monitor
 
 
 def main_display():
     """Runs main program."""
 
     resolutions = get_screen_resolutions()
-    window_name, window_2, second_monitor = setup_windows(resolutions)
-
-    args = parse_args()
-    config_file = args.config
-
-    with open(config_file, 'r', encoding='utf-8') as stream:
-        config = yaml.safe_load(stream)
-
-    labeled = config['path_to_labeled_output']
-    #unlabeled = config['path_to_unlabeled_output']
-    # this also works !
-    unlabeled = config['save_dir']
+    window_1, window_2, second_monitor = setup_windows(resolutions)
+    
+    config = get_config_info(display_info)
 
     while True:
-        # if no images exist maybe grab from image folder + one screen
-        new_img = get_newest_images(labeled, 9)
+        new_img = get_recent_images(config.path_to_labeled_output, 9)
         if len(new_img) >= 9:
-            display_images(resolutions[0], new_img, 3, window_name)
+            display_images(resolutions[0], new_img, 3, window_1)
         if second_monitor:
-            newer_img = get_newest_images(unlabeled, 81)
+            newer_img = get_recent_images(config.save_dir, 81)
             if len(newer_img) >= 81:
                 display_images(resolutions[1], newer_img, 9, window_2)
 
