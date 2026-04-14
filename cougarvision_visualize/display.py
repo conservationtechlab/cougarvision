@@ -106,40 +106,6 @@ def display_images(window, images, size, window_name='CougarVision'):
     cv2.imshow(window_name, display_img)
 
 
-def display_more_images(window, images, size, window_2='Newest Image'):
-    """Function to display the 81 unlabeled images on 2nd monitor 9x9
-
-    Args:
-        images (list): list of images from unlabeled images folder.
-        window_2 ('obj':'str', optional): Title of window 2.
-    """
-    # resolutions = get_screen_resolutions()
-    # screen_height = resolutions[1][1]
-    # screen_width = resolutions[1][0]
-    screen_width, screen_height = window
-
-    num_images_row = size
-    num_images_col = size
-
-    max_w_image = screen_width // num_images_row
-    max_h_image = screen_height // num_images_col
-
-    display_img = np.zeros((screen_height, screen_width, 3), np.uint8)
-
-    for i, img in enumerate(images):
-        if img is not None:
-            x_offset = (i % num_images_row) * max_w_image
-            y_offset = (i // num_images_row) * max_h_image
-
-            resized_image = cv2.resize(img, (max_w_image, max_h_image))
-
-            y_slice = slice(y_offset, y_offset + max_h_image)
-            x_slice = slice(x_offset, x_offset + max_w_image)
-            display_img[y_slice, x_slice] = resized_image
-
-    cv2.imshow(window_2, display_img)
-
-
 def parse_args():
     """Creates parser for config yaml.
 
@@ -193,9 +159,9 @@ def setup_windows(resolutions):
     return window_name, window_2, second_monitor
 
 
-def main():
+def main_display():
     """Runs main program."""
-    
+
     resolutions = get_screen_resolutions()
     window_name, window_2, second_monitor = setup_windows(resolutions)
 
@@ -206,7 +172,9 @@ def main():
         config = yaml.safe_load(stream)
 
     labeled = config['path_to_labeled_output']
-    unlabeled = config['path_to_unlabeled_output']
+    #unlabeled = config['path_to_unlabeled_output']
+    # this also works !
+    unlabeled = config['save_dir']
 
     while True:
         # if no images exist maybe grab from image folder + one screen
@@ -216,7 +184,6 @@ def main():
         if second_monitor:
             newer_img = get_newest_images(unlabeled, 81)
             if len(newer_img) >= 81:
-                # display_more_images(resolutions, newer_img, window_2)
                 display_images(resolutions[1], newer_img, 9, window_2)
 
         time.sleep(1)
@@ -228,4 +195,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main_display()
