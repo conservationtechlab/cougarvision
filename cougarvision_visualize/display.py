@@ -161,23 +161,31 @@ def main():
     window_2 = "Newest Image"
 
     resolutions = get_screen_resolutions()
-
+    second_monitor = len(resolutions) > 1
+    
+    # define first window on first monitor
     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-    cv2.namedWindow(window_2, cv2.WINDOW_NORMAL)
-
     cv2.moveWindow(window_name, 0, 0)
-    cv2.moveWindow(window_2, resolutions[0][0], 0)
 
+    # if second monitor exists
+    if second_monitor:
+        cv2.namedWindow(window_2, cv2.WINDOW_NORMAL)
+        cv2.moveWindow(window_2, resolutions[0][0], 0)
+
+    # full screen 
     cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN,
-                          cv2.WINDOW_FULLSCREEN)
-    cv2.setWindowProperty(window_2, cv2.WND_PROP_FULLSCREEN,
-                          cv2.WINDOW_FULLSCREEN)
+                         cv2.WINDOW_FULLSCREEN)
+    
+    if second_monitor:
+        cv2.setWindowProperty(window_2, cv2.WND_PROP_FULLSCREEN,
+                              cv2.WINDOW_FULLSCREEN)
 
     args = parse_args()
     config_file = args.config
 
     with open(config_file, 'r', encoding='utf-8') as stream:
         config = yaml.safe_load(stream)
+
     labeled = config['path_to_labeled_output']
     unlabeled = config['path_to_unlabeled_output']
 
@@ -185,10 +193,10 @@ def main():
         new_img = get_newest_images(labeled, 9)
         if len(new_img) >= 9:
             display_images(new_img, window_name)
-
-        newer_img = get_newest_images(unlabeled, 81)
-        if len(new_img) >= 81:
-            display_more_images(newer_img, window_2)
+        if second_monitor :
+            newer_img = get_newest_images(unlabeled, 81)
+            if len(newer_img) >= 81:
+                display_more_images(newer_img, window_2)
 
         time.sleep(1)
 
