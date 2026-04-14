@@ -156,11 +156,17 @@ def parse_args():
 
 
 def setup_windows(resolutions):
+    """Defines windows and places them on correct monitors.
+
+    Args:
+        resolutions (list): List of tuples that has width 
+            and height of monoitors.
+    """
     window_name = 'CougarVision'
     window_2 = "Newest Image"
 
     second_monitor = len(resolutions) > 1
-    
+
     # define first window on first monitor
     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
     cv2.moveWindow(window_name, 0, 0)
@@ -170,10 +176,10 @@ def setup_windows(resolutions):
         cv2.namedWindow(window_2, cv2.WINDOW_NORMAL)
         cv2.moveWindow(window_2, resolutions[0][0], 0)
 
-    # full screen 
+    # full screen
     cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN,
                           cv2.WINDOW_FULLSCREEN)
-    
+
     if second_monitor:
         cv2.setWindowProperty(window_2, cv2.WND_PROP_FULLSCREEN,
                               cv2.WINDOW_FULLSCREEN)
@@ -196,7 +202,7 @@ def main():
     unlabeled = config['path_to_unlabeled_output']
 
     while True:
-        # if no images exist maybe grab from image folder + one screen 
+        # if no images exist maybe grab from image folder + one screen
         new_img = get_newest_images(labeled, 9)
         if len(new_img) >= 9:
             display_images(resolutions[0],new_img, 3, window_name)
