@@ -76,7 +76,7 @@ def get_config_info(class_type):
     with open(config_path, 'r', encoding='utf-8') as file:
         config_dict = yaml.safe_load(file)
 
-    # for direct mapping only use fields in ConfigInfo
+    # for direct mapping only use fields in the class fields
     valid_keys = {f.name for f in fields(class_type)}
     filtered_keys = {k: v for k, v in config_dict.items() if k in valid_keys}
 

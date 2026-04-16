@@ -157,7 +157,11 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
                 continue
             newname = config.save_dir + camera
             newname += "_" + str(info['id'])
+            # 2023-10-29 16:17:20 -0700
+            date_time = (str(info['local_time'])).rsplit(' ',1)[0]
+            newname += "_" + date_time
             newname += "_" + info['file_thumb_filename']
+
             # native extension from strikeforce is .JPG.jpeg for some reason
             stripped_name = newname.replace(".JPG.jpeg", ".jpg")
             urllib.request.urlretrieve(info['file_thumb_url'], stripped_name)
