@@ -24,6 +24,8 @@ import os
 import time
 import numpy as np
 import cv2
+import traceback
+import sys
 from dataclasses import fields
 from cougarvision_utils.get_info import display_info
 from fetch_and_alert import get_config_info
@@ -104,7 +106,7 @@ def display_images(window, images, size, window_name='CougarVision'):
     cv2.imshow(window_name, display_img)
 
 
-def setup_windows(resolutions):
+def setup_windows(resolutions, num_screen):
     """Defines windows and places them on correct monitors.
 
     Args:
@@ -120,22 +122,34 @@ def setup_windows(resolutions):
 
     second_monitor = len(resolutions) > 1
 
-    # define first window on first monitor
-    cv2.namedWindow(window_1, cv2.WINDOW_NORMAL)
-    cv2.moveWindow(window_1, 0, 0)
+    if num_screen == 2 and second_monitor == False:
+        return # Error case
+    elif num_screen == 1:
+        cv2.namedWindow(window_1, cv2.WINDOW_NORMAL)
 
-    # if second monitor exists
-    if second_monitor:
+        if second_monitor:
+             cv2.moveWindow(window_1, resolutions[0][0], 0)
+             second_monitor = False
+        else:
+            cv2.moveWindow(window_1, 0, 0)
+
+        cv2.setWindowProperty(window_1, cv2.WND_PROP_FULLSCREEN,
+                          cv2.WINDOW_FULLSCREEN)         
+    else:  
+        # define first window on first monitor
+        cv2.namedWindow(window_1, cv2.WINDOW_NORMAL)
+        cv2.moveWindow(window_1, 0, 0)
+
+    
         cv2.namedWindow(window_2, cv2.WINDOW_NORMAL)
         cv2.moveWindow(window_2, resolutions[0][0], 0)
 
-    # full screen
-    cv2.setWindowProperty(window_1, cv2.WND_PROP_FULLSCREEN,
+        # full screen
+        cv2.setWindowProperty(window_1, cv2.WND_PROP_FULLSCREEN,
                           cv2.WINDOW_FULLSCREEN)
-
-    if second_monitor:
         cv2.setWindowProperty(window_2, cv2.WND_PROP_FULLSCREEN,
                               cv2.WINDOW_FULLSCREEN)
+        
 
     return window_1, window_2, second_monitor
 
@@ -143,19 +157,24 @@ def setup_windows(resolutions):
 def main_display():
     """Runs main program."""
 
-    resolutions = get_screen_resolutions()
-    window_1, window_2, second_monitor = setup_windows(resolutions)
-
     config = get_config_info(display_info)
+    resolutions = get_screen_resolutions()
+    try:
+        window_1, window_2, second_monitor = setup_windows(resolutions, config.display_num)
+    except Exception:
+        print(f"Defined 2 screens in configuration file but found only 1 acutual screen.")
+        # traceback.print_exc()
+        sys.exit()
+
 
     while True:
-        new_img = get_recent_images(config.path_to_labeled_output, 9)
-        if len(new_img) >= 9:
-            display_images(resolutions[0], new_img, 3, window_1)
+        labeled_img = get_recent_images(config.path_to_labeled_output, 9)
+        if len(labeled_img) >= 9:
+            display_images(resolutions[0], labeled_img, 3, window_1)
         if second_monitor:
-            newer_img = get_recent_images(config.save_dir, 81)
-            if len(newer_img) >= 81:
-                display_images(resolutions[1], newer_img, 9, window_2)
+            unlabeled_img = get_recent_images(config.path_to_unlabeled_output, 81)
+            if len(unlabeled_img) >= 81:
+                display_images(resolutions[1], unlabeled_img, 9, window_2)
 
         time.sleep(1)
 
