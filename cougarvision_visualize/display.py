@@ -26,6 +26,8 @@ import numpy as np
 import cv2
 import traceback
 import sys
+import re
+from datetime import datetime
 from dataclasses import fields
 from cougarvision_utils.get_info import display_info
 from fetch_and_alert import get_config_info
@@ -62,7 +64,14 @@ def get_recent_images(f_p, num_images):
     # logic only needed locally
     def sort_key_func(file_name):
         try:
-            return int(os.path.splitext(file_name.split('_')[1])[0])
+            # return int(os.path.splitext(file_name.split('_')[-1])[0])
+            # name = os.path.splitext(file_name)[0]
+            match = re.search(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}", file_name)
+            if match:
+                return datetime.strptime(match.group(), "%Y-%m-%d %H:%M:%S")
+            #parts = (name.split('_'))
+            #date_str = parts[2]
+            #return datetime.strptime(date_str,"%Y-%m-%d %H:%M:%S")
         except ValueError:
             return float('-inf')
 
@@ -134,7 +143,7 @@ def setup_windows(resolutions, num_screen):
             cv2.moveWindow(window_1, 0, 0)
 
         cv2.setWindowProperty(window_1, cv2.WND_PROP_FULLSCREEN,
-                          cv2.WINDOW_FULLSCREEN)         
+                              cv2.WINDOW_FULLSCREEN)         
     else:  
         # define first window on first monitor
         cv2.namedWindow(window_1, cv2.WINDOW_NORMAL)
@@ -146,7 +155,7 @@ def setup_windows(resolutions, num_screen):
 
         # full screen
         cv2.setWindowProperty(window_1, cv2.WND_PROP_FULLSCREEN,
-                          cv2.WINDOW_FULLSCREEN)
+                              cv2.WINDOW_FULLSCREEN)
         cv2.setWindowProperty(window_2, cv2.WND_PROP_FULLSCREEN,
                               cv2.WINDOW_FULLSCREEN)
         
@@ -172,9 +181,9 @@ def main_display():
         if len(labeled_img) >= 9:
             display_images(resolutions[0], labeled_img, 3, window_1)
         if second_monitor:
-            unlabeled_img = get_recent_images(config.path_to_unlabeled_output, 81)
-            if len(unlabeled_img) >= 81:
-                display_images(resolutions[1], unlabeled_img, 9, window_2)
+            unlabeled_img = get_recent_images(config.save_dir, 9)
+            if len(unlabeled_img) >= 9:
+                display_images(resolutions[1], unlabeled_img, 3, window_2)
 
         time.sleep(1)
 
