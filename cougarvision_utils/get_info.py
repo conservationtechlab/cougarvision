@@ -80,3 +80,4 @@ class display_info:
      path_to_unlabeled_output: str
      path_to_labeled_output: str
      save_dir: str
+     display_num: int
