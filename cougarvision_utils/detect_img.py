@@ -119,7 +119,10 @@ def detect(images, config):  # pylint: disable=too-many-locals
                         os.makedirs(labeled_img, exist_ok=True)
                         last_file_number = get_last_file_number(labeled_img)
                         new_file_number = last_file_number + 1
-                        new_file_name = f"{labeled_img}/image_{new_file_number}.jpg"
+                        name = images[idx][2]
+                        name = name.split('/')[-1]
+                        #new_file_name = f"{labeled_img + name}/image_{new_file_number}.jpg"
+                        new_file_name = f"{labeled_img + "/" + name}"
 
                         with open(new_file_name, "wb") as folder:
                             folder.write(img_byte)
