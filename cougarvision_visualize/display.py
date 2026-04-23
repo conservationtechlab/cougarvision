@@ -62,13 +62,14 @@ def get_recent_images(f_p, num_images):
     # logic only needed locally
     def sort_key_func(file_name):
         try:
-            match = re.search(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}", file_name)
+            match = re.search(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}",
+                              file_name)
             if match:
                 return datetime.strptime(match.group(), "%Y-%m-%d %H:%M:%S")
 
         except ValueError:
             return float('-inf')
-        
+
         return None
 
     fil.sort(key=sort_key_func, reverse=True)
@@ -78,7 +79,8 @@ def get_recent_images(f_p, num_images):
     return images
 
 
-def display_images(window, images, size, window_name='CougarVision'): # pylint: disable=too-many-locals
+def display_images(window, images, size, window_name='CougarVision'):
+    # pylint: disable=too-many-locals
     """Function to display x amount of recent images in size x size grid.
 
     Args:
@@ -121,7 +123,7 @@ def setup_windows(resolutions, num_screen):
             the yaml file.
     Returns:
         tuple: tuple of (str, str, bool) where the str values
-            represent window titles and bool represents if 
+            represent window titles and bool represents if
             there is a second monitor,
     """
     window_1 = 'CougarVision'
@@ -130,7 +132,7 @@ def setup_windows(resolutions, num_screen):
     second_monitor = len(resolutions) > 1
 
     if num_screen == 2 and second_monitor is False:
-        return None# Error case
+        return None  # Error case
     if num_screen == 1:
         cv2.namedWindow(window_1, cv2.WINDOW_NORMAL)
 
@@ -147,7 +149,6 @@ def setup_windows(resolutions, num_screen):
         cv2.namedWindow(window_1, cv2.WINDOW_NORMAL)
         cv2.moveWindow(window_1, 0, 0)
 
-
         cv2.namedWindow(window_2, cv2.WINDOW_NORMAL)
         cv2.moveWindow(window_2, resolutions[0][0], 0)
 
@@ -156,7 +157,6 @@ def setup_windows(resolutions, num_screen):
                               cv2.WINDOW_FULLSCREEN)
         cv2.setWindowProperty(window_2, cv2.WND_PROP_FULLSCREEN,
                               cv2.WINDOW_FULLSCREEN)
-
 
     return window_1, window_2, second_monitor
 
@@ -168,12 +168,13 @@ def main_display():
     resolutions = get_screen_resolutions()
 
     try:
-        window_1, window_2, second_monitor = setup_windows(resolutions, config.display_num)
+        window_1, window_2, second_monitor = setup_windows(resolutions,
+                                                           config.display_num)
     except TypeError:
-        print("Defined 2 screens in configuration file but found only 1 actual screen.",
-              "Change value in yaml or connect another screen")
+        print("Defined 2 screens in configuration file but found only"
+              " 1 actual screen.Change value in yaml or "
+              "connect another screen")
         sys.exit()
-
 
     while True:
         labeled_img = get_recent_images(config.path_to_labeled_output, 9)
