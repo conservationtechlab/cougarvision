@@ -25,7 +25,6 @@ from datetime import datetime as dt
 import logging
 from dataclasses import fields
 import schedule
-import sys
 import yaml
 
 from sageranger.post_monthly import post_monthly_obs
@@ -69,10 +68,17 @@ def parse_args():
 
     return parser.parse_args()
 
+
 def get_config_info(class_type):
+    """Parses through config file.
+
+    This function maps values to the dataclasses
+    found in get_info.
+
+    """
     args = parse_args()
     config_path = args.CONFIG
-    
+
     with open(config_path, 'r', encoding='utf-8') as file:
         config_dict = yaml.safe_load(file)
 
@@ -85,10 +91,10 @@ def get_config_info(class_type):
 
 def main():
     '''Runs main program and schedules future runs'''
-    
+
     # Numpy FutureWarnings from tensorflow import
-    warnings.filterwarnings('ignore', category=FutureWarning) 
-    
+    warnings.filterwarnings('ignore', category=FutureWarning)
+
     logger()
     config = get_config_info(ConfigInfo)
 
@@ -97,12 +103,14 @@ def main():
 
     # lambda keeps fetch and detect callable
     if config.visualize_output is True:
-        schedule.every(config.run_scheduler).seconds.do(lambda:
-                                                        fetch_detect_alert(config))
+        schedule.every(config.run_scheduler
+                       ).seconds.do(lambda:
+                                    fetch_detect_alert(config))
     else:
-        schedule.every(config.run_scheduler).minutes.do(lambda:
-                                                    fetch_detect_alert(config))
-        
+        schedule.every(config.run_scheduler
+                       ).minutes.do(lambda:
+                                    fetch_detect_alert(config))
+
     schedule.every(config.checkin_interval).hours.do(
                                                      checkin,
                                                      config.dev_emails,
