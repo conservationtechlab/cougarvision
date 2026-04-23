@@ -20,7 +20,6 @@ from sageranger import is_target, attach_image, post_event
 
 from cougarvision_utils.cropping import draw_bounding_box_on_image
 from cougarvision_utils.alert import smtp_setup, send_alert
-from cougarvision_visualize.visualize_helper import get_last_file_number
 
 
 def detect(images, config):  # pylint: disable=too-many-locals
@@ -113,16 +112,12 @@ def detect(images, config):  # pylint: disable=too-many-locals
                     img.save(image_bytes, format="JPEG")
                     img_byte = image_bytes.getvalue()
 
-                    # not sure if labeled_img is meant to point at Images
                     labeled_img = config.path_to_labeled_output
                     if config.visualize_output is True:
                         os.makedirs(labeled_img, exist_ok=True)
-                        last_file_number = get_last_file_number(labeled_img)
-                        new_file_number = last_file_number + 1
                         name = images[idx][2]
                         name = name.split('/')[-1]
-                        #new_file_name = f"{labeled_img + name}/image_{new_file_number}.jpg"
-                        new_file_name = f"{labeled_img + "/" + name}"
+                        new_file_name = labeled_img + "/" + name
 
                         with open(new_file_name, "wb") as folder:
                             folder.write(img_byte)
