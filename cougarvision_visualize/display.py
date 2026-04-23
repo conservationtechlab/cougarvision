@@ -121,6 +121,8 @@ def setup_windows(resolutions, num_screen):
     Args:
         resolutions (list): List of tuples that has width
             and height of monoitors.
+        num_screen (int): Number of expected screens given by
+            the yaml file.
     Returns:
         tuple: tuple of (str, str, bool) where the str values
             represent window titles and bool represents if 
@@ -168,10 +170,11 @@ def main_display():
 
     config = get_config_info(display_info)
     resolutions = get_screen_resolutions()
+
     try:
         window_1, window_2, second_monitor = setup_windows(resolutions, config.display_num)
     except Exception:
-        print(f"Defined 2 screens in configuration file but found only 1 acutual screen.")
+        print(f"Defined 2 screens in configuration file but found only 1 actual screen. /n Change value in yaml or connect another screen")
         # traceback.print_exc()
         sys.exit()
 
@@ -182,8 +185,8 @@ def main_display():
             display_images(resolutions[0], labeled_img, 3, window_1)
         if second_monitor:
             unlabeled_img = get_recent_images(config.save_dir, 9)
-            if len(unlabeled_img) >= 9:
-                display_images(resolutions[1], unlabeled_img, 3, window_2)
+            if len(unlabeled_img) >= 81:
+                display_images(resolutions[1], unlabeled_img, 9, window_2)
 
         time.sleep(1)
 
