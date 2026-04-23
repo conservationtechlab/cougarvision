@@ -1,11 +1,13 @@
 """ Get Info
 
-Get_info holds the ConfigInfo data class that holds attribute values
-from the configuration file. It also hold the display_info class that has
-values from the config directly related to the display file.Direct mapping is
-handled in fetch and alert in get_config_info function.Fields defined in this class 
-will be the values mapped.The field values must match exactly to the configuration file. 
-Fetch_and_alert, get_images, display and detect_img rely on these attribute values.
+Get_info holds the ConfigInfo data class that holds attribute
+values from the configuration file. It also hold the
+display_info class that has values from the config directly
+related to the display file.Direct mapping is handled in fetch
+and alert in get_config_info function.Fields defined in this class
+will be the values mapped.The field values must match exactly to
+the config file. Fetch_and_alert, get_images, display and detect_img
+rely on these attribute values.
 """
 
 from dataclasses import dataclass, field
@@ -77,10 +79,9 @@ class ConfigInfo:
 
 
 @dataclass
-class display_info:
-     """Define values from the config for display."""
-     # Assign fields
-     path_to_unlabeled_output: str
-     path_to_labeled_output: str
-     save_dir: str
-     display_num: int
+class DisplayInfo:
+    """Define values from the config for display."""
+    path_to_unlabeled_output: str
+    path_to_labeled_output: str
+    save_dir: str
+    display_num: int
