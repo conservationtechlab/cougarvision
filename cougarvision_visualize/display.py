@@ -28,7 +28,7 @@ from datetime import datetime
 import numpy as np
 import cv2
 from screeninfo import get_monitors
-from cougarvision_utils.get_info import display_info
+from cougarvision_utils.get_info import DisplayInfo
 from fetch_and_alert import get_config_info
 
 
@@ -164,7 +164,7 @@ def setup_windows(resolutions, num_screen):
 def main_display():
     """Runs main program."""
 
-    config = get_config_info(display_info)
+    config = get_config_info(DisplayInfo)
     resolutions = get_screen_resolutions()
 
     try:
