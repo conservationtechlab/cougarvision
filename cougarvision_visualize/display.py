@@ -171,8 +171,8 @@ def main_display():
         window_1, window_2, second_monitor = setup_windows(resolutions,
                                                            config.display_num)
     except TypeError:
-        print("Defined 2 screens in configuration file but found only"
-              " 1 actual screen.Change value in yaml or "
+        print("Defined 2 screens in configuration file but found only\n"
+              "1 actual screen.Change value in yaml or "
               "connect another screen")
         sys.exit()
 
@@ -182,8 +182,8 @@ def main_display():
             display_images(resolutions[0], labeled_img, 3, window_1)
         if second_monitor:
             unlabeled_img = get_recent_images(config.save_dir, 9)
-            if len(unlabeled_img) >= 81:
-                display_images(resolutions[1], unlabeled_img, 9, window_2)
+            if len(unlabeled_img) >= 9:
+                display_images(resolutions[1], unlabeled_img, 3, window_2)
 
         time.sleep(1)
 
