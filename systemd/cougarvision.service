@@ -1,0 +1,18 @@
+[Unit]
+Description=Cougarvision Service
+
+# include only if you need persistent storage mounted
+# with fstab before running cougarvision
+# Requires=<name of mount point>.mount
+# After=<name of mount point>.mount
+
+[Service]
+Type=simple
+User=<user>
+WorkingDirectory=/home/<user>/cougarvision/
+ExecStart=/home/<user>/cougarvision/systemd/cougarvision.sh
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=default.target
