@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# path to conda shell
+# path to conda shell, may need to replace anaconda with miniconda
+# depending on your installation
 source /home/<user>/anaconda3/etc/profile.d/conda.sh
 
 # activate environment
