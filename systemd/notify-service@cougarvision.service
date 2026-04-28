@@ -1,0 +1,11 @@
+[Unit]
+Description=Send Sytemd Notifications to email
+
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'printf "Subject: Service Failed\n\Service %i failed on $(hostname)\n$(systemctl status %i)" | /usr/bin/msmtp jaramontse3@gmail.com'
+
+
+[Install]
+WantedBy=default.target
