@@ -18,12 +18,12 @@ sudo journalctl -u cougarvision.service
 
 instuctions for setting up msmtp and email notifcations on failure
 install msmtp:
-'''
+```
 sudo apt-get install msmtp
-'''
+```
 
 create configuation file in user home directory:
-'''
+```
 cat ~/.msmtprc
 defaults
 auth    on
@@ -40,11 +40,24 @@ password   bwdlcxasdytfekof
 
 account default : gmail
 EOF
-'''
-
+```
+set permissions for msmtp:
+```
+chmod 600 ~/.msmtprc
+```
 before running cougarvision.service update systemd files:
-'''
+```
 sudo cp notify-service@cougarvision.service /etc/systemd/system/notify-service@cougarvision.service
 sudo systemctl daemon-reload
 
-'''
+```
+Add environment file to system:
+```
+sudo cp dev_email.env /etc/systemd/system/dev_email.env
+sudo systemctl daemon-reload
+
+```
+Add read permissions for systemd to read environment file:
+```
+sudo chmod 644 /etc/systemd/system/dev_email.env
+```
