@@ -142,7 +142,7 @@ def setup_windows(resolutions, num_screen):
    
     second_monitor = len(resolutions) > 1
     one_monitor = False
-    
+
     if num_screen == 2 and second_monitor is False:
         return None  # Error case
     
@@ -151,7 +151,7 @@ def setup_windows(resolutions, num_screen):
         if second_monitor:
             cv2.moveWindow(window_1,resolutions[1][2], resolutions[1][3])
             second_monitor = False
-            one_monitor = True
+            one_monitor = True # represents content being shown on second monitor
         else:
             cv2.moveWindow(window_1, resolutions[0][2], resolutions[0][3])
 
@@ -207,6 +207,7 @@ def main_display():
                 display_images(resolutions[0], unlabeled_img, 9, window_1)
             else:
                 display_images(resolutions[1],unlabeled_img, 9, window_1)
+                
             if second_monitor:
                 display_images(resolutions[1], labeled_img, 3, window_2)
 
