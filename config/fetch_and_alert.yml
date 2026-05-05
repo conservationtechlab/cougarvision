@@ -69,3 +69,5 @@ host: 'imap.gmail.com'
 id_path: './last_id.txt'
 #number of monitors for display functions
 display_num: 1
+# set default to control which monitor shows what demo content
+default_screen: False
