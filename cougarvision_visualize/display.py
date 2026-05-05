@@ -32,12 +32,12 @@ import time
 import sys
 import re
 from datetime import datetime
+from pathlib import Path
 import numpy as np
 import cv2
 from screeninfo import get_monitors
 from cougarvision_utils.get_info import DisplayInfo
 from fetch_and_alert import get_config_info
-from pathlib import Path
 
 
 def get_screen_resolutions():
@@ -62,13 +62,13 @@ def get_recent_images(f_p, num_images):
     Returns:
         list: list of valid images from the image folder path.
     """
-    # files in directory f_p and checks file paths 
+    # files in directory f_p and checks file paths
     fil = [f.name for f in Path(f_p).iterdir() if f.is_file()]
 
     if not fil:
         return []
 
-    # logic only needed locally sorts images but timestamp 
+    # logic only needed locally sorts images but timestamp
     def sort_key_func(file_name):
         try:
             match = re.search(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}",
