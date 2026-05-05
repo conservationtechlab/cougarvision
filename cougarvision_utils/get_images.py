@@ -16,9 +16,9 @@ import json
 import time
 import urllib.request
 import logging
+import os
 import requests
 import numpy as np
-import os
 
 # pylint: disable=pointless-string-statement
 """
@@ -50,6 +50,7 @@ request <- "subscriptions"
 parameters <- ""
 """
 
+
 def request_strikeforce(username, auth_token, base, request, parameters):
     """Strikeforce API call request.
 
@@ -69,7 +70,7 @@ def request_strikeforce(username, auth_token, base, request, parameters):
             request fails.
     """
     call = base + request + "?" + parameters
-    
+
     # if there is no internet connection try 5 times before raising exception
     max_retries = 5
     for attempt in range(max_retries):
@@ -159,7 +160,7 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
             newname = image_dir + camera
             newname += "_" + str(info['id'])
             # add time stamp in format: 2023-10-29 16:17:20 -0700
-            date_time = (str(info['local_time'])).rsplit(' ',1)[0]
+            date_time = (str(info['local_time'])).rsplit(' ', 1)[0]
             newname += "_" + date_time
             newname += "_" + info['file_thumb_filename']
             # native extension from strikeforce is .JPG.jpeg for some reason
@@ -167,8 +168,6 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
             urllib.request.urlretrieve(info['file_thumb_url'], stripped_name)
             new_photos.append([photo['id'],
                                info['file_thumb_url'], stripped_name])
-        
-           
 
     new_photos = np.array(new_photos)
     if len(new_photos) > 0:  # update last image
