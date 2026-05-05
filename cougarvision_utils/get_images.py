@@ -18,6 +18,7 @@ import urllib.request
 import logging
 import requests
 import numpy as np
+import os
 
 # pylint: disable=pointless-string-statement
 """
@@ -152,7 +153,10 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
             except KeyError:
                 logging.warning('skipped img: no associated cam ID')
                 continue
-            newname = config.save_dir + camera
+
+            image_dir = config.save_dir
+            os.makedirs(image_dir, exist_ok=True)
+            newname = image_dir + camera
             newname += "_" + str(info['id'])
             # add time stamp in format: 2023-10-29 16:17:20 -0700
             date_time = (str(info['local_time'])).rsplit(' ',1)[0]
