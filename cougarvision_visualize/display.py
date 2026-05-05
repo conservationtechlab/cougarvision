@@ -8,14 +8,21 @@ on a 3x3 grid on one screen and most recent images on a second 9x9 grid.
       out in the config file.
     - the command line argument to run is python3 display.py
       </full/path/to/yaml/>
+    - Set the correct amount of monitors in the config file under display_num
     *fetch_and_alert.py will create the folders for you
     if you only include the paths but the folders are not yet created.
-This script assumes 2 monitors and will display a blank screen on either
-display if the minimum number of images is not met, 9 for screen 1 and 81
-for screen 2. Later versions will account for this and still display images,
-but for now if that is an issue you can fill the folder with black images with
-the correct nomenclature: image_1.jpg, image_2.jpg... and it will replace the
-black images as they come in.
+
+This script will assume the amount monitors based on the display_num value 
+found in the config file. If two monitors are defined but one found the 
+system will exit. If one monitor is defined but two monitors are found it 
+will use the second monitor to display the 9 most recent images otherwise
+it will use the one monitor available. If there are two monitors it will use
+the first to display the 9 most recent images and the second to display the 81
+most recent images. If the folders are empty the system will display blank screens 
+until images are added to the folder.
+
+To run display you must be in the /cougarvision folder and use the following line:
+python3 -m cougarvision_visualize.display config/<config_file_name>
 
 """
 
@@ -30,6 +37,7 @@ import cv2
 from screeninfo import get_monitors
 from cougarvision_utils.get_info import DisplayInfo
 from fetch_and_alert import get_config_info
+from pathlib import Path
 
 
 def get_screen_resolutions():
@@ -54,12 +62,13 @@ def get_recent_images(f_p, num_images):
     Returns:
         list: list of valid images from the image folder path.
     """
-    fil = [f for f in os.listdir(f_p) if os.path.isfile(os.path.join(f_p, f))]
+    # files in directory f_p and checks file paths 
+    fil = [f.name for f in Path(f_p).iterdir() if f.is_file()]
 
     if not fil:
         return []
 
-    # logic only needed locally
+    # logic only needed locally sorts images but timestamp 
     def sort_key_func(file_name):
         try:
             match = re.search(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}",
@@ -127,7 +136,7 @@ def setup_windows(resolutions, num_screen):
             there is a second monitor,
     """
     window_1 = 'CougarVision'
-    window_2 = "Newest Image"
+    window_2 = 'Newest Image'
 
     second_monitor = len(resolutions) > 1
 
