@@ -85,3 +85,4 @@ class DisplayInfo:
     path_to_labeled_output: str
     save_dir: str
     display_num: int
+    default_screen: bool
