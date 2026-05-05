@@ -12,16 +12,17 @@ on a 3x3 grid on one screen and most recent images on a second 9x9 grid.
     *fetch_and_alert.py will create the folders for you
     if you only include the paths but the folders are not yet created.
 
-This script will assume the amount monitors based on the display_num value 
-found in the config file. If two monitors are defined but one found the 
-system will exit. If one monitor is defined but two monitors are found it 
+This script will assume the amount monitors based on the display_num value
+found in the config file. If two monitors are defined but one found the
+system will exit. If one monitor is defined but two monitors are found it
 will use the second monitor to display the 9 most recent images otherwise
 it will use the one monitor available. If there are two monitors it will use
 the first to display the 9 most recent images and the second to display the 81
-most recent images. If the folders are empty the system will display blank screens 
-until images are added to the folder.
+most recent images. If the folders are empty the system will display blank
+screens until images are added to the folder.
 
-To run display you must be in the /cougarvision folder and use the following line:
+To run display you must be in the /cougarvision folder and use the
+following line:
 python3 -m cougarvision_visualize.display config/<config_file_name>
 
 """
