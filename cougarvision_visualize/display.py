@@ -50,7 +50,7 @@ def get_screen_resolutions():
             each monitor.
     """
     monitors = get_monitors()
-    resolutions = [(monitor.width, monitor.height) for monitor in monitors]
+    resolutions = [(monitor.width, monitor.height, monitor.x, monitor.y) for monitor in monitors]
     return resolutions
 
 
@@ -101,7 +101,7 @@ def display_images(window, images, size, window_name='CougarVision'):
         window_name ('obj':'str', optional): Title of the window
 
     """
-    screen_width, screen_height = window
+    screen_width, screen_height,_,_ = window
     num_images_row = size
     num_images_col = size
 
@@ -139,29 +139,31 @@ def setup_windows(resolutions, num_screen):
     """
     window_1 = 'CougarVision'
     window_2 = 'Newest Image'
-
+   
     second_monitor = len(resolutions) > 1
-
+    one_monitor = False
+    
     if num_screen == 2 and second_monitor is False:
         return None  # Error case
+    
     if num_screen == 1:
         cv2.namedWindow(window_1, cv2.WINDOW_NORMAL)
-
         if second_monitor:
-            cv2.moveWindow(window_1, resolutions[0][0], 0)
+            cv2.moveWindow(window_1,resolutions[1][2], resolutions[1][3])
             second_monitor = False
+            one_monitor = True
         else:
-            cv2.moveWindow(window_1, 0, 0)
+            cv2.moveWindow(window_1, resolutions[0][2], resolutions[0][3])
 
         cv2.setWindowProperty(window_1, cv2.WND_PROP_FULLSCREEN,
                               cv2.WINDOW_FULLSCREEN)
     else:
         # define first window on first monitor
         cv2.namedWindow(window_1, cv2.WINDOW_NORMAL)
-        cv2.moveWindow(window_1, 0, 0)
+        cv2.moveWindow(window_1, resolutions[0][2], resolutions[0][3])
 
         cv2.namedWindow(window_2, cv2.WINDOW_NORMAL)
-        cv2.moveWindow(window_2, resolutions[0][0], 0)
+        cv2.moveWindow(window_2, resolutions[1][2], resolutions[1][3])
 
         # full screen
         cv2.setWindowProperty(window_1, cv2.WND_PROP_FULLSCREEN,
@@ -169,7 +171,7 @@ def setup_windows(resolutions, num_screen):
         cv2.setWindowProperty(window_2, cv2.WND_PROP_FULLSCREEN,
                               cv2.WINDOW_FULLSCREEN)
 
-    return window_1, window_2, second_monitor
+    return window_1, window_2, second_monitor, one_monitor
 
 
 def main_display():
@@ -177,10 +179,11 @@ def main_display():
 
     config = get_config_info(DisplayInfo)
     resolutions = get_screen_resolutions()
-
+    
     try:
-        window_1, window_2, second_monitor = setup_windows(resolutions,
-                                                           config.display_num)
+        window_1, window_2, second_monitor, one_monitor = setup_windows(resolutions,
+                                                           config.display_num,
+                                                           )
     except TypeError:
         print("Defined 2 screens in configuration file but found only\n"
               "1 actual screen.Change value in yaml or "
@@ -189,10 +192,23 @@ def main_display():
 
     while True:
         labeled_img = get_recent_images(config.path_to_labeled_output, 9)
-        display_images(resolutions[0], labeled_img, 3, window_1)
-        if second_monitor:
-            unlabeled_img = get_recent_images(config.save_dir, 81)
-            display_images(resolutions[1], unlabeled_img, 9, window_2)
+        unlabeled_img = get_recent_images(config.save_dir, 81)
+
+        if config.default_screen: 
+            if not one_monitor:
+                display_images(resolutions[0], labeled_img, 3, window_1)
+            else:
+                display_images(resolutions[1],labeled_img, 3, window_1)
+            
+            if second_monitor:
+                display_images(resolutions[1], unlabeled_img, 9, window_2)
+        else:
+            if not one_monitor:
+                display_images(resolutions[0], unlabeled_img, 9, window_1)
+            else:
+                display_images(resolutions[1],unlabeled_img, 9, window_1)
+            if second_monitor:
+                display_images(resolutions[1], labeled_img, 3, window_2)
 
         time.sleep(1)
 
