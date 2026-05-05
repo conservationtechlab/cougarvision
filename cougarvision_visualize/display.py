@@ -178,12 +178,10 @@ def main_display():
 
     while True:
         labeled_img = get_recent_images(config.path_to_labeled_output, 9)
-        if len(labeled_img) >= 9:
-            display_images(resolutions[0], labeled_img, 3, window_1)
+        display_images(resolutions[0], labeled_img, 3, window_1)
         if second_monitor:
-            unlabeled_img = get_recent_images(config.save_dir, 9)
-            if len(unlabeled_img) >= 9:
-                display_images(resolutions[1], unlabeled_img, 3, window_2)
+            unlabeled_img = get_recent_images(config.save_dir, 81)
+            display_images(resolutions[1], unlabeled_img, 9, window_2)
 
         time.sleep(1)
 
