@@ -1,7 +1,13 @@
 """CougarVision Visualize Output
+
+Usage:
+    python3 -m cougarvision_visualize.display config/<config_file_name>
+
 This script is intended to be run alongside fetch_and_alert.py in a second
 terminal or tmux terminal. It displays the most recent classified detections
-on a 3x3 grid on one screen and most recent images on a second 9x9 grid.
+on a 3x3 grid on one screen and most recent images on a second 9x9 grid
+
+    - must run script from /cougarvision not /cougarvision_visuzalize
     - cougarvision conda environment must be activated
     - fetch_and_alert.py must be run with visualize_output: param set to 'True'
     - path_to_unlabeled_output: and path_to_labeled_output: parameters filled
@@ -20,11 +26,6 @@ it will use the one monitor available. If there are two monitors it will use
 the first to display the 9 most recent images and the second to display the 81
 most recent images. If the folders are empty the system will display blank
 screens until images are added to the folder.
-
-To run display you must be in the /cougarvision folder and use the
-following line:
-python3 -m cougarvision_visualize.display config/<config_file_name>
-
 """
 
 
