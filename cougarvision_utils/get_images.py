@@ -18,9 +18,6 @@ import urllib.request
 import logging
 import requests
 import numpy as np
-import os.path
-import os
-from cougarvision_visualize.visualize_helper import get_last_file_number
 
 # pylint: disable=pointless-string-statement
 """
@@ -157,30 +154,17 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
                 continue
             newname = config.save_dir + camera
             newname += "_" + str(info['id'])
-            # 2023-10-29 16:17:20 -0700
+            # add time stamp in format: 2023-10-29 16:17:20 -0700
             date_time = (str(info['local_time'])).rsplit(' ',1)[0]
             newname += "_" + date_time
             newname += "_" + info['file_thumb_filename']
-
             # native extension from strikeforce is .JPG.jpeg for some reason
             stripped_name = newname.replace(".JPG.jpeg", ".jpg")
             urllib.request.urlretrieve(info['file_thumb_url'], stripped_name)
             new_photos.append([photo['id'],
                                info['file_thumb_url'], stripped_name])
-            
-            # not sure what unlabeled output should be
-            unlabeled_img = config.path_to_unlabeled_output
-            if config.visualize_output is True:
-                os.makedirs(unlabeled_img, exist_ok=True)
-                newname = unlabeled_img + 'image'
-                new_file_num = get_last_file_number(unlabeled_img)
-                new_file_num = new_file_num + 1
-               # new_file_num = str(new_file_num)
-                newname = os.path.join(unlabeled_img, f"image_{new_file_num}.jpg")
-               # newname += "_" + new_file_num
-                urllib.request.urlretrieve(info['file_thumb_url'], newname)
+        
            
-
 
     new_photos = np.array(new_photos)
     if len(new_photos) > 0:  # update last image
