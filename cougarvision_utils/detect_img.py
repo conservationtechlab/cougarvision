@@ -115,6 +115,8 @@ def detect(images, config):  # pylint: disable=too-many-locals
                     labeled_img = config.path_to_labeled_output
                     if config.visualize_output is True:
                         os.makedirs(labeled_img, exist_ok=True)
+                        # get image names from orginal image list
+                        # created and returned in get_images
                         name = images[idx][2]
                         name = name.split('/')[-1]
                         new_file_name = labeled_img + "/" + name
