@@ -67,3 +67,5 @@ color: 'LawnGreen'
 host: 'imap.gmail.com'
 #path to last photo id 
 id_path: './last_id.txt'
+#number of monitors for display functions
+display_num: 1
