@@ -16,6 +16,7 @@ import json
 import time
 import urllib.request
 import logging
+import os
 import requests
 import numpy as np
 
@@ -26,25 +27,25 @@ import numpy as np
 request <- "cameras"
 parameters <- ""
 
-#recent photo count
+recent photo count
 request <- "photos/recent/count"
 parameters <- ""
 
-#get recent photos across cameras
+get recent photos across cameras
 request <- "photos/recent"
 parameters <- "limit=100"
 
-#get photos from specific camera (will need to loop through pages)
+get photos from specific camera (will need to loop through pages)
 request <- "photos"
 parameters <- "page=3&sort_date=desc&camera_id[]=59681"
 
-#get photos from specific camera filtered by date (will need
-# to loop through pages)
+get photos from specific camera filtered by date (will need
+to loop through pages)
 request <- "photos"
 parameters <- "page=1&sort_date=desc&camera_id[]=
-#60272&date_start=2022-09-01&date_end=2022-10-07"
+60272&date_start=2022-09-01&date_end=2022-10-07"
 
-#get subscriptions
+get subscriptions
 request <- "subscriptions"
 parameters <- ""
 """
@@ -148,15 +149,19 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
             print(info)
 
             try:
-
                 camera = config.camera_names[photo['relationships']
                                              ['camera']['data']['id']]
             except KeyError:
-                logging.warning('Cannot retrieve photo from camera\
-                as there is no asssociated ID in the config file')
+                logging.warning('skipped img: no associated cam ID')
                 continue
-            newname = config.save_dir + camera
+
+            image_dir = config.save_dir
+            os.makedirs(image_dir, exist_ok=True)
+            newname = image_dir + camera
             newname += "_" + str(info['id'])
+            # add time stamp in format: 2023-10-29 16:17:20 -0700
+            date_time = (str(info['local_time'])).rsplit(' ', 1)[0]
+            newname += "_" + date_time
             newname += "_" + info['file_thumb_filename']
             # native extension from strikeforce is .JPG.jpeg for some reason
             stripped_name = newname.replace(".JPG.jpeg", ".jpg")

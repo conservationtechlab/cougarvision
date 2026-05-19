@@ -90,6 +90,3 @@ These scripts rely on the [CameraTraps Repo](https://github.com/microsoft/Camera
 # Processing Batch Images
 Run_batch_images.py can take in an input folder and apply the detector/classifier pipeline to render annotated images along with an output.json file in directory classifications. The output.json contains the final classifications on the cropped images and can be used to compare against a ground truth set. There is also an intermediate output.json which holds the crop detections and is used by the script to crop images, this one can be moved by configuration in the yml file.
 These scripts rely on the [CameraTraps Repo](https://github.com/microsoft/CameraTraps). Download this repo and place it anywhere. Add that path to config. The CameraTraps repo will then be added to the python sys environment variables upon loading an individual script.
-
-# Improvement Efforts
-If you encounter any issues upon install or would like a feature added, create an issue in the issue tracker on this github and we will do our best to accomodate! Specifically we are looking to add new integrations for other types of cellular camera traps.
