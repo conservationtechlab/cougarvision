@@ -27,7 +27,6 @@ class ConfigInfo:
     # pylint: disable=too-many-instance-attributes
     username: str
     password: str
-    token: str
     authorization: str
     classifier_model: str
     detector_model: str
