@@ -1,18 +1,20 @@
-'''Script for getting strikeforce auth_token'''
-import requests
+"""Script for getting strikeforce auth_token"""
 import json
+import requests
 
-username = "<insert strikeforce username>"
-password = "<insert strikeforce password>"
+USERNAME = "<insert strikeforce username>"
+PASSWORD = "<insert strikeforce password>"
 
 
-base = "https://api.strikeforcewireless.com/api/v2/"
-request = "users/sign-in/"
-call = base + request
-body = json.dumps({"user": {"email": username, "password": password}})
-encode = 'json'
-response = requests.post(url=call, data=body,
-                         headers={"Content-Type": "application/json"})
+BASE = "https://api.strikeforcewireless.com/api/v2/"
+REQUEST = "users/sign-in/"
+CALL = BASE + REQUEST
+body = json.dumps({"user": {"email": USERNAME, "password": PASSWORD}})
+ENCODE = 'json'
+response = requests.post(url=CALL, data=body,
+                         headers={"Content-Type":
+                                  "application/json"},
+                         timeout=20)
 response = response.text
 response = json.loads(response)
 authentication_token = response["meta"]["authentication_token"]
