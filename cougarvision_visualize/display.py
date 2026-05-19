@@ -191,8 +191,8 @@ def main_display():
                                                            )
     except TypeError:
         print("Defined 2 screens in configuration file but found only\n"
-              "1 actual screen.Change value in yaml or "
-              "connect another screen")
+              "1 actual screen. Change value in yaml or "
+              "connect another screen.")
         sys.exit()
 
     while True:
