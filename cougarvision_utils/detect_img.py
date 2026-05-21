@@ -12,6 +12,7 @@ that must be imported from animl.
 from io import BytesIO
 from datetime import datetime as dt
 import re
+import os
 from PIL import Image
 from animl import classification, split
 from animl import detection
@@ -145,4 +146,6 @@ def detect(images, config):  # pylint: disable=too-many-locals
                 # Write Dataframe to csv
                 current_date = dt.now()
                 formatted_dt = current_date.strftime("%m-%d-%Y_%H:%M:%S")
-                cougars.to_csv(f'{config.log_dir}dataframe_{formatted_dt}')
+                logdf_dir = config.log_dir
+                os.makedirs(logdf_dir, exist_ok=True)
+                cougars.to_csv(f'{logdf_dir}dataframe_{formatted_dt}')
