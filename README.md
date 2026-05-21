@@ -30,7 +30,7 @@ The file **cougarvision_env.yml** describes the python version and various depen
 ```
 conda env create -f cougarvision_env.yml
 
-conda activate cougarvision_env
+conda activate cougarvision_env44
 
 conda env list
 ```
@@ -48,7 +48,7 @@ The environment must be activated anytime you wish to run the scripts within thi
 Detection and inference models can be placed anywhere. In each script's yml file (under the config directory) is a field where the path variables for each model can be specified. Linked are the current updated models along with their class lists for [Peru](https://sandiegozoo.box.com/s/jfw7ih8xedzsn83to91pg6gvaq1nj5bl),[Peru class list](https://sandiegozoo.box.com/s/xng8erxrvw6nz98h8xjtk8avnopfz6ev), [Southwest](https://sandiegozoo.box.com/s/x63lnaxw8hag39mczeommqy9tw4t0ht9), [Southwest class list](https://sandiegozoo.box.com/s/hn8nput5pxjc3toao57gfn4h6zo1lyng) and [Kenya](https://sandiegozoo.box.com/s/cwn5wss9gjibvf57xop2zgfmlih512lt), [Kenya class list](https://sandiegozoo.box.com/s/f5athitml7bedix0ubnccyg8npvsr6ip). The detection model that is currently integrated with fetch_and_alert.py functionality is [MDv5 using pytorch](https://github.com/ecologize/CameraTraps/releases/download/v5.0/md_v5a.0.0.pt)
 
 # Fetch and alert
-Fetch_and_alert.py combines two functions to retrieve images from [Strikeforce](https://www.strikeforcewireless.com) site and email addresses. Strikeforce username and password can be changed in the config/fetch_and_alert.yml file. Emails are accessed and images attached are extracted, email addresses may also be changed in the same config file. Once extracted these images are ran through both detector and classification models. And alerts (sends emails/EarthRanger event) if a cougar (or any target animal you define in config as long as they are an option on the class list for your classification model) is detected. To set up text message alerts on your EarthRanger account go to settings then to alerts to setup up notification preferences.
+Fetch_and_alert.py combines two functions to retrieve images from [Strikeforce](https://www.strikeforcewireless.com) site and email addresses. Strikeforce username and password can be changed in the config/fetch_and_alert.yml file. Emails are accessed and images attached are extracted, email addresses may also be changed in the same config file. Once extracted these images are ran through both detector and classification models. And alerts (sends emails/EarthRanger events) if a cougar (or any target animal you define in config as long as they are an option on the class list for your classification model) is detected. To set up text message alerts on your EarthRanger account go to settings then to alerts to setup up notification preferences.
 To run fetch_and_alert.py, the config/fetch_and_alert.yml must be configured according to the notes in the file. The command line script to run is:
 
 ```
@@ -72,7 +72,7 @@ In this version of CougarVision, all camera names need to be 4 characters long, 
 ## EarthRanger integration
 CougarVision can optionally send detections for a species of interest to their specific camera location in EarthRanger. 
 For this functionality, the er_alerts config must be set to "True". 
-You also need to include an authorization token from EarthRanger. This can be created from <your_instance>.pamdas.org/admin. Under Das Configuration in DAS Tokens add a new Das Acess Token. Set the expiration date and ensure the scope is 'read write'. We recommend the use an online UUID generator to create a unique token. Once the above fields are filled save the token. Paste the unique token in th config file under 'authorizaion' (include 'Bearer before the token). It's important to note that you should keep this token secret, especially if it will not expire for a while.
+You also need to include an authorization token from EarthRanger. This can be created from <your_instance>.pamdas.org/admin. Under Das Configuration in DAS Tokens add a new Das Acess Token. Set the expiration date and ensure the scope is 'read write'. We recommend the use an online UUID generator to create a unique token. Once the above fields are filled save the token. Paste the unique token in the config file under 'authorizaion' (include 'Bearer before the token). It's important to note that you should keep this token secret, especially if it will not expire for a while.
 
 In order for this integration to work, the camera name in EarthRanger must be the same as the 4 digit name in the camera dictionary in the config file. For ease of adding your cameras in the same format we have, there is a script in our [EarthRanger integration API package](https://github.com/conservationtechlab/sageranger/blob/main/sageranger/post_camera_er.py) that will add the cameras correctly. Verify that the cameras are visible on your EarthRanger map instance before proceeding with this integration.
 
