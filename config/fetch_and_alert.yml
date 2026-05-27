@@ -54,3 +54,5 @@ color: 'LawnGreen'
 host: 'imap.gmail.com'
 #path to last photo id 
 id_path: './last_id.txt'
+#optional post monthly will keep cameras alive
+post_monthly: True
