@@ -69,31 +69,48 @@ def parse_args():
     return parser.parse_args()
 
 
-def main():
-    """Runs main program and schedules future runs."""
+def get_config_info(class_type):
+    """Parses through config file.
 
-    # Numpy FutureWarnings from tensorflow import
-    warnings.filterwarnings('ignore', category=FutureWarning)
+    This function maps values to the dataclasses
+    found in get_info.
 
-    logger()
+    """
     args = parse_args()
     config_path = args.CONFIG
 
     with open(config_path, 'r', encoding='utf-8') as file:
         config_dict = yaml.safe_load(file)
 
-    # for direct mapping only use fields in ConfigInfo
-    valid_keys = {f.name for f in fields(ConfigInfo)}
+    # for direct mapping only use fields in the class fields
+    valid_keys = {f.name for f in fields(class_type)}
     filtered_keys = {k: v for k, v in config_dict.items() if k in valid_keys}
 
-    config = ConfigInfo(**filtered_keys)
+    return class_type(**filtered_keys)
+
+
+def main():
+    '''Runs main program and schedules future runs'''
+
+    # Numpy FutureWarnings from tensorflow import
+    warnings.filterwarnings('ignore', category=FutureWarning)
+
+    logger()
+    config = get_config_info(ConfigInfo)
 
     # pass ConfigInfo dataclass object
     fetch_detect_alert(config)
 
     # lambda keeps fetch and detect callable
-    schedule.every(config.run_scheduler).minutes.do(lambda:
-                                                    fetch_detect_alert(config))
+    if config.visualize_output is True:
+        schedule.every(config.run_scheduler
+                       ).seconds.do(lambda:
+                                    fetch_detect_alert(config))
+    else:
+        schedule.every(config.run_scheduler
+                       ).minutes.do(lambda:
+                                    fetch_detect_alert(config))
+
     schedule.every(config.checkin_interval).hours.do(
                                                      checkin,
                                                      config.dev_emails,

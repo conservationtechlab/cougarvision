@@ -12,6 +12,7 @@ that must be imported from animl.
 from io import BytesIO
 from datetime import datetime as dt
 import re
+import os
 from PIL import Image
 from animl import classification, split
 from animl import detection
@@ -110,6 +111,19 @@ def detect(images, config):  # pylint: disable=too-many-locals
                     image_bytes = BytesIO()
                     img.save(image_bytes, format="JPEG")
                     img_byte = image_bytes.getvalue()
+
+                    labeled_img = config.path_to_labeled_output
+                    if config.visualize_output is True:
+                        os.makedirs(labeled_img, exist_ok=True)
+                        # get image names from orginal image list
+                        # created and returned in get_images
+                        name = images[idx][2]
+                        name = name.split('/')[-1]
+                        new_file_name = labeled_img + "/" + name
+
+                        with open(new_file_name, "wb") as folder:
+                            folder.write(img_byte)
+
                     cam_name = cougars.at[idx, 'cam_name']
                     er_alerts = config.er_alerts
                     if label in config.alert_targets and er_alerts is True:
