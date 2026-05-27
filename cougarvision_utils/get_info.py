@@ -50,6 +50,7 @@ class ConfigInfo:
     auth_token: str
     id_path: str
     password_scraper: str
+    post_monthly: bool
 
     # runtime fields not apart of inital constructor
     classifier_model_load: Any = field(init=False)
