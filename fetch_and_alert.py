@@ -118,8 +118,10 @@ def main():
                                                      config.password,
                                                      config.host
                                                      )
-    schedule.every(30).days.do(post_monthly_obs,
-                               config.token, config.authorization)
+    if config.post_monthly:
+        schedule.every(30).days.do(post_monthly_obs,
+                                   config.authorization)
+        
 
     while True:
         schedule.run_pending()

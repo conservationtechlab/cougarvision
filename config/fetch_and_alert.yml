@@ -53,9 +53,6 @@ checkin_interval: 24
 run_scheduler: 1
 #email to send still-alive email to
 admin: admin@email.com 
-#x-csrf token retreived from earthranger interactive api example requests, must be logged into an
-#existing earthranger account with interactive api access
-token: '<insert token>'
 #authorization bearer token retreived from same earthranger interactive api example requests 
 authorization: 'Bearer <insert authorization>'
 #color of the bounding box
@@ -67,6 +64,8 @@ color: 'LawnGreen'
 host: 'imap.gmail.com'
 #path to last photo id 
 id_path: './last_id.txt'
+#optional post monthly will keep cameras alive
+post_monthly: True
 #number of monitors for display functions
 display_num: 1
 # set default to control which monitor shows what demo content

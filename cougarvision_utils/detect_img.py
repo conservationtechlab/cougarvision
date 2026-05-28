@@ -127,17 +127,15 @@ def detect(images, config):  # pylint: disable=too-many-locals
                     cam_name = cougars.at[idx, 'cam_name']
                     er_alerts = config.er_alerts
                     if label in config.alert_targets and er_alerts is True:
-                        is_target(cam_name, config.token,
+                        is_target(cam_name,
                                   config.authorization, label)
                     # Email or Earthranger alerts as dictated in the config yml
                     if config.er_alerts is True:
                         event_id = post_event(label,
                                               cam_name,
-                                              config.token,
                                               config.authorization)
                         response = attach_image(event_id,
                                                 img_byte,
-                                                config.token,
                                                 config.authorization,
                                                 label)
                         print(response)
