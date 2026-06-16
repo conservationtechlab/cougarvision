@@ -127,26 +127,28 @@ def detect(images, config):  # pylint: disable=too-many-locals
                     cam_name = cougars.at[idx, 'cam_name']
                     er_alerts = config.er_alerts
                     if label in config.alert_targets and er_alerts is True:
-                        try: 
+                        try:
                             is_target(cam_name,
                                       config.authorization,
                                       label)
                         except KeyError as e:
-                            print(f"Invalid authorization token missing key {e}")
+                            print("Invalid authorization",
+                                  f"token missing key {e}")
 
                     # Email or Earthranger alerts as dictated in the config yml
                     if config.er_alerts is True:
                         try:
                             event_id = post_event(label,
-                                                cam_name,
-                                                config.authorization)
+                                                  cam_name,
+                                                  config.authorization)
                             response = attach_image(event_id,
                                                     img_byte,
                                                     config.authorization,
                                                     label)
                             print(response)
                         except KeyError as e:
-                            print(f"Invalid authorization token missing key {e}")
+                            print("Invalid authorization.",
+                                  f"token missing key {e}")
 
                     if config.email_alerts is True:
                         smtp_server = smtp_setup(config.username,
