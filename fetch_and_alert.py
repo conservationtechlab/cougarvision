@@ -75,6 +75,13 @@ def get_config_info(class_type):
     This function maps values to the dataclasses
     found in get_info.
 
+    Args:
+        class_type (str): get info has two dataclasses
+            config info and display info
+
+    Return:
+        dict: unpacked and mapped values to
+            class type
     """
     args = parse_args()
     config_path = args.CONFIG
@@ -90,7 +97,7 @@ def get_config_info(class_type):
 
 
 def main():
-    '''Runs main program and schedules future runs'''
+    """Runs main program and schedules future runs"""
 
     # Numpy FutureWarnings from tensorflow import
     warnings.filterwarnings('ignore', category=FutureWarning)
@@ -122,7 +129,6 @@ def main():
         schedule.every(30).days.do(lambda: post_monthly_obs(
                                    config.authorization,
                                    config.camera_names))
-        
 
     while True:
         schedule.run_pending()
