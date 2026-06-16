@@ -119,8 +119,9 @@ def main():
                                                      config.host
                                                      )
     if config.post_monthly:
-        schedule.every(30).days.do(post_monthly_obs,
-                                   config.authorization)
+        schedule.every(30).days.do(lambda: post_monthly_obs(
+                                   config.authorization,
+                                   config.camera_names))
         
 
     while True:
