@@ -21,16 +21,35 @@ def get_data(base, request, parameters, username, authentication_token):
     return json.loads(data_response)
 
 
+
 BASE = "https://api.strikeforcewireless.com/api/v2/"
 REQUEST = "cameras"
 PARAMETERS = ""
-USERNAME = "<insert username>"
-AUTH_TOKEN = "<insert auth_token>"
+USERNAME = "username"
+AUTH_TOKEN = "token"
+
 
 data = get_data(BASE, REQUEST, PARAMETERS, USERNAME, AUTH_TOKEN)
 pretty_json = json.dumps(data, indent=4)
 cameras = []
-list_of_cam_info = data['data']
-for _, i in enumerate(list_of_cam_info):
-    cameras = list_of_cam_info[i]['id']
-    print(cameras)
+# print(list(data.keys()))
+
+#list_of_cam_data = data["data"] 
+#for idx, d in enumerate(list_of_cam_data): 
+# optional print for logging purposes
+# last_synced = list_of_cam_data[idx]['attributes']['last_sync_time']
+# print("Name: " + name, "ID: " + id , "date: " + last_synced)
+
+list_of_cam_info = data["included"]
+
+for idx, (name) in enumerate(list_of_cam_info): 
+    if list_of_cam_info[idx]['attributes'].get('camera_id') is not None:
+        name = list_of_cam_info[idx]['attributes']['name']
+        id = list_of_cam_info[idx]['attributes']['camera_id']
+        print(idx," ",id, " ", name)
+
+        temp_tuple = id, name 
+        cameras.append(temp_tuple)
+
+camera_dict = dict(cameras)
+print(camera_dict)
