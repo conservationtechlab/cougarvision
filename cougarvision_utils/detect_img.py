@@ -15,7 +15,7 @@ import re
 import os
 from PIL import Image
 import animl
-from animl import classification # , split
+from animl import classification 
 from animl import detection
 from sageranger import is_target, attach_image, post_event
 
@@ -48,7 +48,7 @@ def detect(images, config):  # pylint: disable=too-many-locals
         # confidendce and checkpoint frequency
         conf = config.confidence
         ch_f = config.checkpoint_frequency
-        results = detection.detect(config.detector_model_load,
+        results = animl.detect(config.detector_model_load,
                                    image_path_list,
                                    resize_width=1280,
                                    resize_height=1280,
@@ -57,7 +57,7 @@ def detect(images, config):  # pylint: disable=too-many-locals
                                    batch_size=4
                                    )
         # Parse results
-        data_frame = detection.parse_detections(results)
+        data_frame = animl.parse_detections(results)
         # single classification function checks for the file
         # extension so we add it
         data_frame["extension"] = data_frame["filepath"].str.extract(
@@ -70,13 +70,13 @@ def detect(images, config):  # pylint: disable=too-many-locals
             # run classifier on animal detections if there are any
             if not animal_df.empty:
                 classifer_model = config.classifier_model_load
-                predictions_raw = classification.classify(classifer_model,
+                predictions_raw = animl.classify(classifer_model,
                                                           animal_df,
                                                           batch_size=4
                                                           )
                 # single classification expects a list
                 class_list_series = config.class_list["species"].tolist()
-                preds = classification.single_classification(animal_df,
+                preds = animl.single_classification(animal_df,
                                                              None,
                                                              predictions_raw,
                                                              class_list_series
