@@ -118,12 +118,13 @@ def main():
                        ).minutes.do(lambda:
                                     fetch_detect_alert(config))
 
-    schedule.every(config.checkin_interval).hours.do(
-                                                     checkin,
+    schedule.every(config.checkin_interval).hours.do(lambda:
+                                                     checkin(
                                                      config.dev_emails,
                                                      config.username,
                                                      config.password,
                                                      config.host
+                                                     )
                                                      )
     if config.post_monthly:
         schedule.every(30).days.do(lambda: post_monthly_obs(
