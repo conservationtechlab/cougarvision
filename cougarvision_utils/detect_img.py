@@ -14,7 +14,8 @@ from datetime import datetime as dt
 import re
 import os
 from PIL import Image
-from animl import classification, split
+import animl
+from animl import classification # , split
 from animl import detection
 from sageranger import is_target, attach_image, post_event
 
@@ -64,7 +65,7 @@ def detect(images, config):  # pylint: disable=too-many-locals
                                             expand=False).str.lower()
         # filter out all non animal detections
         if not data_frame.empty:
-            animal_df = split.get_animals(data_frame)
+            animal_df = animl.get_animals(data_frame) #split area idek
             # other_df = split.get_empty(data_frame)
             # run classifier on animal detections if there are any
             if not animal_df.empty:
@@ -168,4 +169,5 @@ def detect(images, config):  # pylint: disable=too-many-locals
                 # Write Dataframe to csv
                 current_date = dt.now()
                 formatted_dt = current_date.strftime("%m-%d-%Y_%H:%M:%S")
+                os.makedirs(config.log_dir, exist_ok=True)
                 cougars.to_csv(f'{config.log_dir}dataframe_{formatted_dt}')
