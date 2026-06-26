@@ -15,8 +15,6 @@ import re
 import os
 from PIL import Image
 import animl
-from animl import classification 
-from animl import detection
 from sageranger import is_target, attach_image, post_event
 
 from cougarvision_utils.cropping import draw_bounding_box_on_image
