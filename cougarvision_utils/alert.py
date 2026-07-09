@@ -83,11 +83,15 @@ def send_alert(alert, img, smtp_server, from_email, to_emails, dev, conf):
     # Server sends email message
     server = smtp_server
     server.send_message(email_message)
+    server.quit
 
 
 def checkin(to_emails, username, password, host):
     '''Sends server status to specified email at specified time interval'''
     print("Checking in at: " + str(dt.now()))
+
+    smtp_server = smtp_setup(username, password, host)
+
     # Construct Email Content
     email_message = EmailMessage()
     email_message.add_header('To', ', '.join(to_emails))
@@ -96,6 +100,6 @@ def checkin(to_emails, username, password, host):
     email_message.add_header('X-Priority', '1')  # Urgency, 1 highest, 5 lowest
     email_message.set_content('Still Alive :)')
     # Server sends email message
-    smtp_server = smtp_setup(username, password, host)
     server = smtp_server
     server.send_message(email_message)
+    server.quit
