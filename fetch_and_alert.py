@@ -36,7 +36,7 @@ from cougarvision_utils.get_info import ConfigInfo
 
 def logger():
     """Function for creating log file"""
-    logging.basicConfig(filename='cougarvision.log', level=logging.INFO)
+    logging.basicConfig(filename='cougarvision.log', level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
 
 
 def fetch_detect_alert(config):
@@ -50,7 +50,7 @@ def fetch_detect_alert(config):
     detect(images, config)
     print('Finished Detection')
     print("Sleeping since: " + str(dt.now()))
-
+    
 
 def parse_args():
     """Creates parser for config yaml.
@@ -118,7 +118,7 @@ def main():
                        ).minutes.do(lambda:
                                     fetch_detect_alert(config))
 
-    schedule.every(config.checkin_interval).hours.do(lambda:
+    schedule.every(config.run_scheduler).minutes.do(lambda:
                                                      checkin(
                                                      config.dev_emails,
                                                      config.username,
