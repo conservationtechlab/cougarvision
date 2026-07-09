@@ -18,14 +18,11 @@ the classified images to Earthranger.
 """
 
 # Import local utilities
-import argparse
 import time
 import warnings
 from datetime import datetime as dt
 import logging
-from dataclasses import fields
 import schedule
-import yaml
 
 from sageranger.post_monthly import post_monthly_obs
 from sageranger.unpack_info import get_config_info
@@ -37,7 +34,8 @@ from cougarvision_utils.get_info import ConfigInfo
 
 def logger():
     """Function for creating log file"""
-    logging.basicConfig(filename='cougarvision.log', level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
+    logging.basicConfig(filename='cougarvision.log', level=logging.INFO,
+                        datefmt='%Y-%m-%d %H:%M:%S')
 
 
 def fetch_detect_alert(config):
@@ -51,7 +49,7 @@ def fetch_detect_alert(config):
     detect(images, config)
     print('Finished Detection')
     print("Sleeping since: " + str(dt.now()))
-    
+
 
 def main():
     """Runs main program and schedules future runs"""
@@ -75,14 +73,12 @@ def main():
                        ).minutes.do(lambda:
                                     fetch_detect_alert(config))
 
-    schedule.every(config.checkin_interval).hours.do(lambda:
-                                                     checkin(
-                                                     config.dev_emails,
-                                                     config.username,
-                                                     config.password,
-                                                     config.host
-                                                     )
-                                                     )
+    schedule.every(config.checkin_interval
+                   ).hours.do(lambda:
+                              checkin(config.dev_emails,
+                                      config.username,
+                                      config.password,
+                                      config.host))
     if config.post_monthly:
         schedule.every(30).days.do(lambda: post_monthly_obs(
                                    config.authorization,
