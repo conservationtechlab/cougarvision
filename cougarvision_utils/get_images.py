@@ -122,7 +122,7 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
     # id_path is the path to the id text file
     path = config.id_path
     # try creating file throw exception if it
-    # does not exist
+    # does not existdatefmt='%Y-%m-%d %H:%M:%S'
     try:
         with open(path, "x", encoding="utf-8") as file:
             file.write(str(0))  # write first ID from sf
@@ -172,9 +172,11 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
     new_photos = np.array(new_photos)
     if len(new_photos) > 0:  # update last image
         new_last = max(new_photos[:, 0])
+
         new_id = str(new_last)
         # write new id to .txt file
         with open(path, "w", encoding="utf-8") as file:
             file.writelines(new_id)
 
     return new_photos
+ 
