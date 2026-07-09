@@ -26,8 +26,8 @@ def get_data(base, request, parameters, username, authentication_token):
 BASE = "https://api.strikeforcewireless.com/api/v2/"
 REQUEST = "cameras"
 PARAMETERS = ""
-USERNAME = "username"
-AUTH_TOKEN = "token"
+USERNAME = "<username"
+AUTH_TOKEN = "<token>"
 
 
 data = get_data(BASE, REQUEST, PARAMETERS, USERNAME, AUTH_TOKEN)
