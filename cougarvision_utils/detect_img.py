@@ -63,8 +63,8 @@ def detect(images, config):  # pylint: disable=too-many-locals
                                             expand=False).str.lower()
         # filter out all non animal detections
         if not data_frame.empty:
-            animal_df = animl.get_animals(data_frame) #split area idek
-            # other_df = split.get_empty(data_frame)
+            animal_df = animl.get_animals(data_frame) 
+
             # run classifier on animal detections if there are any
             if not animal_df.empty:
                 classifer_model = config.classifier_model_load
@@ -86,8 +86,10 @@ def detect(images, config):  # pylint: disable=too-many-locals
                 cougars = cougars.reset_index(drop=True)
                 # create a row in the dataframe containing only the camera name
                 # flake8: disable-next
-                cougars['cam_name'] = cougars['filepath'].apply(
-                    lambda x: re.findall(r'[A-Z]\d+', x)[0])
+                print("######Cougars:",cougars)
+                #cougars['cam_name'] = cougars['filepath'].apply(
+                #    lambda x: re.findall(r'[A-Z]\d+', x)[0])
+                cougars["cam_name"] = cougars["filepath"].str.extract(r"([A-Z]\d+)")
                 # Sends alert for each cougar detection
                 for idx in range(len(cougars.index)):
                     label = cougars.at[idx, 'prediction']
