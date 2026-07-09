@@ -28,6 +28,7 @@ import schedule
 import yaml
 
 from sageranger.post_monthly import post_monthly_obs
+from sageranger.unpack_info import get_config_info
 from cougarvision_utils.detect_img import detect
 from cougarvision_utils.alert import checkin
 from cougarvision_utils.get_images import fetch_image_api
@@ -52,50 +53,6 @@ def fetch_detect_alert(config):
     print("Sleeping since: " + str(dt.now()))
     
 
-def parse_args():
-    """Creates parser for config yaml.
-
-    This function creates an arguement parser that creates an
-    args container with the arguement 'CONFIG'.
-
-    Returns:
-        argsparse.Namespace: An object containing all parsed arguement
-            values as attributes (e.g., args.CONFIG).
-    """
-    parser = argparse.ArgumentParser(description='Retrieves images from \
-                                    email & web scraper & runs detection')
-    parser.add_argument('CONFIG', type=str, help='Path to config file')
-
-    return parser.parse_args()
-
-
-def get_config_info(class_type):
-    """Parses through config file.
-
-    This function maps values to the dataclasses
-    found in get_info.
-
-    Args:
-        class_type (str): get info has two dataclasses
-            config info and display info
-
-    Return:
-        dict: unpacked and mapped values to
-            class type
-    """
-    args = parse_args()
-    config_path = args.CONFIG
-
-    with open(config_path, 'r', encoding='utf-8') as file:
-        config_dict = yaml.safe_load(file)
-
-    # for direct mapping only use fields in the class fields
-    valid_keys = {f.name for f in fields(class_type)}
-    filtered_keys = {k: v for k, v in config_dict.items() if k in valid_keys}
-
-    return class_type(**filtered_keys)
-
-
 def main():
     """Runs main program and schedules future runs"""
 
@@ -118,7 +75,7 @@ def main():
                        ).minutes.do(lambda:
                                     fetch_detect_alert(config))
 
-    schedule.every(config.run_scheduler).minutes.do(lambda:
+    schedule.every(config.checkin_interval).hours.do(lambda:
                                                      checkin(
                                                      config.dev_emails,
                                                      config.username,
