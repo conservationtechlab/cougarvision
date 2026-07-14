@@ -86,7 +86,7 @@ def detect(images, config):  # pylint: disable=too-many-locals
                 cougars = cougars.reset_index(drop=True)
                 # create a row in the dataframe containing only the camera name
                 # flake8: disable-next
-                print("######Cougars:",cougars)
+               # print("######Cougars:",cougars)
                 #cougars['cam_name'] = cougars['filepath'].apply(
                 #    lambda x: re.findall(r'[A-Z]\d+', x)[0])
                 cougars["cam_name"] = cougars["filepath"].str.extract(r"([A-Z]\d+)")
@@ -169,5 +169,6 @@ def detect(images, config):  # pylint: disable=too-many-locals
                 # Write Dataframe to csv
                 current_date = dt.now()
                 formatted_dt = current_date.strftime("%m-%d-%Y_%H:%M:%S")
-                os.makedirs(config.log_dir, exist_ok=True)
-                cougars.to_csv(f'{config.log_dir}dataframe_{formatted_dt}')
+                logs = config.log_dir
+                os.makedirs(logs, exist_ok=True)
+                cougars.to_csv(f'{logs}dataframe_{formatted_dt}')
