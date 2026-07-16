@@ -20,10 +20,12 @@ def smtp_setup(username, password, host):
     host email, a username and password for an email.
 
     Args:
-    username (str): username for email to send message from, string from config
-    password (str): password for email message will be sent from, string from config
+    username (str): username for email to send message from
+        string from config
+    password (str): password for email message will be sent from,
+        string from config
     host (str): IMAP protocol to download gmail messages, initialized in
-     detect_img.py
+        detect_img.py
 
     Returns:
     SMTP_SSL object logged into the mailing account specified in
@@ -36,8 +38,7 @@ def smtp_setup(username, password, host):
     return smtp_server
 
 
-
-def send_alert(config, alert, img, dev,conf): #, from_email, to_emails, dev, conf)
+def send_alert(config, alert, img, dev, conf):
     """Send Alert
 
     This function takes in the animal label, the image of the animal of
@@ -45,13 +46,13 @@ def send_alert(config, alert, img, dev,conf): #, from_email, to_emails, dev, con
     the alert containing that specific image along with the confidence value.
 
     Args:
-    alert: label of animal that the alert is being created for
-    conf: confidence value of the classifier that the animal it says it
+    alert (str): label of animal that the alert is being created for
+    conf (float): confidence value of the classifier that the animal it says it
         is is the animal it is
-    img: the PIL.Image of the image that is to be sent, to be converted
+    img(bytes): the PIL.Image of the image that is to be sent, to be converted
         to binary
-    config (dict): holds the values of username, password, host, 
-        dev/consumeremails for email setup and info for recipients. 
+    config (dict): holds the values of username, password, host,
+        dev/consumeremails for email setup and info for recipients.
     """
     # Construct Email Content
     email_message = EmailMessage()
@@ -59,6 +60,7 @@ def send_alert(config, alert, img, dev,conf): #, from_email, to_emails, dev, con
     email_message['from'] = config.username
     email_message['Subject'] = 'Alert!'
     email_message['X-Priority'] = '1'  # Urgency, 1 highest, 5 lowest
+    message = ""
     if dev == 0:
         message = "Potential " + alert + " detected by CougarVision "\
                   + "system.\n\nPlease review attached image to verify"\
@@ -68,8 +70,6 @@ def send_alert(config, alert, img, dev,conf): #, from_email, to_emails, dev, con
     elif dev != 0:
         message = "Potential " + alert + " detected with confidence value: "\
                   + conf
-
-    email_message.set_content(message)
 
     # Prepare Image format
     binary_data = img.getvalue()
@@ -82,6 +82,7 @@ def send_alert(config, alert, img, dev,conf): #, from_email, to_emails, dev, con
                                  subtype=subtype, filename=filename)
 
     # Server sends email message
+    email_message.set_content(message)
     server = smtp_setup(config.username, config.password, config.host)
     server.send_message(email_message)
     server.quit()
@@ -91,8 +92,8 @@ def checkin(config):
     """Sends server status to specified email at specified time interval
 
     Args:
-    config (dict): holds the values of username, password, host, 
-        dev/consumeremails for email setup and info for recipients. 
+    config (dict): holds the values of username, password, host,
+        dev/consumeremails for email setup and info for recipients.
     """
     print("Checking in at: " + str(dt.now()))
 
@@ -100,10 +101,11 @@ def checkin(config):
     email_message = EmailMessage()
     email_message['To'] = ', '.join(config.dev_emails)
     email_message['from'] = config.username
-    email_message['Subject'] = 'Checkin' 
+    email_message['Subject'] = 'Checkin'
     email_message.add_header('X-Priority', '1')  # Urgency, 1 highest, 5 lowest
-    message = "still Alive :) " 
+    message = "still Alive :) "
     email_message.set_content(message)
+
     # Server sends email message
     server = smtp_setup(config.username, config.password, config.host)
     server.send_message(email_message)
