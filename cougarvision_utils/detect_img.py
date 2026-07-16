@@ -18,7 +18,7 @@ import animl
 from sageranger import is_target, attach_image, post_event
 
 from cougarvision_utils.cropping import draw_bounding_box_on_image
-from cougarvision_utils.alert import smtp_setup, send_alert
+from cougarvision_utils.alert import send_alert
 
 
 def detect(images, config):  # pylint: disable=too-many-locals
@@ -152,18 +152,11 @@ def detect(images, config):  # pylint: disable=too-many-locals
                                   f"token missing key {e}")
 
                     if config.email_alerts is True:
-                        smtp_server = smtp_setup(config.username,
-                                                 config.password,
-                                                 config.host
-                                                 )
                         dev = 0
-                        send_alert(label, image_bytes, smtp_server,
-                                   config.username, config.consumer_emails,
-                                   dev, prob
-                                   )
+                        send_alert(label, image_bytes, config,
+                                   dev, prob)
                         dev = 1
-                        send_alert(label, image_bytes, smtp_server,
-                                   config.username, config.dev_emails,
+                        send_alert(label, image_bytes, config,
                                    dev, prob)
 
                 # Write Dataframe to csv
