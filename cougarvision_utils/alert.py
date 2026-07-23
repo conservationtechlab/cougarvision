@@ -38,7 +38,7 @@ def smtp_setup(username, password, host):
     return smtp_server
 
 
-def send_alert(config, alert, img, dev, conf):
+def send_alert(config, alert, img, dev):
     """Send Alert
 
     This function takes in the animal label, the image of the animal of
@@ -69,7 +69,7 @@ def send_alert(config, alert, img, dev, conf):
                   + "and artifacts have been known to trigger the system."
     elif dev != 0:
         message = "Potential " + alert + " detected with confidence value: "\
-                  + conf
+                  + str(config.confidence)
 
     # Prepare Image format
     binary_data = img.getvalue()
