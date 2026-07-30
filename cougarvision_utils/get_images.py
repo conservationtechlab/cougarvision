@@ -164,7 +164,13 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
             newname += "_" + date_time
             newname += "_" + info['file_thumb_filename']
             # native extension from strikeforce is .JPG.jpeg for some reason
-            stripped_name = newname.replace(".JPG.jpeg", ".jpg")
+            list_endings = [".JPG.jpeg", ".jpg.jpeg", ".jpeg", ",MP4.jpeg", ".AVI.jpeg"]
+            
+            for n in list_endings:
+                if n in newname:
+                    stripped_name = newname.replace(str(n), ".jpg")
+                    
+           # stripped_name = newname.replace(".JPG.jpeg", ".jpg")
             urllib.request.urlretrieve(info['file_thumb_url'], stripped_name)
             new_photos.append([photo['id'],
                                info['file_thumb_url'], stripped_name])
