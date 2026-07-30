@@ -57,7 +57,9 @@ def main():
     warnings.filterwarnings('ignore', category=FutureWarning)
 
     logger()
+    logging.info("Starting cougarvision at: " + str(dt.now()))
     config = get_config_info(ConfigInfo)
+
 
     # pass ConfigInfo dataclass object
     fetch_detect_alert(config)
