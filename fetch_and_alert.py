@@ -34,8 +34,7 @@ from cougarvision_utils.get_info import ConfigInfo
 
 def logger():
     """Function for creating log file"""
-    logging.basicConfig(filename='cougarvision.log', level=logging.INFO,
-                        datefmt='%Y-%m-%d %H:%M:%S')
+    logging.basicConfig(filename='cougarvision.log', level=logging.INFO)
 
 
 def fetch_detect_alert(config):
@@ -73,13 +72,21 @@ def main():
                        ).minutes.do(lambda:
                                     fetch_detect_alert(config))
 
-    schedule.every(2
-                   ).minutes.do(lambda:
+    schedule.every(config.checkin_interval
+                   ).hours.do(lambda:
                               checkin(config))
+    
+    schedule.every(config.checkin_interval).hours.do(lambda:logging.info(
+                                                     "Sent checkin email at " + 
+                                                     str(dt.now())))
     if config.post_monthly:
         schedule.every(30).days.do(lambda: post_monthly_obs(
                                    config.authorization,
                                    config.camera_names))
+        schedule.every(30).days.do(lambda:logging.info(
+                                    "Posted monthly observation at " 
+                                    + str(dt.now())))
+
 
     while True:
         schedule.run_pending()
