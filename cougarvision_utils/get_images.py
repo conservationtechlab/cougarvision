@@ -19,6 +19,7 @@ import logging
 import os
 import requests
 import numpy as np
+from datetime import datetime as dt 
 
 # pylint: disable=pointless-string-statement
 """
@@ -86,18 +87,18 @@ def request_strikeforce(username, auth_token, base, request, parameters):
         except requests.exceptions.ConnectionError as excpt:
             logging.warning("Failed to connect attempt: %s error %s",
                             {attempt + 1},
-                            {excpt})
+                            {excpt} + str(dt.now()))
             print(f'Connection Error {attempt + 1}: {excpt}')
             time.sleep(15)  # wait 15 seconds
         except requests.exceptions.Timeout as excpt:
             logging.warning("Failed to connect to"
                             " StrikeForce attempt: %s error %s",
                             {attempt + 1},
-                            {excpt})
+                            {excpt} + str(dt.now()))
             print(f'Timeout Error {attempt + 1}: {excpt}')
             time.sleep(15)  # wait 15 seconds
 
-    logging.error("Failed to connect after multiple attempts.")
+    logging.error("Failed to connect after multiple attempts at: " + str(dt.now()))
     # broad error
     raise RuntimeError("Failed to connect"
                        "after multiple attempts.")
@@ -152,7 +153,8 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
                 camera = config.camera_names[photo['relationships']
                                              ['camera']['data']['id']]
             except KeyError:
-                logging.warning('skipped img: no associated cam ID')
+                logging.warning('skipped img: no associated cam ID for image', 
+                                photo['id'] ,"at: " + str(dt.now()))
                 continue
 
             image_dir = config.save_dir
