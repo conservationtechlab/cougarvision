@@ -8,6 +8,7 @@ emails via the smtp_server created.
 '''
 
 import mimetypes
+import logging 
 from email.message import EmailMessage
 from smtplib import SMTP_SSL, SMTP_SSL_PORT
 from datetime import datetime as dt
@@ -56,7 +57,7 @@ def send_alert(config, alert, img, dev):
     """
     # Construct Email Content
     email_message = EmailMessage()
-    email_message['To'] = ', '.join(config.consumer_emails)
+    email_message['To'] = (', '.join(config.consumer_emails))
     email_message['from'] = config.username
     email_message['Subject'] = 'Alert!'
     email_message['X-Priority'] = '1'  # Urgency, 1 highest, 5 lowest
@@ -76,15 +77,18 @@ def send_alert(config, alert, img, dev):
 
     # Attach image to email
     filename = 'detection.jpg'
+    email_message.set_content(message)
+
     maintype, _, subtype = (mimetypes.guess_type(filename)[0] or
                             'application/octet-stream').partition("/")
+    
     email_message.add_attachment(binary_data, maintype=maintype,
                                  subtype=subtype, filename=filename)
 
     # Server sends email message
-    email_message.set_content(message)
     server = smtp_setup(config.username, config.password, config.host)
     server.send_message(email_message)
+    logging.info("Email Alert sent.")
     server.quit()
 
 
@@ -109,4 +113,5 @@ def checkin(config):
     # Server sends email message
     server = smtp_setup(config.username, config.password, config.host)
     server.send_message(email_message)
+    logging.info("Checkin email sent.")
     server.quit()
