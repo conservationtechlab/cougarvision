@@ -10,6 +10,35 @@ that it can later be classified. fetch_image_api depends on
 last_id.txt as well, but it creates a new one if there is not
 one currently present.
 
+Examples:
+
+    request cameras
+    get list of camaras
+    request <- "cameras"
+    parameters <- ""
+
+    recent photo count
+    request <- "photos/recent/count"
+    parameters <- ""
+
+    get recent photos across cameras
+    request <- "photos/recent"
+    parameters <- "limit=100"
+
+    get photos from specific camera (will need to loop through pages)
+    request <- "photos"
+    parameters <- "page=3&sort_date=desc&camera_id[]=59681"
+
+    get photos from specific camera filtered by date (will need
+    to loop through pages)
+    request <- "photos"
+    parameters <- "page=1&sort_date=desc&camera_id[]=
+    60272&date_start=2022-09-01&date_end=2022-10-07"
+
+    get subscriptions
+    request <- "subscriptions"
+    parameters <- ""
+
 """
 
 import json
@@ -20,36 +49,6 @@ import os
 import requests
 import numpy as np
 from datetime import datetime as dt 
-
-# pylint: disable=pointless-string-statement
-"""
-#request examples
-#get list of camaras
-request <- "cameras"
-parameters <- ""
-
-recent photo count
-request <- "photos/recent/count"
-parameters <- ""
-
-get recent photos across cameras
-request <- "photos/recent"
-parameters <- "limit=100"
-
-get photos from specific camera (will need to loop through pages)
-request <- "photos"
-parameters <- "page=3&sort_date=desc&camera_id[]=59681"
-
-get photos from specific camera filtered by date (will need
-to loop through pages)
-request <- "photos"
-parameters <- "page=1&sort_date=desc&camera_id[]=
-60272&date_start=2022-09-01&date_end=2022-10-07"
-
-get subscriptions
-request <- "subscriptions"
-parameters <- ""
-"""
 
 
 def request_strikeforce(username, auth_token, base, request, parameters):
@@ -85,20 +84,15 @@ def request_strikeforce(username, auth_token, base, request, parameters):
             return info
 
         except requests.exceptions.ConnectionError as excpt:
-            logging.warning("Failed to connect attempt: %s error %s",
-                            {attempt + 1},
-                            {excpt} + str(dt.now()))
+            logging.warning( "Failed to connect to StrikeForce:%s", str(excpt))
             print(f'Connection Error {attempt + 1}: {excpt}')
             time.sleep(15)  # wait 15 seconds
         except requests.exceptions.Timeout as excpt:
-            logging.warning("Failed to connect to"
-                            " StrikeForce attempt: %s error %s",
-                            {attempt + 1},
-                            {excpt} + str(dt.now()))
+            logging.warning( "Timeout error strikeforce: %s", str(excpt))
             print(f'Timeout Error {attempt + 1}: {excpt}')
             time.sleep(15)  # wait 15 seconds
 
-    logging.error("Failed to connect after multiple attempts at: " + str(dt.now()))
+    logging.error("Failed to connect after multiple attempts.")
     # broad error
     raise RuntimeError("Failed to connect"
                        "after multiple attempts.")
@@ -153,8 +147,9 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
                 camera = config.camera_names[photo['relationships']
                                              ['camera']['data']['id']]
             except KeyError:
-                logging.warning('skipped img: no associated cam ID for image', 
-                                photo['id'] ,"at: " + str(dt.now()))
+                id_camera = str(photo['id'])
+                logging.warning("skipped img: no associated cam ID for image: %s ", id_camera)
+                              #  id_camera, " at: " + str(dt.now()))
                 continue
 
             image_dir = config.save_dir
@@ -166,7 +161,7 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
             newname += "_" + date_time
             newname += "_" + info['file_thumb_filename']
             # native extension from strikeforce is .JPG.jpeg for some reason
-            list_endings = [".JPG.jpeg", ".jpg.jpeg", ".jpeg", ",MP4.jpeg", ".AVI.jpeg"]
+            list_endings = [".JPG.jpeg", ".jpg.jpeg", ".jpeg", ".MP4.jpeg", ".AVI.jpeg"]
             
             for n in list_endings:
                 if n in newname:
