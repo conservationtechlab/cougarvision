@@ -11,8 +11,9 @@ that must be imported from animl.
 
 from io import BytesIO
 from datetime import datetime as dt
-import re
+#import re
 import os
+import logging
 from PIL import Image
 import animl
 from sageranger import is_target, attach_image, post_event
@@ -133,6 +134,7 @@ def detect(images, config):  # pylint: disable=too-many-locals
                                       config.authorization,
                                       label)
                         except KeyError as e:
+                            logging.warning("Invalid authorization token missing key: %s", str(e))
                             print("Invalid authorization",
                                   f"token missing key {e}")
 
@@ -146,18 +148,20 @@ def detect(images, config):  # pylint: disable=too-many-locals
                                                     img_byte,
                                                     config.authorization,
                                                     label)
+                            logging.info("Posted event on earthranger with associated img.")
                             print(response)
                         except KeyError as e:
+                            logging.warning("Invalid authorization token missing key: %s", str(e))
                             print("Invalid authorization.",
                                   f"token missing key {e}")
 
                     if config.email_alerts is True:
                         dev = 0
-                        send_alert(label, image_bytes, config,
-                                   dev, prob)
+                        send_alert(config,label,image_bytes,
+                                   dev)
                         dev = 1
-                        send_alert(label, image_bytes, config,
-                                   dev, prob)
+                        send_alert(config,label, image_bytes,
+                                   dev)
 
                 # Write Dataframe to csv
                 current_date = dt.now()
