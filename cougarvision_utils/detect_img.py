@@ -11,7 +11,6 @@ that must be imported from animl.
 
 from io import BytesIO
 from datetime import datetime as dt
-#import re
 import os
 import logging
 from PIL import Image
@@ -158,10 +157,10 @@ def detect(images, config):  # pylint: disable=too-many-locals
                     if config.email_alerts is True:
                         dev = 0
                         send_alert(config,label,image_bytes,
-                                   dev)
+                                   dev, prob)
                         dev = 1
                         send_alert(config,label, image_bytes,
-                                   dev)
+                                   dev, prob)
 
                 # Write Dataframe to csv
                 current_date = dt.now()
