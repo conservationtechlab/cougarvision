@@ -36,6 +36,8 @@ def detect(images, config):  # pylint: disable=too-many-locals
             fetch_and_alert.yml that contains necessary parameters
             the function needs.
     """
+    # pylint: disable=too-many-nested-blocks
+    # pylint: disable=too-many-statements
 
     if len(images) > 0:
         # extract paths from dataframe
@@ -47,13 +49,12 @@ def detect(images, config):  # pylint: disable=too-many-locals
         conf = config.confidence
         ch_f = config.checkpoint_frequency
         results = animl.detect(config.detector_model_load,
-                                   image_path_list,
-                                   resize_width=1280,
-                                   resize_height=1280,
-                                   confidence_threshold=conf,
-                                   checkpoint_frequency=ch_f,
-                                   batch_size=4
-                                   )
+                               image_path_list,
+                               resize_width=1280,
+                               resize_height=1280,
+                               confidence_threshold=conf,
+                               checkpoint_frequency=ch_f,
+                               batch_size=4)
         # Parse results
         data_frame = animl.parse_detections(results)
         # single classification function checks for the file
@@ -63,33 +64,29 @@ def detect(images, config):  # pylint: disable=too-many-locals
                                             expand=False).str.lower()
         # filter out all non animal detections
         if not data_frame.empty:
-            animal_df = animl.get_animals(data_frame) 
+            animal_df = animl.get_animals(data_frame)
 
             # run classifier on animal detections if there are any
             if not animal_df.empty:
                 classifer_model = config.classifier_model_load
                 predictions_raw = animl.classify(classifer_model,
-                                                          animal_df,
-                                                          batch_size=4
-                                                          )
+                                                 animal_df,
+                                                 batch_size=4)
                 # single classification expects a list
                 class_list_series = config.class_list["species"].tolist()
                 preds = animl.single_classification(animal_df,
-                                                             None,
-                                                             predictions_raw,
-                                                             class_list_series
-                                                             )
+                                                    None,
+                                                    predictions_raw,
+                                                    class_list_series)
+
                 cougars = preds[preds['prediction'].isin(config.alert_targets)]
                 # drops all detections with confidence less than threshold
                 cougars = cougars[cougars['confidence'] >= config.confidence]
                 # reset dataframe index
                 cougars = cougars.reset_index(drop=True)
-                # create a row in the dataframe containing only the camera name
-                # flake8: disable-next
-               # print("######Cougars:",cougars)
-                #cougars['cam_name'] = cougars['filepath'].apply(
-                #    lambda x: re.findall(r'[A-Z]\d+', x)[0])
-                cougars["cam_name"] = cougars["filepath"].str.extract(r"([A-Z]\d+)")
+                # create a row in datafra,e containing only the camera name
+                cougars["cam_name"] = cougars["filepath"
+                                              ].str.extract(r"([A-Z]\d+)")
                 # Sends alert for each cougar detection
                 for idx in range(len(cougars.index)):
                     label = cougars.at[idx, 'prediction']
@@ -127,18 +124,19 @@ def detect(images, config):  # pylint: disable=too-many-locals
 
                     cam_name = cougars.at[idx, 'cam_name']
                     er_alerts = config.er_alerts
-                    if label in config.alert_targets and er_alerts is True:
+                    if er_alerts is True:
+                        # post an observation
                         try:
                             is_target(cam_name,
                                       config.authorization,
                                       label)
-                        except KeyError as e:
-                            logging.warning("Invalid authorization token missing key: %s", str(e))
-                            print("Invalid authorization",
-                                  f"token missing key {e}")
+                            logging.info("Posted observation to"
+                                         "earthranger.")
+                        except IndexError as e:
+                            logging.warning("IndexError: %s", str(e))
+                            print(f"Index error: {e}")
 
-                    # Email or Earthranger alerts as dictated in the config yml
-                    if config.er_alerts is True:
+                        # post an event
                         try:
                             event_id = post_event(label,
                                                   cam_name,
@@ -147,19 +145,19 @@ def detect(images, config):  # pylint: disable=too-many-locals
                                                     img_byte,
                                                     config.authorization,
                                                     label)
-                            logging.info("Posted event on earthranger with associated img.")
+                            logging.info("Posted event on earthranger with "
+                                         "associated img.")
                             print(response)
-                        except KeyError as e:
-                            logging.warning("Invalid authorization token missing key: %s", str(e))
-                            print("Invalid authorization.",
-                                  f"token missing key {e}")
+                        except IndexError as e:
+                            logging.warning("Index Error: %s", str(e))
+                            print(f"Index error: {e}")
 
                     if config.email_alerts is True:
                         dev = 0
-                        send_alert(config,label,image_bytes,
+                        send_alert(config, label, image_bytes,
                                    dev, prob)
                         dev = 1
-                        send_alert(config,label, image_bytes,
+                        send_alert(config, label, image_bytes,
                                    dev, prob)
 
                 # Write Dataframe to csv
