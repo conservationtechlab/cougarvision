@@ -166,6 +166,8 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
             for n in list_endings:
                 if n in newname:
                     stripped_name = newname.replace(str(n), ".jpg")
+                else:
+                    stripped_name = newname
 
             urllib.request.urlretrieve(info['file_thumb_url'], stripped_name)
             new_photos.append([photo['id'],
