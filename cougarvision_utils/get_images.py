@@ -48,7 +48,6 @@ import logging
 import os
 import requests
 import numpy as np
-from datetime import datetime as dt 
 
 
 def request_strikeforce(username, auth_token, base, request, parameters):
@@ -84,11 +83,11 @@ def request_strikeforce(username, auth_token, base, request, parameters):
             return info
 
         except requests.exceptions.ConnectionError as excpt:
-            logging.warning( "Failed to connect to StrikeForce:%s", str(excpt))
+            logging.warning("Failed to connect to StrikeForce:%s", str(excpt))
             print(f'Connection Error {attempt + 1}: {excpt}')
             time.sleep(15)  # wait 15 seconds
         except requests.exceptions.Timeout as excpt:
-            logging.warning( "Timeout error strikeforce: %s", str(excpt))
+            logging.warning("Timeout error strikeforce: %s", str(excpt))
             print(f'Timeout Error {attempt + 1}: {excpt}')
             time.sleep(15)  # wait 15 seconds
 
@@ -129,8 +128,8 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
         last_id = int(file.read().strip())
 
     photos = []
-# 5 second delay between captures, maximum 12 photos between checks
-# using config object
+    # 5 second delay between captures, maximum 12 photos between checks
+    # using config object
     for account, token in zip(config.username_scraper, config.auth_token):
         data = request_strikeforce(account, token, config.strikeforce_api,
                                    "photos/recent", "limit=12")
@@ -148,8 +147,8 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
                                              ['camera']['data']['id']]
             except KeyError:
                 id_camera = str(photo['id'])
-                logging.warning("skipped img: no associated cam ID for image: %s ", id_camera)
-                              #  id_camera, " at: " + str(dt.now()))
+                logging.warning("skipped img: no associated"
+                                " cam ID for image: %s ", id_camera)
                 continue
 
             image_dir = config.save_dir
@@ -161,13 +160,13 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
             newname += "_" + date_time
             newname += "_" + info['file_thumb_filename']
             # native extension from strikeforce is .JPG.jpeg for some reason
-            list_endings = [".JPG.jpeg", ".jpg.jpeg", ".jpeg", ".MP4.jpeg", ".AVI.jpeg"]
-            
+            list_endings = [".JPG.jpeg", ".jpg.jpeg",
+                            ".jpeg", ".MP4.jpeg", ".AVI.jpeg"]
+
             for n in list_endings:
                 if n in newname:
                     stripped_name = newname.replace(str(n), ".jpg")
-                    
-           # stripped_name = newname.replace(".JPG.jpeg", ".jpg")
+
             urllib.request.urlretrieve(info['file_thumb_url'], stripped_name)
             new_photos.append([photo['id'],
                                info['file_thumb_url'], stripped_name])
@@ -182,4 +181,3 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
             file.writelines(new_id)
 
     return new_photos
- 
