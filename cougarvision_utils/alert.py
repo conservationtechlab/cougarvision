@@ -8,7 +8,7 @@ emails via the smtp_server created.
 '''
 
 import mimetypes
-import logging 
+import logging
 from email.message import EmailMessage
 from smtplib import SMTP_SSL, SMTP_SSL_PORT
 from datetime import datetime as dt
@@ -48,16 +48,17 @@ def send_alert(config, alert, img, dev, prob):
 
     Args:
     alert (str): label of animal that the alert is being created for
-    conf (float): confidence value of the classifier that the animal it says it
+    prob (float): confidence value of the classifier that the animal it says it
         is is the animal it is
     img(bytes): the PIL.Image of the image that is to be sent, to be converted
         to binary
     config (dict): holds the values of username, password, host,
         dev/consumeremails for email setup and info for recipients.
+    dev (int): integer value that determines what email message will be sent.
     """
     # Construct Email Content
     email_message = EmailMessage()
-    email_message['To'] = (', '.join(config.consumer_emails))
+    email_message['To'] = ', '.join(config.consumer_emails)
     email_message['from'] = config.username
     email_message['Subject'] = 'Alert!'
     email_message['X-Priority'] = '1'  # Urgency, 1 highest, 5 lowest
@@ -70,7 +71,7 @@ def send_alert(config, alert, img, dev, prob):
                   + "and artifacts have been known to trigger the system."
     elif dev != 0:
         message = "Potential " + alert + " detected with confidence value: "\
-                  + prob 
+                  + prob
 
     # Prepare Image format
     binary_data = img.getvalue()
@@ -81,7 +82,7 @@ def send_alert(config, alert, img, dev, prob):
 
     maintype, _, subtype = (mimetypes.guess_type(filename)[0] or
                             'application/octet-stream').partition("/")
-    
+
     email_message.add_attachment(binary_data, maintype=maintype,
                                  subtype=subtype, filename=filename)
 
