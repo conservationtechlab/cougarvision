@@ -34,7 +34,7 @@ from cougarvision_utils.get_info import ConfigInfo
 
 def logger():
     """Function for creating log file"""
-    logging.basicConfig(filename='cougarvision.log', level=logging.INFO, 
+    logging.basicConfig(filename='cougarvision.log', level=logging.INFO,
                         format='%(asctime)s - %(levelname)s - %(message)s')
 
 
@@ -76,13 +76,12 @@ def main():
 
     schedule.every(config.checkin_interval
                    ).minutes.do(lambda:
-                              checkin(config))
-    
+                                checkin(config))
+
     if config.post_monthly:
         schedule.every(30).days.do(lambda: post_monthly_obs(
                                    config.authorization,
                                    config.camera_names))
-                           
 
     while True:
         schedule.run_pending()
