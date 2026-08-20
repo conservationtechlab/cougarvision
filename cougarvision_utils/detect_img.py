@@ -85,8 +85,9 @@ def detect(images, config):  # pylint: disable=too-many-locals
                 # reset dataframe index
                 cougars = cougars.reset_index(drop=True)
                 # create a row in datafra,e containing only the camera name
-                cougars["cam_name"] = cougars["filepath"
-                                              ].str.extract(r"([A-Z]\d+)")
+                cougars["cam_name"
+                        ] = cougars["filepath"
+                                    ].str.extract(r'([A-Za-z]+[\s_]*\d+)')
                 # Sends alert for each cougar detection
                 for idx in range(len(cougars.index)):
                     label = cougars.at[idx, 'prediction']
