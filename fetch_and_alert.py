@@ -70,12 +70,12 @@ def main():
                        ).seconds.do(lambda:
                                     fetch_detect_alert(config))
     else:
-        schedule.every(3
+        schedule.every(config.run_scheduler
                        ).minutes.do(lambda:
                                     fetch_detect_alert(config))
 
     schedule.every(config.checkin_interval
-                   ).minutes.do(lambda:
+                   ).hours.do(lambda:
                                 checkin(config))
 
     if config.post_monthly:
