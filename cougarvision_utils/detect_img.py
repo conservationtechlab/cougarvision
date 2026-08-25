@@ -85,11 +85,9 @@ def detect(images, config):  # pylint: disable=too-many-locals
                 # reset dataframe index
                 cougars = cougars.reset_index(drop=True)
                 # create a row in datafra,e containing only the camera name
-                # regex expression works for most names except names starting
-                # with a number
                 cougars["cam_name"
                         ] = cougars["filepath"
-                                    ].str.extract(r'([A-Za-z][A-Za-z\d\s\W]*)')
+                                    ].str.extract(r'[Ii]mages\/([^\/_]+)')
                 # Sends alert for each cougar detection
                 for idx in range(len(cougars.index)):
                     label = cougars.at[idx, 'prediction']
@@ -135,7 +133,7 @@ def detect(images, config):  # pylint: disable=too-many-locals
                                       label)
                             logging.info("Posted observation to"
                                          "earthranger.")
-                        except IndexError as e:
+                        except(IndexError, KeyError) as e:
                             logging.warning("IndexError: %s", str(e))
                             print(f"Index error: {e}")
 
@@ -151,7 +149,7 @@ def detect(images, config):  # pylint: disable=too-many-locals
                             logging.info("Posted event on earthranger with "
                                          "associated img.")
                             print(response)
-                        except IndexError as e:
+                        except(IndexError, KeyError) as e:
                             logging.warning("Index Error: %s", str(e))
                             print(f"Index error: {e}")
 
