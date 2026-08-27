@@ -1,11 +1,13 @@
-'''Alert
+"""Alert
 
-This script defines two functions, smtp_setup and send_alert. The first
-function creates a server through which one can send an email from a
-specified account. The second function creates the message containing a
-classified animal of interest along with it's label to send to specified
-emails via the smtp_server created.
-'''
+This script defines three functions, smtp_setup,checkin and
+send_alert. The first function creates a server through which
+one can send an email from a specified account. The second
+function sends a checkin email. The third function creates
+the message containing a classified animal of interest along
+with it's label to send to specified emails via the
+smtp_server created.
+"""
 
 import mimetypes
 import logging
