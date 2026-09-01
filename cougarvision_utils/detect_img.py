@@ -91,7 +91,6 @@ def detect(images, config):  # pylint: disable=too-many-locals
                 # Sends alert for each cougar detection
                 for idx in range(len(cougars.index)):
                     label = cougars.at[idx, 'prediction']
-                    # uncomment this line to use conf value for dev email alert
                     prob = str(cougars.at[idx, 'confidence'])
                     img = Image.open(cougars.at[idx, 'filepath'])
                     draw_bounding_box_on_image(img,
