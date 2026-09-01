@@ -67,14 +67,13 @@ To obtain the unique camera IDs in Strikeforce, run the script within /cougarvis
 python3 strikeforceget.py
 python3 strikeforcegetcameras.py
 ```
-In this version of CougarVision, all camera names need to be 4 characters long, so if your camera names exceed this length, shorten them to 4 characters within the config directory. 
 
 ## EarthRanger integration
 CougarVision can optionally send detections for a species of interest to their specific camera location in EarthRanger. 
-For this functionality, the er_alerts config must be set to "True" and post_montly in the config must also be set to "True" or "False" for optional montly alerts. 
+For this functionality, the er_alerts config must be set to "True" and post_montly in the config must also be set to "True" or "False" for optional monthly alerts. 
 You also need to include an authorization token from EarthRanger. This can be created from <your_instance>.pamdas.org/admin. Under Das Configuration in DAS Tokens add a new Das Acess Token. Set the expiration date and ensure the scope is 'read write'. We recommend the use of an online UUID generator to create a unique token. Once the above fields are filled save the token. Paste the unique token in the config file under 'authorizaion' (include 'Bearer before the token). It's important to note that you should keep this token secret, especially if it will not expire for a while.
 
-In order for this integration to work, the camera name in EarthRanger must be the same as the 4 digit name in the camera dictionary in the config file. For ease of adding your cameras in the same format we have, there is a script in our [EarthRanger integration API package](https://github.com/conservationtechlab/sageranger/blob/main/sageranger/post_camera_er.py) that will add the cameras correctly. Verify that the cameras are visible on your EarthRanger map instance before proceeding with this integration.
+In order for this integration to work, the camera name in EarthRanger must be the same as the name in the camera dictionary in the config file. For ease of adding your cameras in the same format we have, there is a script in our [EarthRanger integration API package](https://github.com/conservationtechlab/sageranger/blob/main/sageranger/post_camera_er.py) that will add the cameras correctly. Verify that the cameras are visible on your EarthRanger map instance before proceeding with this integration.
 
 ## Email alerts
 In order to send email alerts, CougarVision needs to know from what email to send them. For this, any email will do, but you need to include the email and password to the email. We just created a gmail specifically for this purpose, and include the email and the password under 'username' and 'password' in the config file. 
