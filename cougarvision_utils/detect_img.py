@@ -131,10 +131,10 @@ def detect(images, config):  # pylint: disable=too-many-locals
                             is_target(cam_name,
                                       config.authorization,
                                       label)
-                            logging.info("Posted observation to"
+                            logging.info("Posted observation to "
                                          "earthranger.")
                         except(IndexError, KeyError) as e:
-                            logging.warning("IndexError: %s", str(e))
+                            logging.warning("Error: %s", str(e))
                             print(f"Index error: {e}")
 
                         # post an event
@@ -150,7 +150,7 @@ def detect(images, config):  # pylint: disable=too-many-locals
                                          "associated img.")
                             print(response)
                         except(IndexError, KeyError) as e:
-                            logging.warning("Index Error: %s", str(e))
+                            logging.warning("Error: %s", str(e))
                             print(f"Index error: {e}")
 
                     if config.email_alerts is True:
