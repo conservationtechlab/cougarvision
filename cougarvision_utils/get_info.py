@@ -81,7 +81,6 @@ class ConfigInfo:
 @dataclass
 class DisplayInfo:
     """Define values from the config for display."""
-    path_to_unlabeled_output: str
     path_to_labeled_output: str
     save_dir: str
     display_num: int
