@@ -19,10 +19,8 @@ log_dir: /home/johnsmith/cougarvision/logs/
 classes: /home/johnsmith/cougarvision/labels/sw_classes.txt 
 #Run version that allows for images cast to two screens True/False
 visualize_output: True
-#for visualizing output, folder for cougarvision to put all images
-path_to_unlabeled_output: /path/to/unlabeled/img/folder
 #for visualizing output, folder for cougarvision detections with bounding boxes
-path_to_labeled_output: /path/to/labeled/img/folder
+path_to_labeled_output: /path/to/labeled/img/folder/
 #the emails that will receive email alerts, can be multiple emails
 consumer_emails: [your@email.com]
 #emails to recieve daily check-in and confidence of detections 
