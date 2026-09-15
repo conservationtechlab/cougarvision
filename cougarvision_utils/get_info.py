@@ -3,8 +3,8 @@
 Get_info holds the ConfigInfo data class that holds attribute
 values from the configuration file. It also hold the
 display_info class that has values from the config directly
-related to the display file.Direct mapping is handled in fetch
-and alert in get_config_info function.Fields defined in this class
+related to the display file.Direct mapping is handled in sageranger
+in get_config_info function.Fields defined in this class
 will be the values mapped.The field values must match exactly to
 the config file. Fetch_and_alert, get_images, display and detect_img
 rely on these attribute values.
@@ -54,7 +54,7 @@ class ConfigInfo:
     id_path: str
     password_scraper: str
     post_monthly: bool
-    visualize_output: str
+    visualize_output: bool
     path_to_unlabeled_output: str
     path_to_labeled_output: str
 
@@ -81,7 +81,6 @@ class ConfigInfo:
 @dataclass
 class DisplayInfo:
     """Define values from the config for display."""
-    path_to_unlabeled_output: str
     path_to_labeled_output: str
     save_dir: str
     display_num: int

@@ -18,16 +18,14 @@ the classified images to Earthranger.
 """
 
 # Import local utilities
-import argparse
 import time
 import warnings
 from datetime import datetime as dt
 import logging
-from dataclasses import fields
 import schedule
-import yaml
 
 from sageranger.post_monthly import post_monthly_obs
+from sageranger.unpack_info import get_config_info
 from cougarvision_utils.detect_img import detect
 from cougarvision_utils.alert import checkin
 from cougarvision_utils.get_images import fetch_image_api
@@ -36,12 +34,14 @@ from cougarvision_utils.get_info import ConfigInfo
 
 def logger():
     """Function for creating log file"""
-    logging.basicConfig(filename='cougarvision.log', level=logging.INFO)
+    logging.basicConfig(filename='cougarvision.log', level=logging.INFO,
+                        format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 def fetch_detect_alert(config):
     """Function for fetching images, detection, and sending alerts"""
     # Run the scheduler
+    logging.info("Starting cougarvision.")
     print("Running fetch_and_alert")
     print("Fetching images")
     images = fetch_image_api(config)
@@ -52,45 +52,8 @@ def fetch_detect_alert(config):
     print("Sleeping since: " + str(dt.now()))
 
 
-def parse_args():
-    """Creates parser for config yaml.
-
-    This function creates an arguement parser that creates an
-    args container with the arguement 'CONFIG'.
-
-    Returns:
-        argsparse.Namespace: An object containing all parsed arguement
-            values as attributes (e.g., args.CONFIG).
-    """
-    parser = argparse.ArgumentParser(description='Retrieves images from \
-                                    email & web scraper & runs detection')
-    parser.add_argument('CONFIG', type=str, help='Path to config file')
-
-    return parser.parse_args()
-
-
-def get_config_info(class_type):
-    """Parses through config file.
-
-    This function maps values to the dataclasses
-    found in get_info.
-
-    """
-    args = parse_args()
-    config_path = args.CONFIG
-
-    with open(config_path, 'r', encoding='utf-8') as file:
-        config_dict = yaml.safe_load(file)
-
-    # for direct mapping only use fields in the class fields
-    valid_keys = {f.name for f in fields(class_type)}
-    filtered_keys = {k: v for k, v in config_dict.items() if k in valid_keys}
-
-    return class_type(**filtered_keys)
-
-
 def main():
-    '''Runs main program and schedules future runs'''
+    """Runs main program and schedules future runs"""
 
     # Numpy FutureWarnings from tensorflow import
     warnings.filterwarnings('ignore', category=FutureWarning)
@@ -111,17 +74,14 @@ def main():
                        ).minutes.do(lambda:
                                     fetch_detect_alert(config))
 
-    schedule.every(config.checkin_interval).hours.do(
-                                                     checkin,
-                                                     config.dev_emails,
-                                                     config.username,
-                                                     config.password,
-                                                     config.host
-                                                     )
+    schedule.every(config.checkin_interval
+                   ).hours.do(lambda:
+                                checkin(config))
+
     if config.post_monthly:
-        schedule.every(30).days.do(post_monthly_obs,
-                                   config.authorization)
-        
+        schedule.every(30).days.do(lambda: post_monthly_obs(
+                                   config.authorization,
+                                   config.camera_names))
 
     while True:
         schedule.run_pending()
