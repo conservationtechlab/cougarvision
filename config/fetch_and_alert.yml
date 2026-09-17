@@ -13,11 +13,11 @@ detector_model_type: "<insert model type>"
 #classifier_model - path to classifier model
 classifier_model: /home/johnsmith/cougarvision/classifier_models/EfficientNetB5_456_Unfrozen_05_0.26_0.92.h5 
 checkpoint_frequency: -1 
-#log_dir - path to logs (must create this folder first)
+#log_dir - path to logs 
 log_dir: /home/johnsmith/cougarvision/logs/
 #classes - path to the class list for the classifier model
 classes: /home/johnsmith/cougarvision/labels/sw_classes.txt 
-#Run version that allows for images cast to two screens? True/False
+#Run version that allows for images cast to two screens True/False
 visualize_output: True
 #for visualizing output, folder for cougarvision to put all images
 path_to_unlabeled_output: /path/to/unlabeled/img/folder
@@ -34,9 +34,13 @@ threads: 8
 #strike force api url
 strikeforce_api: https://api.strikeforcewireless.com/api/v2/
 #strikeforce wireless username 
-username_scraper: yourusername.cam@gmail.com
+#formmatt matters here
+username_scraper: ['yourusername.cam@gmail.com']
 #strikeforce wireless password
-password_scraper: yourpassword
+password_scraper: ['yourpassword']
+# without brackets
+username: youremail@gmail.com
+password: yourpassword
 #authorization token from Strike Force
 auth_token: <must get from web dev tools after strikeforcewireless login>
 #save_dir - path to where the images get stored (must create folder)
