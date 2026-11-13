@@ -31,7 +31,20 @@ dev_emails: [your@email.com]
 confidence: 0.7
 #cpu threads
 threads: 8
-#strike force api url
+#image sources to pull from each run, either or both can be on
+use_strikeforce: true
+use_gardepro: false
+#gardepro link: email address the gardepro photo emails are sent to and its
+#(app) password. camera name comes from the name set on each camera in the app
+#and must contain a capital letter followed by digits e.g. H001
+gardepro_email: youremail@gmail.com
+gardepro_password: <gmail app password>
+gardepro_imap_host: imap.gmail.com
+gardepro_senders: ['noreply@gardeprolink.com']
+#max gardepro emails handled per run (each has up to 5 photos), rest wait
+gardepro_max_emails: 10
+#strike force api url (leave the strikeforce values below in place even if
+#use_strikeforce is false)
 strikeforce_api: https://api.strikeforcewireless.com/api/v2/
 #strikeforce wireless username 
 username_scraper: yourusername.cam@gmail.com

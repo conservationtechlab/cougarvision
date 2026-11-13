@@ -19,6 +19,8 @@ import logging
 import os
 import requests
 import numpy as np
+from cougarvision_utils.fetch_emails import (imap_setup, fetch_emails,
+                                           extractAttachments)
 
 # pylint: disable=pointless-string-statement
 """
@@ -178,3 +180,37 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
             file.writelines(new_id)
 
     return new_photos
+
+
+def fetch_image_email(config):
+    """Pulls image attachments from unread GardePro emails.
+
+    Returns rows in the same ['id', 'url', 'file path'] format as
+    fetch_image_api so detect() can take them unchanged.
+    """
+    try:
+        mail = imap_setup(config.gardepro_imap_host, config.gardepro_email,
+                          config.gardepro_password)
+        messages = fetch_emails(mail, config.gardepro_senders, None)
+        # newest emails first, capped per run so a backlog can't flood
+        # detection; the rest stay unread for later runs
+        messages = [m[-max(1, config.gardepro_max_emails):] for m in messages]
+        os.makedirs(config.save_dir, exist_ok=True)
+        rows = extractAttachments(messages, mail, config.save_dir)
+        mail.logout()
+    except Exception as err:  # pylint: disable=broad-except
+        logging.error("GardePro email fetch failed: %s", err)
+        return np.array([])
+    return np.array(rows)
+
+
+def fetch_all_images(config):
+    """Strikeforce and/or GardePro images, per config, in one array for detect()."""
+    images = fetch_image_api(config) if config.use_strikeforce else np.array([])
+    email_images = (fetch_image_email(config) if config.use_gardepro
+                    else np.array([]))
+    if len(email_images) == 0:
+        return images
+    if len(images) == 0:
+        return email_images
+    return np.vstack([images, email_images])

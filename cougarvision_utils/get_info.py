@@ -63,6 +63,15 @@ class ConfigInfo:
     class_list: list = field(init=False)
     detector_model_load: object = field(init=False)
 
+    # image sources: Strikeforce and/or GardePro email
+    use_strikeforce: bool = True
+    use_gardepro: bool = False
+    gardepro_email: str = ''
+    gardepro_password: str = ''
+    gardepro_imap_host: str = 'imap.gmail.com'
+    gardepro_senders: list = field(default_factory=list)
+    gardepro_max_emails: int = 10
+
     def __post_init__(self):
         """Loads classifer and detector models.
 

@@ -30,7 +30,7 @@ import yaml
 from sageranger.post_monthly import post_monthly_obs
 from cougarvision_utils.detect_img import detect
 from cougarvision_utils.alert import checkin
-from cougarvision_utils.get_images import fetch_image_api
+from cougarvision_utils.get_images import fetch_all_images
 from cougarvision_utils.get_info import ConfigInfo
 
 
@@ -44,7 +44,7 @@ def fetch_detect_alert(config):
     # Run the scheduler
     print("Running fetch_and_alert")
     print("Fetching images")
-    images = fetch_image_api(config)
+    images = fetch_all_images(config)
     print('Finished fetching images')
     print('Starting Detection')
     detect(images, config)
