@@ -1,3 +1,7 @@
+"""Fetch and parse email alerts from various camera traps.
+
+Edited by Claude Opus 5.5
+"""
 import datetime
 import logging
 from email.utils import parsedate_to_datetime

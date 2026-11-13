@@ -15,6 +15,8 @@ their needs by ensuring the file paths, usernames and passwords, camera
 dictionary, and image classifiers are correct. The .yml file is also
 where one can choose whether they would like email alerts or to send
 the classified images to Earthranger.
+
+Edited by Claude Opus 5.5
 """
 
 # Import local utilities

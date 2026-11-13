@@ -8,6 +8,8 @@ and alert in get_config_info function.Fields defined in this class
 will be the values mapped.The field values must match exactly to
 the config file. Fetch_and_alert, get_images, display and detect_img
 rely on these attribute values.
+
+Edited by Claude Opus 5.5
 """
 
 from dataclasses import dataclass, field
