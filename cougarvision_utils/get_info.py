@@ -54,7 +54,7 @@ class ConfigInfo:
     id_path: str
     password_scraper: str
     post_monthly: bool
-    visualize_output: str
+    visualize_output: bool
     path_to_unlabeled_output: str
     path_to_labeled_output: str
 
@@ -81,7 +81,6 @@ class ConfigInfo:
 @dataclass
 class DisplayInfo:
     """Define values from the config for display."""
-    path_to_unlabeled_output: str
     path_to_labeled_output: str
     save_dir: str
     display_num: int
