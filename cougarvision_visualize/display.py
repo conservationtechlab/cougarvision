@@ -39,7 +39,7 @@ import numpy as np
 import cv2
 from screeninfo import get_monitors
 from cougarvision_utils.get_info import DisplayInfo
-from fetch_and_alert import get_config_info
+from sageranger.unpack_info import get_config_info
 
 
 def get_screen_resolutions():
@@ -72,7 +72,6 @@ def get_recent_images(f_p, num_images):
 
     if not fil:
         return []
-
     # logic only needed locally sorts images but timestamp
     def sort_key_func(file_name):
         try:

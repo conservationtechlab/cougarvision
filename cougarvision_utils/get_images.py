@@ -11,6 +11,35 @@ last_id.txt as well, but it creates a new one if there is not
 one currently present.
 
 Edited by Claude Opus 5.5
+Examples:
+
+    request cameras
+    get list of camaras
+    request <- "cameras"
+    parameters <- ""
+
+    recent photo count
+    request <- "photos/recent/count"
+    parameters <- ""
+
+    get recent photos across cameras
+    request <- "photos/recent"
+    parameters <- "limit=100"
+
+    get photos from specific camera (will need to loop through pages)
+    request <- "photos"
+    parameters <- "page=3&sort_date=desc&camera_id[]=59681"
+
+    get photos from specific camera filtered by date (will need
+    to loop through pages)
+    request <- "photos"
+    parameters <- "page=1&sort_date=desc&camera_id[]=
+    60272&date_start=2022-09-01&date_end=2022-10-07"
+
+    get subscriptions
+    request <- "subscriptions"
+    parameters <- ""
+
 """
 
 import json
@@ -22,36 +51,6 @@ import requests
 import numpy as np
 from cougarvision_utils.fetch_emails import (imap_setup, fetch_emails,
                                            extractAttachments)
-
-# pylint: disable=pointless-string-statement
-"""
-#request examples
-#get list of camaras
-request <- "cameras"
-parameters <- ""
-
-recent photo count
-request <- "photos/recent/count"
-parameters <- ""
-
-get recent photos across cameras
-request <- "photos/recent"
-parameters <- "limit=100"
-
-get photos from specific camera (will need to loop through pages)
-request <- "photos"
-parameters <- "page=3&sort_date=desc&camera_id[]=59681"
-
-get photos from specific camera filtered by date (will need
-to loop through pages)
-request <- "photos"
-parameters <- "page=1&sort_date=desc&camera_id[]=
-60272&date_start=2022-09-01&date_end=2022-10-07"
-
-get subscriptions
-request <- "subscriptions"
-parameters <- ""
-"""
 
 
 def request_strikeforce(username, auth_token, base, request, parameters):
@@ -87,16 +86,11 @@ def request_strikeforce(username, auth_token, base, request, parameters):
             return info
 
         except requests.exceptions.ConnectionError as excpt:
-            logging.warning("Failed to connect attempt: %s error %s",
-                            {attempt + 1},
-                            {excpt})
+            logging.warning("Failed to connect to StrikeForce:%s", str(excpt))
             print(f'Connection Error {attempt + 1}: {excpt}')
             time.sleep(15)  # wait 15 seconds
         except requests.exceptions.Timeout as excpt:
-            logging.warning("Failed to connect to"
-                            " StrikeForce attempt: %s error %s",
-                            {attempt + 1},
-                            {excpt})
+            logging.warning("Timeout error strikeforce: %s", str(excpt))
             print(f'Timeout Error {attempt + 1}: {excpt}')
             time.sleep(15)  # wait 15 seconds
 
@@ -125,7 +119,7 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
     # id_path is the path to the id text file
     path = config.id_path
     # try creating file throw exception if it
-    # does not exist
+    # does not existdatefmt='%Y-%m-%d %H:%M:%S'
     try:
         with open(path, "x", encoding="utf-8") as file:
             file.write(str(0))  # write first ID from sf
@@ -137,8 +131,8 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
         last_id = int(file.read().strip())
 
     photos = []
-# 5 second delay between captures, maximum 12 photos between checks
-# using config object
+    # 5 second delay between captures, maximum 12 photos between checks
+    # using config object
     for account, token in zip(config.username_scraper, config.auth_token):
         data = request_strikeforce(account, token, config.strikeforce_api,
                                    "photos/recent", "limit=12")
@@ -155,7 +149,9 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
                 camera = config.camera_names[photo['relationships']
                                              ['camera']['data']['id']]
             except KeyError:
-                logging.warning('skipped img: no associated cam ID')
+                id_camera = str(photo['id'])
+                logging.warning("skipped img: no associated"
+                                " cam ID for image: %s ", id_camera)
                 continue
 
             image_dir = config.save_dir
@@ -167,7 +163,15 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
             newname += "_" + date_time
             newname += "_" + info['file_thumb_filename']
             # native extension from strikeforce is .JPG.jpeg for some reason
-            stripped_name = newname.replace(".JPG.jpeg", ".jpg")
+            list_endings = [".JPG.jpeg", ".jpg.jpeg",
+                            ".jpeg", ".MP4.jpeg", ".AVI.jpeg"]
+
+            for n in list_endings:
+                if n in newname:
+                    stripped_name = newname.replace(str(n), ".jpg")
+                else:
+                    stripped_name = newname
+
             urllib.request.urlretrieve(info['file_thumb_url'], stripped_name)
             new_photos.append([photo['id'],
                                info['file_thumb_url'], stripped_name])
@@ -175,6 +179,7 @@ def fetch_image_api(config):  # pylint: disable=too-many-locals
     new_photos = np.array(new_photos)
     if len(new_photos) > 0:  # update last image
         new_last = max(new_photos[:, 0])
+
         new_id = str(new_last)
         # write new id to .txt file
         with open(path, "w", encoding="utf-8") as file:
