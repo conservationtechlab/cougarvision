@@ -69,6 +69,21 @@ python3 strikeforcegetcameras.py
 ```
 In this version of CougarVision, all camera names need to be 4 characters long, so if your camera names exceed this length, shorten them to 4 characters within the config directory. 
 
+## Integrating Garde Pro Wifi Halow Cameras
+
+Garde Pro Long Range Trail Cameras can send their photos to the email address used
+when registering the Hub/Cameras. In your account preferences on the App, navigate to 
+'Notifications' and enable email notifications. You will begin receiving images
+from the PIR triggered cameras to your inbox. 
+
+We recommend using a Gmail email, other mail providers have not been tested. Obtain an App key from Gmail and
+input your email and that App key in the config file. 
+
+You will need to also name each of your cameras in the App, following the format of X000, ie, 1 letter and 3 numbers. It can be multiple letters and multiple numbers, but it's key that it starts with a letter for parsing later.
+This camera name is included in the email alert metadata and is the only way to differentiate images taken from different cameras in an alert email, as the emails may bundle photos from different cameras. 
+
+*Emails contain a max of 5 images. If a camera is triggering more than 5 times within a minute, it's possible not all images will send. Be sure to keep this in mind when setting a burst mode for example. 
+
 ## EarthRanger integration
 CougarVision can optionally send detections for a species of interest to their specific camera location in EarthRanger. 
 For this functionality, the er_alerts config must be set to "True". 
