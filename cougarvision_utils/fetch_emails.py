@@ -1,4 +1,10 @@
+"""Fetch and parse email alerts from various camera traps.
+
+Edited by Claude Opus 5.5
+"""
 import datetime
+import logging
+from email.utils import parsedate_to_datetime
 
 import pandas as pd
 import yaml
@@ -19,11 +25,8 @@ def fetch_emails(imap_server, emails, timestamp):
     return messages_group
 
 
-def extractAttachments(messages_group, mail, config_path):
-    with open(config_path, 'r') as stream:
-        config = yaml.safe_load(stream)
-        image_path = config['image_path']
-    df = pd.DataFrame(columns=['file', 'camera', 'time', 'image_id'])
+def extractAttachments(messages_group, mail, image_path):
+    rows = []
     # Loop through each message and append attachment to images array
     for messages in messages_group:
         for (uid, message) in messages:
@@ -47,15 +50,35 @@ def extractAttachments(messages_group, mail, config_path):
                     timestamp = datetime.datetime.strptime(time_string, "%m/%d/%Y  %H:%M:%S")
                 else:
                     timestamp = datetime.datetime.strptime("01/01/2000 01:01:01", "%m/%d/%Y  %H:%M:%S")
+            else:
+                # GardePro: one email can mix cameras, so name/time are read per photo
+                camera_name = picture_id = timestamp = None
 
             for idx, attachment in enumerate(message.attachments):
-                # Create path to save image
-                path = f'{image_path}{camera_name}_{timestamp}_{picture_id}.png'
-                # Save image
+                filename = attachment.get('filename') or ''
+                if not (attachment.get('content-type', '').startswith('image/')
+                        or filename.lower().endswith(('.jpg', '.jpeg', '.png'))):
+                    continue
                 img = Image.open(attachment.get('content'))
-                img.save(path)
+                if camera_name is None:
+                    # GardePro writes the camera name set in the app to EXIF Artist
+                    exif = img.getexif()
+                    cam = str(exif.get(315) or '').strip()
+                    if not cam:
+                        logging.warning('skipped GardePro img %s: no camera name '
+                                        'set in GardePro app', filename)
+                        continue
+                    pid = filename.rsplit('.', 1)[0]
+                    ts = exif.get_ifd(0x8769).get(36867)  # DateTimeOriginal, local
+                    ts = (ts.replace(':', '-', 2) if ts else
+                          parsedate_to_datetime(message.date).strftime('%Y-%m-%d %H:%M:%S'))
+                else:
+                    cam, pid, ts = camera_name, picture_id, timestamp
+                # Create path to save image
+                path = f'{image_path}{cam}_{pid}_{ts}_{idx}.jpg'
+                # Save image
+                img.convert('RGB').save(path)
                 # Append to dataframe
-                df = df.append({'file': path, 'camera_name': camera_name, 'time': timestamp,
-                                'image_id': picture_id}, ignore_index=True)
-                mail.mark_seen(uid)
-    return df
+                rows.append([pid, '', path])
+            mail.mark_seen(uid)
+    return rows

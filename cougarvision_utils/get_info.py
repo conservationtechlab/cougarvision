@@ -8,6 +8,8 @@ in get_config_info function.Fields defined in this class
 will be the values mapped.The field values must match exactly to
 the config file. Fetch_and_alert, get_images, display and detect_img
 rely on these attribute values.
+
+Edited by Claude Opus 5.5
 """
 
 from dataclasses import dataclass, field
@@ -62,6 +64,15 @@ class ConfigInfo:
     classifier_model_load: Any = field(init=False)
     class_list: list = field(init=False)
     detector_model_load: object = field(init=False)
+
+    # image sources: Strikeforce and/or GardePro email
+    use_strikeforce: bool = True
+    use_gardepro: bool = False
+    gardepro_email: str = ''
+    gardepro_password: str = ''
+    gardepro_imap_host: str = 'imap.gmail.com'
+    gardepro_senders: list = field(default_factory=list)
+    gardepro_max_emails: int = 10
 
     def __post_init__(self):
         """Loads classifer and detector models.
